@@ -1,0 +1,32 @@
+.UserLayout{
+    display: flex;
+    width: 100%;
+    height: auto;
+}
+
+
+
+.User-content{
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    background-color: rgb(243, 243, 243);
+    min-height:130vh;
+    justify-content: space-between;
+    overflow-y: auto;
+    padding-top: 100px;
+}
+
+/* .User-content-top{
+    display: flex;
+    flex-direction: column;
+    padding: 0px;
+    flex: 1;
+    width: 100%;
+} */
+
+.content-fill {
+    padding: 30px;
+    max-width: calc(100vw - 60px); /* Tránh tràn */
+    height: 100%;
+}

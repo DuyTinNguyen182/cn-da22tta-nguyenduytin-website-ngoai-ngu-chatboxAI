@@ -1,0 +1,232 @@
+.Header {
+  display: flex;
+  position: fixed;
+  align-items: center;
+  top: 0;
+  left: 0;
+  width: 100%;
+  justify-content: space-between;
+  gap: 20px;
+  height: 80px;
+  z-index: 100;
+  background-color: white;
+  border-bottom: 1px solid rgb(184, 184, 184);
+  /* padding: 0 20px; */
+}
+
+/* Logo */
+.Header_logo {
+  display: flex;
+  align-items: center;
+  margin: 10px;
+}
+
+.Header_logo img {
+  width: 150px;
+  height: auto;
+}
+
+.Header_nav {
+  display: flex;
+  align-items: center;
+  gap: 30px;
+}
+
+.Header_nav a {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 16px;
+  color: black;
+  padding: 10px 15px;
+  border-radius: 5px;
+  transition: 0.3s ease;
+}
+
+.Header_nav_item:hover{
+  background-color: #eee;
+}
+
+.Header_nav_item.active{
+  color: rgb(49, 96, 227);
+}
+
+.Header_nav ion-icon {
+  font-size: 20px;
+}
+
+/* Nút đăng nhập */
+
+.Header_auth_buttons {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  cursor: pointer;
+  justify-content: center;
+  height: 50%;
+  margin: 0 20px;
+  padding: 0 20px;
+  text-decoration: none;
+}
+
+.Login_button,
+.Register_button {
+  padding: 8px 16px;
+  color: white;
+  font-weight: 500;
+  font-size: 15px;
+  border-radius: 15px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.Login_button {
+  border: none;
+  background: linear-gradient(85deg, rgb(49, 66, 111) 32.67%, rgb(73, 91, 141) 131.74%);
+}
+
+.Register_button {
+  background-color: #ffffff;
+  color: rgb(39, 53, 89);
+  border: 1px solid rgb(37, 50, 85);
+}
+
+.Login_button:hover,
+.Register_button:hover {
+  opacity: 0.5;
+}
+
+
+/* Avatar */
+.Header_avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  position: relative;
+  padding: 20px;
+}
+
+.Header_avatar img {
+  cursor: pointer;
+  display: block;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+/* Popup user */
+.Header_avatar_popup {
+  display: flex;
+  flex-direction: column;
+  width: 260px;
+  background-color: white;
+  position: absolute;
+  top: 90px;
+  right: 9px;
+  border-radius: 8px;
+  box-shadow: 0px 0px 15px 0px rgba(0, 0, 0, 0.15);
+  padding: 18px;
+  gap: 5px;
+  z-index: 99;
+}
+
+.Header_avatar_popup::after {
+  position: absolute;
+  top: -5px;
+  right: 23px;
+  content: '';
+  width: 15px;
+  height: 15px;
+  background-color: white;
+  transform: rotate(45deg);
+}
+
+.avatar_popup_name {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.avatar_popup_name > img {
+  display: block;
+  width: 40px;
+  height: 40px;
+  border-radius: 30px;
+}
+
+.avatar_popup_name > div {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  gap: 2px;
+}
+
+.avatar_popup_name > div > div {
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.avatar_popup_name > div > span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: fit-content;
+  background-color: #00CC77;
+  color: white;
+  font-weight: 600;
+  font-size: 10px;
+  border-radius: 10px;
+  padding: 3px 7px;
+}
+
+/* Tùy chọn avatar */
+.avatar_popup_option {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border-top: 1.5px solid rgb(229, 229, 229);
+  padding-top: 15px;
+  cursor: pointer;
+}
+
+.avatar_popup_option > h2 {
+  padding-bottom: 5px;
+  background: var(--Gradient-HC, linear-gradient(85deg, #3d3d9b 32.67%, #6b79e4 131.74%));
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.Header_avatar_popup > a,
+.avatar_popup_option > a {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: black;
+  text-decoration: none;
+  font-weight: 400;
+  padding: 5px;
+  border-radius: 8px;
+}
+
+.Header_avatar_popup > a:hover{
+  background-color: #dedede;
+}
+
+.avatar_popup_option > a:hover{
+  background-color: #dedede;
+}
+
+.Header_avatar_popup > a > ion-icon,
+.Header_avatar_popup > div > a > ion-icon {
+  padding-top: 2px;
+  font-size: 18px;
+}
+
+.avatar_popup_name > div > .bradge-admin {
+  background-color: black;
+}
