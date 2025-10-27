@@ -3,6 +3,7 @@ import { Route, Routes, useLocation } from "react-router-dom";
 import Footer from "../../components/Footer/Footer";
 import Header from "../../components/Header/Header";
 import Home from "./Home/Home";
+import Courses from "./Courses/Courses";
 import "./userLayout.css";
 
 function UserLayout() {
@@ -23,6 +24,7 @@ function UserLayout() {
             </div>
                     <div className="content-fill">
                         <Routes>
+                            <Route path="/courses" element={<Courses/>}/>
                             <Route path="/" element={<Home />} />                                                      
                         </Routes>
                     </div>
