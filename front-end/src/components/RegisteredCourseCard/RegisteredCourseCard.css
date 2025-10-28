@@ -1,0 +1,39 @@
+.registered-course-card {
+  background-color: #edf4ff;
+  border-radius: 12px !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.registered-course-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+}
+
+.registered-course-card p {
+  margin: 6px 0;
+  color: #444444;
+  font-size: 14px;
+}
+
+.registered-course-card b {
+  color: #222;
+}
+
+.card-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.card-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 16px;
+  border-top: 1px solid #d9e6fa;
+  padding-top: 16px;
+}

@@ -4,6 +4,8 @@ import Footer from "../../components/Footer/Footer";
 import Header from "../../components/Header/Header";
 import Home from "./Home/Home";
 import Courses from "./Courses/Courses";
+import RegisteredCourses from "./RegisteredCourses/RegisteredCourses";
+import UserAcc from "./UserAccount/UserAccount";
 import "./userLayout.css";
 
 function UserLayout() {
@@ -24,8 +26,10 @@ function UserLayout() {
             </div>
                     <div className="content-fill">
                         <Routes>
+                            <Route path="/" element={<Home />} />     
                             <Route path="/courses" element={<Courses/>}/>
-                            <Route path="/" element={<Home />} />                                                      
+                            <Route path="/my-courses/:id" element={<RegisteredCourses />} />
+                            <Route path="/user/account/:id" element={<UserAcc />} />                                                                             
                         </Routes>
                     </div>
                 <Footer />

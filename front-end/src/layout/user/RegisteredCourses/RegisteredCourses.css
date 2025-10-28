@@ -1,0 +1,9 @@
+.registered-courses-page {
+  padding: 0px 24px;
+}
+
+.registered-courses-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
+  gap: 20px;
+}
