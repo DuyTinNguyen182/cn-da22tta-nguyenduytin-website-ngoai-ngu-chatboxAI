@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import "./Header.css";
 
-import logo from "../../imgs/logo.png";
+import logo from "../../imgs/logo_h.png";
 import apiClient from "../../api/axiosConfig";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 
