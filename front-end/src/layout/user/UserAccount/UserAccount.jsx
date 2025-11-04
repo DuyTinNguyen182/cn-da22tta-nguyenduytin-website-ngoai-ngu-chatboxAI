@@ -26,7 +26,7 @@ function UserAcc() {
   const [isAvatarChanged, setIsAvatarChanged] = useState(false);
   const [genderEdited, setGenderEdited] = useState(false);
 
-  const { state } = useAuth();
+  const { state, dispatch } = useAuth();
   const { currentUser } = state;
   const userId = currentUser?._id;
 
@@ -119,8 +119,23 @@ function UserAcc() {
       ...(!genderEdited && { gender: values.gender }), // Chỉ gửi gender nếu chưa bị sửa
     };
 
+    // try {
+    //   await apiClient.put(`/user/${userId}`, updatedUserData);
+    //   successMessage();
+    // } catch (error) {
+    //   errorMessage(error.response?.data?.message || "Cập nhật thất bại");
+    // } finally {
+    //   setSpinning(false);
+    // }
     try {
-      await apiClient.put(`/user/${userId}`, updatedUserData);
+      // Giả sử API trả về thông tin user đã được cập nhật
+      const response = await apiClient.put(`/user/${userId}`, updatedUserData);
+      const updatedUserFromDB = response.data;
+
+      // 2. DISPATCH HÀNH ĐỘNG ĐỂ CẬP NHẬT CONTEXT TOÀN CỤC
+      // Đây là bước quan trọng nhất!
+      dispatch({ type: "UPDATE_USER_SUCCESS", payload: updatedUserFromDB });
+
       successMessage();
     } catch (error) {
       errorMessage(error.response?.data?.message || "Cập nhật thất bại");
@@ -132,7 +147,7 @@ function UserAcc() {
   // Hàm xử lý thay đổi file upload
   const handleFileChange = ({ fileList: newFileList }) => {
     setFileList(newFileList);
-    if (newFileList.length > 0) {
+    if (newFileList.length > 0 && newFileList[0].originFileObj) {
       setIsAvatarChanged(true);
     } else {
       setIsAvatarChanged(false);
@@ -155,7 +170,14 @@ function UserAcc() {
         style={{ maxWidth: "500px", margin: "0 auto", width: "100%" }}
         onFinish={onFinish}
       >
-        <div style={{ textAlign: "center", marginBottom: "20px", fontWeight: 500, fontSize: 24 }}>
+        <div
+          style={{
+            textAlign: "center",
+            marginBottom: "20px",
+            fontWeight: 500,
+            fontSize: 24,
+          }}
+        >
           Thông tin tài khoản
         </div>
 

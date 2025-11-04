@@ -19,6 +19,11 @@ const authReducer = (state, action) => {
       return { currentUser: action.payload, loading: false };
     case 'AUTH_FAILURE':
       return { currentUser: null, loading: false };
+    case 'UPDATE_USER_SUCCESS':
+      return {
+        ...state, // Giữ lại các state khác như 'loading'
+        currentUser: action.payload, // Ghi đè currentUser bằng dữ liệu mới
+      };
     default:
       return state;
   }

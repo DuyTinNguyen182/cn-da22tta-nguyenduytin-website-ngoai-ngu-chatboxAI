@@ -9,7 +9,7 @@ function Footer(){
                 <h2>Trung tâm ngoại ngữ DREAM</h2>
                 <div>Địa chỉ: Số 126, Nguyễn Thiện Thành, Phường Hòa Thuận, Tỉnh Vĩnh Long</div>
                 <img src={logo} alt=""/>
-                <p>Copyright by DuyTinNguyen © 2025. All right reserved.</p>
+                <p>Copyright by DREAM © 2025. All right reserved.</p>
             </div>
             <div className='Footer_right'>
                 <div>Liên hệ:</div>
