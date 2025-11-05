@@ -1,19 +1,16 @@
 import { useEffect, useState } from "react";
 import {
-  PieChartOutlined,
-  UserOutlined,
-  BookOutlined,
-  TeamOutlined,
-  ExportOutlined,
-  GlobalOutlined,
-  BarChartOutlined,
-  ReadOutlined,
+  PieChartOutlined, UserOutlined, BookOutlined, TeamOutlined,
+  ExportOutlined, GlobalOutlined, BarChartOutlined, ReadOutlined,
 } from "@ant-design/icons";
-import { Flex, Layout, Menu } from "antd";
-import { Link, Route, Routes, useLocation, useNavigate, Navigate } from "react-router-dom";
-import axios from "axios";
+import { Flex, Layout, Menu, Spin, Result, Button } from "antd";
+import { Link, Route, Routes, useLocation, Navigate } from "react-router-dom";
+
+import { useAuth } from "../../context/AuthContext";
 
 import Overview from "./Overview/Overview";
+import UserManager from "./UserManager/UserManager";
+import UpdateUser from "./UserManager/UpdateUser";
 
 const { Sider } = Layout;
 
@@ -21,76 +18,71 @@ function getItem(label, key, icon, children) {
   return { key, icon, children, label };
 }
 
-const items = [
-  getItem(<Link to="/admin/overview">Tổng quan</Link>, "overview", <PieChartOutlined />),
-  getItem(<Link to="/admin/users">Quản lý người dùng</Link>, "users", <UserOutlined />),
-  getItem(<Link to="/admin/languages">Quản lý ngôn ngữ</Link>, "languages", <GlobalOutlined />),
-  getItem(<Link to="/admin/languageslevel">Quản lý trình độ</Link>, "languageslevel", <BarChartOutlined />),
-  getItem(<Link to="/admin/teachers">Quản lý giảng viên</Link>, "teachers", <TeamOutlined />),
-  getItem(<Link to="/admin/courses">Quản lý khóa học</Link>, "courses", <ReadOutlined />),
-  getItem(<Link to="/admin/registercourses">Quản lý đăng ký học</Link>, "registercourses", <BookOutlined />),
+const menuItems = [
+  getItem(<Link to="overview">Tổng quan</Link>, "overview", <PieChartOutlined />),
+  getItem(<Link to="users">Quản lý người dùng</Link>, "users", <UserOutlined />),
+  getItem(<Link to="languages">Quản lý ngôn ngữ</Link>, "languages", <GlobalOutlined />),
+  getItem(<Link to="languageslevel">Quản lý trình độ</Link>, "languageslevel", <BarChartOutlined />),
+  getItem(<Link to="teachers">Quản lý giảng viên</Link>, "teachers", <TeamOutlined />),
+  getItem(<Link to="courses">Quản lý khóa học</Link>, "courses", <ReadOutlined />),
+  getItem(<Link to="registercourses">Quản lý đăng ký học</Link>, "registercourses", <BookOutlined />),
 ];
 
-const adminLayout = () => {
-  const navigate = useNavigate();
+const AdminLayout = () => {
   const location = useLocation();
-
   const [collapsed, setCollapsed] = useState(false);
-  const [currentUser, setCurrentUser] = useState();
 
-  // Xác định tab active theo URL
-  const activeTab =
-    location.pathname.startsWith("/admin/users") ? "users" :
-    location.pathname.startsWith("/admin/courses") ? "courses" :
-    location.pathname.startsWith("/admin/teachers") ? "teachers" :
-    location.pathname.startsWith("/admin/registercourses") ? "registercourses" :
-    location.pathname.startsWith("/admin/languageslevel") ? "languageslevel" :
-    location.pathname.startsWith("/admin/languages") ? "languages" :
-    "overview";
+  const { state } = useAuth();
+  const { currentUser, loading } = state;
 
-  const fetchUserData = () => {
-    axios
-      .get(`http://localhost:3005/api/user/info`, { withCredentials: true })
-      .then((response) => {
-        if (response.data.role !== "Admin") {
-          navigate("/");
+  const pathSnippets = location.pathname.split('/').filter(i => i);
+  const activeTab = pathSnippets.length > 1 ? pathSnippets[1] : 'overview';
+
+  if (loading) {
+    return <Spin fullscreen tip="Đang kiểm tra quyền truy cập..." />;
+  }
+
+  if (!currentUser || currentUser.role !== 'Admin') {
+    return (
+      <Result
+        status="403"
+        title="403 - Forbidden"
+        subTitle="Xin lỗi, bạn không có quyền truy cập vào trang này."
+        extra={
+          <Button type="primary">
+            <Link to="/">Quay về Trang chủ</Link>
+          </Button>
         }
-        setCurrentUser(response.data);
-      })
-      .catch(() => navigate("/"));
-  };
-
-  useEffect(() => {
-    fetchUserData();
-  }, []);
+      />
+    );
+  }
 
   return (
-    <div>
-      {currentUser && (
-        <Layout style={{ minHeight: "100vh" }}>
-          <Sider collapsible collapsed={collapsed} onCollapse={setCollapsed} width={260}>
-            <Flex
-              className="demo-logo-vertical"
-              style={{ color: "white", padding: "20px" }}
-              justify={!collapsed ? "space-between" : "center"}
-            >
-              {!collapsed && <h2>DREAM ADMIN</h2>}
-              <Link to="/" target="_blank">
-                <ExportOutlined style={{ color: "white" }} />
-              </Link>
-            </Flex>
-            <Menu theme="dark" selectedKeys={[activeTab]} mode="inline" items={items} />
-          </Sider>
-          <Layout style={{ padding: "20px 30px", height: "100vh", overflowY: "auto" }}>
-            <Routes>
-              <Route path="/admin" element={<Navigate to="/admin/overview" replace />} />
-              <Route path="overview" element={<Overview />} />             
-            </Routes>
-          </Layout>
-        </Layout>
-      )}
-    </div>
+    <Layout style={{ minHeight: "100vh" }}>
+      <Sider collapsible collapsed={collapsed} onCollapse={setCollapsed} width={260}>
+        <Flex
+          className="admin-logo"
+          style={{ color: "white", padding: "20px", height: "64px" }}
+          align="center"
+          justify={!collapsed ? "space-between" : "center"}
+        >
+          {!collapsed && <h2>DREAM ADMIN</h2>}
+          <Link to="/" target="_blank" title="Xem trang người dùng">
+            <ExportOutlined style={{ color: "white", fontSize: '16px' }} />
+          </Link>
+        </Flex>
+        <Menu theme="dark" selectedKeys={[activeTab]} mode="inline" items={menuItems} />
+      </Sider>
+      <Layout style={{ padding: "20px 30px", height: "100vh", overflowY: "auto" }}>
+        <Routes>
+          <Route index element={<Navigate to="overview" replace />} />
+          <Route path="overview" element={<Overview />} />
+          <Route path="users" element={<UserManager />} />
+          <Route path="users/update/:id" element={<UpdateUser />} />
+        </Routes>
+      </Layout>
+    </Layout>
   );
 };
 
-export default adminLayout;
+export default AdminLayout;
