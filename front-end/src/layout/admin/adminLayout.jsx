@@ -11,6 +11,8 @@ import { useAuth } from "../../context/AuthContext";
 import Overview from "./Overview/Overview";
 import UserManager from "./UserManager/UserManager";
 import UpdateUser from "./UserManager/UpdateUser";
+import LanguageManager from "./LanguageManager/LanguageManager";
+import UpdateLanguage from "./LanguageManager/UpdateLanguage";
 
 const { Sider } = Layout;
 
@@ -79,6 +81,8 @@ const AdminLayout = () => {
           <Route path="overview" element={<Overview />} />
           <Route path="users" element={<UserManager />} />
           <Route path="users/update/:id" element={<UpdateUser />} />
+          <Route path="languages" element={<LanguageManager />} />
+          <Route path="languages/update/:id" element={<UpdateLanguage />} />
         </Routes>
       </Layout>
     </Layout>
