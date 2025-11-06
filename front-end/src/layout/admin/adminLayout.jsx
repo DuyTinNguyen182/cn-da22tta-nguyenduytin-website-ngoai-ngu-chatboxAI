@@ -13,6 +13,8 @@ import UserManager from "./UserManager/UserManager";
 import UpdateUser from "./UserManager/UpdateUser";
 import LanguageManager from "./LanguageManager/LanguageManager";
 import UpdateLanguage from "./LanguageManager/UpdateLanguage";
+import LanguageLevelManager from "./LanguageLevelManager/LanguageLevelManager";
+import UpdateLanguageLevel from "./LanguageLevelManager/UpdateLanguageLevel";
 
 const { Sider } = Layout;
 
@@ -83,6 +85,8 @@ const AdminLayout = () => {
           <Route path="users/update/:id" element={<UpdateUser />} />
           <Route path="languages" element={<LanguageManager />} />
           <Route path="languages/update/:id" element={<UpdateLanguage />} />
+          <Route path="languageslevel" element={<LanguageLevelManager />} />
+          <Route path="languageslevel/update/:id" element={<UpdateLanguageLevel />} />
         </Routes>
       </Layout>
     </Layout>

@@ -130,7 +130,7 @@ function LanguageManager() {
       setSelectedRowKeys([]);
       await fetchData();
     } catch (error) {
-      errorMessage(error.response?.data?.message || "Xóa ngôn ngữ thất bại");
+      errorMessage("Không thể xóa. Có khóa học hoặc giảng viên đang sử dụng ngôn ngữ này.");
     } finally {
       setOpenDeleteConfirm(false);
       setSpinning(false);
