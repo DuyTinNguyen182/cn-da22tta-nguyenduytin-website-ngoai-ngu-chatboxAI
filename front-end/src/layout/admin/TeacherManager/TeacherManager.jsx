@@ -48,7 +48,7 @@ function TeacherManager() {
     {
       title: "Họ và tên",
       dataIndex: "full_name",
-      render: (text) => <h4 style={{ fontWeight: 600 }}>{text}</h4>,
+      render: (text) => <p style={{ fontWeight: 600 }}>{text}</p>,
     },
     {
       title: "Email",

@@ -1,34 +1,21 @@
-// services/courseService.js
 const Course = require('../models/Course');
 
 const getAll = async () => {
-  const courses = await Course.find()
+  const courses = await Course.find({})
     .populate('language_id')
     .populate('languagelevel_id')
     .populate('teacher_id');
 
-  return courses.map(course => ({
-    id: course._id.toString(),
-    courseid: course.courseid,
-
-    language_id: course.language_id?._id.toString(),
-    language: course.language_id?.language || '',
-
-    languagelevel_id: course.languagelevel_id?._id.toString(),
-    languagelevel: course.languagelevel_id?.language_level || '',
-
-    teacher_id: course.teacher_id?._id.toString(),
-    teacher_name: course.teacher_id?.full_name || '',
-
-    Start_Date: course.Start_Date,
-    Number_of_periods: course.Number_of_periods,
-    Tuition: course.Tuition,
-    Description: course.Description
-  }));
+  return courses;
 };
 
 const getById = async (id) => {
-  return await Course.findById(id);
+  const course = await Course.findById(id)
+    .populate('language_id')
+    .populate('languagelevel_id')
+    .populate('teacher_id');
+    
+  return course;
 };
 
 const generateUniqueCourseId = async () => {
