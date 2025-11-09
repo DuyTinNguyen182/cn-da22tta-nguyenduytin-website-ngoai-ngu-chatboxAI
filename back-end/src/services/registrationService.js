@@ -56,6 +56,21 @@ const cancelRegistration = async (id) => {
   return !!deleted;
 };
 
+const deleteManyRegistrations = async (ids) => {
+  // Kiểm tra xem có bản ghi nào đã thanh toán trong danh sách không
+  const paidRegistrations = await RegistrationCourse.countDocuments({ 
+    _id: { $in: ids }, 
+    isPaid: true 
+  });
+
+  if (paidRegistrations > 0) {
+    throw new Error("Không thể xóa các đăng ký đã được thanh toán.");
+  }
+
+  // Nếu không có bản ghi nào đã thanh toán, tiến hành xóa
+  return await RegistrationCourse.deleteMany({ _id: { $in: ids } });
+};
+
 // Cập nhật trạng thái / điểm số
 const updateRegistration = async (id, data) => {
   const updated = await RegistrationCourse.findByIdAndUpdate(id, data, { new: true });
@@ -87,6 +102,7 @@ module.exports = {
   getAllRegistrations,
   getRegistrationById,
   cancelRegistration,
+  deleteManyRegistrations,
   updateRegistration,
   updatePaymentStatus,
 };

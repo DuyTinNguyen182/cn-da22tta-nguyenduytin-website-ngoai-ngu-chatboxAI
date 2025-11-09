@@ -17,6 +17,8 @@ router.get("/course/:courseId", registrationController.getUsersByCourse);
 
 router.get("/:id", registrationController.getRegistrationById);
 
+router.delete('/multiple', authMiddleware.authenticate, authMiddleware.isAdmin, registrationController.deleteMultipleRegistrations);
+
 // Hủy đăng ký theo id đăng ký
 router.delete("/:id", registrationController.cancelRegistration);
 

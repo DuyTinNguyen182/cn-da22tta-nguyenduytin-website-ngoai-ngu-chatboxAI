@@ -19,6 +19,8 @@ import TeacherManager from "./TeacherManager/TeacherManager";
 import UpdateTeacher from "./TeacherManager/UpdateTeacher";
 import CourseManager from "./CourseManager/CourseManager";
 import UpdateCourse from "./CourseManager/UpdateCourse";
+import CourseRegistrationManager from "./CourseRegistrationManager/CourseRegistrationManager";
+import UpdateCourseRegistration from "./CourseRegistrationManager/UpdateCourseRegistration";
 
 const { Sider } = Layout;
 
@@ -95,6 +97,8 @@ const AdminLayout = () => {
           <Route path="teachers/update/:id" element={<UpdateTeacher />} />
           <Route path="courses" element={<CourseManager />} />
           <Route path="courses/update/:id" element={<UpdateCourse />} />
+          <Route path="registercourses" element={<CourseRegistrationManager />} />
+          <Route path="registercourses/update/:registrationId" element={<UpdateCourseRegistration />} />
         </Routes>
       </Layout>
     </Layout>

@@ -101,6 +101,25 @@ const cancelRegistration = async (req, res) => {
     res.status(500).json({ message: "Lỗi server", error: err.message });
   }
 };
+const deleteMultipleRegistrations = async (req, res) => {
+  try {
+    const { registrationIds } = req.body;
+    if (!Array.isArray(registrationIds) || registrationIds.length === 0) {
+      return res.status(400).json({ message: "registrationIds phải là một mảng không rỗng." });
+    }
+
+    for (const id of registrationIds) {
+        if (!isValidObjectId(id)) {
+            return res.status(400).json({ message: `ID không hợp lệ: ${id}` });
+        }
+    }
+
+    await registrationService.deleteManyRegistrations(registrationIds);
+    res.json({ message: "Đã xóa các đăng ký thành công" });
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+};
 
 // Cập nhật đăng ký (status/score)
 const updateRegistration = async (req, res) => {
@@ -166,6 +185,7 @@ module.exports = {
   getAllRegistrations,
   getRegistrationById,
   cancelRegistration,
+  deleteMultipleRegistrations,
   updateRegistration,
   processUserPayment,
   confirmPaymentByAdmin,
