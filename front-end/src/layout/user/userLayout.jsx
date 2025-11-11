@@ -6,6 +6,7 @@ import Home from "./Home/Home";
 import Courses from "./Courses/Courses";
 import RegisteredCourses from "./RegisteredCourses/RegisteredCourses";
 import UserAcc from "./UserAccount/UserAccount";
+import Chatbot from "../../components/Chatbot/Chatbot";
 import "./userLayout.css";
 
 function UserLayout() {
@@ -31,6 +32,7 @@ function UserLayout() {
                             <Route path="/my-courses/:id" element={<RegisteredCourses />} />
                             <Route path="/user/account/:id" element={<UserAcc />} />                                                                             
                         </Routes>
+                        <Chatbot />
                     </div>
                 <Footer />
             </div>

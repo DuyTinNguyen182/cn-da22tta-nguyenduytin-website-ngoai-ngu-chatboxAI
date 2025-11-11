@@ -1,17 +1,23 @@
-// src/components/CourseCard/CourseCard.jsx
-
 import React from 'react';
 import './CourseCard.css';
 
 const CourseCard = ({ course, onDetailClick, onRegisterClick }) => {
+  if (!course) {
+    return null;
+  }
+
+  const languageName = course.language_id?.language;
+  const levelName = course.languagelevel_id?.language_level;
+  const teacherName = course.teacher_id?.full_name;
+
   return (
     <div className="course-card">
       <div className="top-half">
         <div className="language">
-          KHÓA HỌC {course.language?.toUpperCase() || "CHƯA RÕ"}
+          KHÓA HỌC {languageName?.toUpperCase() || "CHƯA RÕ"}
         </div>
         <div className="level">
-          {course.languagelevel?.toUpperCase() || "CHƯA RÕ"}
+          {levelName?.toUpperCase() || "CHƯA RÕ"}
         </div>
       </div>
 
@@ -20,7 +26,7 @@ const CourseCard = ({ course, onDetailClick, onRegisterClick }) => {
           <div>
             <ion-icon name="caret-forward-outline"></ion-icon> Ngày bắt
             đầu:{" "}
-            {new Date(course.Start_Date).toLocaleDateString("vi-VN")}
+            {course.Start_Date ? new Date(course.Start_Date).toLocaleDateString("vi-VN") : 'N/A'}
           </div>
           <div>
             <ion-icon name="pie-chart"></ion-icon> Số tiết:{" "}
@@ -32,7 +38,7 @@ const CourseCard = ({ course, onDetailClick, onRegisterClick }) => {
           </div>
           <div>
             <ion-icon name="person"></ion-icon> Giảng viên:{" "}
-            {course.teacher_name || "Đang cập nhật"}
+            {teacherName || "Đang cập nhật"}
           </div>
         </div>
         <div className="action-buttons">
@@ -44,7 +50,7 @@ const CourseCard = ({ course, onDetailClick, onRegisterClick }) => {
           </button>
           <button
             className="sign-up-course"
-            onClick={() => onRegisterClick(course.id)}
+            onClick={() => onRegisterClick(course._id)} 
           >
             Đăng ký
           </button>
