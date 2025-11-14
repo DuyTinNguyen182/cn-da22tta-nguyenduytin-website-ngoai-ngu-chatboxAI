@@ -1,7 +1,8 @@
-import React from 'react';
-import './CourseCard.css';
+import React from "react";
+import "./CourseCard.css";
+import { Link } from 'react-router-dom';
 
-const CourseCard = ({ course, onDetailClick, onRegisterClick }) => {
+const CourseCard = ({ course, onRegisterClick }) => {
   if (!course) {
     return null;
   }
@@ -16,17 +17,16 @@ const CourseCard = ({ course, onDetailClick, onRegisterClick }) => {
         <div className="language">
           KHÓA HỌC {languageName?.toUpperCase() || "CHƯA RÕ"}
         </div>
-        <div className="level">
-          {levelName?.toUpperCase() || "CHƯA RÕ"}
-        </div>
+        <div className="level">{levelName?.toUpperCase() || "CHƯA RÕ"}</div>
       </div>
 
       <div className="bottom-half">
         <div className="course-description">
           <div>
-            <ion-icon name="caret-forward-outline"></ion-icon> Ngày bắt
-            đầu:{" "}
-            {course.Start_Date ? new Date(course.Start_Date).toLocaleDateString("vi-VN") : 'N/A'}
+            <ion-icon name="caret-forward-outline"></ion-icon> Ngày bắt đầu:{" "}
+            {course.Start_Date
+              ? new Date(course.Start_Date).toLocaleDateString("vi-VN")
+              : "N/A"}
           </div>
           <div>
             <ion-icon name="pie-chart"></ion-icon> Số tiết:{" "}
@@ -42,15 +42,15 @@ const CourseCard = ({ course, onDetailClick, onRegisterClick }) => {
           </div>
         </div>
         <div className="action-buttons">
-          <button
-            className="properties-course"
-            onClick={() => onDetailClick(course)}
+          <Link
+            to={`/courses/${course._id}`}
+            className="properties-course-link"
           >
             Chi tiết
-          </button>
+          </Link>
           <button
             className="sign-up-course"
-            onClick={() => onRegisterClick(course._id)} 
+            onClick={() => onRegisterClick(course._id)}
           >
             Đăng ký
           </button>

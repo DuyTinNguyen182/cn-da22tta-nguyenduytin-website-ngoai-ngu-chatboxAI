@@ -1,14 +1,15 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Spin, message, Button, Select, Space } from "antd";
 import { useAuth } from "../../../context/AuthContext";
 import apiClient from "../../../api/axiosConfig";
-import CourseDetailModal from "../../../components/CourseDetailModal/CourseDetailModal";
 import CourseCard from "../../../components/CourseCard/CourseCard";
 
 const { Option } = Select;
 
 function Courses() {
-  const [selectedCourse, setSelectedCourse] = useState(null);
+  const navigate = useNavigate();
+  // const [selectedCourse, setSelectedCourse] = useState(null);
   const [allCourses, setAllCourses] = useState([]);
   const [languages, setLanguages] = useState([]);
   const [spinning, setSpinning] = useState(true);
@@ -36,6 +37,9 @@ function Courses() {
         course_id: courseId,
       });
       successMessage("Đăng ký thành công!");
+      setTimeout(() => {
+        navigate(`/my-courses/${userId}`);
+      }, 1000);
     } catch (error) {
       errorMessage(error.response?.data?.message || "Đăng ký thất bại.");
     }
@@ -50,16 +54,19 @@ function Courses() {
       const uniqueLanguages = [
         ...new Map(
           courses
-            .filter(c => c.language_id)
+            .filter((c) => c.language_id)
             .map((c) => [
               c.language_id._id,
               { _id: c.language_id._id, language: c.language_id.language },
             ])
         ).values(),
       ];
-      
-      setLanguages(uniqueLanguages.sort((a,b) => a.language.localeCompare(b.language, 'vi')));
 
+      setLanguages(
+        uniqueLanguages.sort((a, b) =>
+          a.language.localeCompare(b.language, "vi")
+        )
+      );
     } catch (error) {
       errorMessage("Không thể tải dữ liệu khóa học");
     } finally {
@@ -72,8 +79,10 @@ function Courses() {
   }, []);
 
   const filteredCourses = allCourses.filter((course) => {
-    if (selectedLanguage && course.language_id?._id !== selectedLanguage) return false;
-    if (selectedLevel && course.languagelevel_id?._id !== selectedLevel) return false;
+    if (selectedLanguage && course.language_id?._id !== selectedLanguage)
+      return false;
+    if (selectedLevel && course.languagelevel_id?._id !== selectedLevel)
+      return false;
     return true;
   });
 
@@ -83,20 +92,31 @@ function Courses() {
   };
 
   if (spinning) {
-      return <Spin fullscreen tip="Đang tải danh sách khóa học..."/>
+    return <Spin fullscreen tip="Đang tải danh sách khóa học..." />;
   }
 
   return (
     <div className="allcourses-page">
       {contextHolder}
-      <div className="filters" style={{ marginBottom: "20px", display: "flex", alignItems: "center", gap: "15px" }}>
+      <div
+        className="filters"
+        style={{
+          marginBottom: "20px",
+          display: "flex",
+          alignItems: "center",
+          gap: "15px",
+        }}
+      >
         <Space wrap>
           <Select
             allowClear
             style={{ minWidth: 200 }}
             placeholder="Lọc theo ngôn ngữ"
             value={selectedLanguage}
-            onChange={(value) => { setSelectedLanguage(value); setSelectedLevel(null); }}
+            onChange={(value) => {
+              setSelectedLanguage(value);
+              setSelectedLevel(null);
+            }}
           >
             {languages.map((lang) => (
               <Option key={lang._id} value={lang._id}>
@@ -113,11 +133,20 @@ function Courses() {
             onChange={setSelectedLevel}
             disabled={!selectedLanguage}
           >
-            {[...new Map(allCourses
-                .filter((c) => c.language_id?._id === selectedLanguage && c.languagelevel_id)
-                .map(c => [c.languagelevel_id._id, c.languagelevel_id])
-            ).values()].map(level => (
-                <Option key={level._id} value={level._id}>{level.language_level}</Option>
+            {[
+              ...new Map(
+                allCourses
+                  .filter(
+                    (c) =>
+                      c.language_id?._id === selectedLanguage &&
+                      c.languagelevel_id
+                  )
+                  .map((c) => [c.languagelevel_id._id, c.languagelevel_id])
+              ).values(),
+            ].map((level) => (
+              <Option key={level._id} value={level._id}>
+                {level.language_level}
+              </Option>
             ))}
           </Select>
 
@@ -139,7 +168,7 @@ function Courses() {
                 <CourseCard
                   key={course._id}
                   course={course}
-                  onDetailClick={setSelectedCourse}
+                  // onDetailClick={setSelectedCourse}
                   onRegisterClick={handleRegister}
                 />
               ))}
@@ -148,10 +177,10 @@ function Courses() {
         );
       })}
 
-      <CourseDetailModal
+      {/* <CourseDetailModal
         course={selectedCourse}
         onClose={() => setSelectedCourse(null)}
-      />
+      /> */}
     </div>
   );
 }

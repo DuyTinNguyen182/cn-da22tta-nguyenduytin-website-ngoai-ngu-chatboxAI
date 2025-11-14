@@ -58,18 +58,22 @@
   margin: 10px;
 }
 
-.action-buttons button {
+.action-buttons .sign-up-course,
+.action-buttons .properties-course-link {
   flex: 1;
   padding: 10px;
-  border: none;
   border-radius: 5px;
   background-color: white;
   color: blue;
   font-weight: bold;
   cursor: pointer;
   font-size: 17px;
+  text-align: center;
+  text-decoration: none;
+  transition: all 0.2s ease;
 }
 
-.action-buttons button:hover {
+.action-buttons .sign-up-course:hover,
+.action-buttons .properties-course-link:hover {
   background-color: #eee;
 }

@@ -1,0 +1,47 @@
+.course-detail-page {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.back-button {
+  margin-bottom: 25px;
+}
+
+.course-title {
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 30px;
+  border-bottom: 2px solid #f0f0f0;
+  padding-bottom: 15px;
+}
+
+.course-content-wrapper {
+  display: flex;
+  gap: 30px;
+}
+
+.course-description-panel {
+  flex: 2; /* Chiếm 2/3 không gian */
+}
+
+.course-description-panel h2 {
+    font-size: 22px;
+    margin-bottom: 15px;
+}
+
+.course-description-panel p {
+    font-size: 16px;
+    line-height: 1.8;
+}
+
+.course-info-panel {
+  flex: 1; /* Chiếm 1/3 không gian */
+  display: flex;
+  flex-direction: column;
+}
+
+.register-button {
+  margin-top: 25px;
+  width: 100%;
+}

@@ -5,6 +5,7 @@ import AdminLayout from "./layout/admin/adminLayout";
 import Register from "./layout/user/Logup/Logup";
 import Login from "./layout/user/Login/Login";
 import ScrollToTopButton from "./components/ScrollToTopButton";
+import ScrollToTop from "./components/ScrollToTop";
 
 import AuthProvider from "./context/AuthContext";
 
@@ -12,6 +13,7 @@ function App() {
   return (
     <AuthProvider>
       <Router>
+        <ScrollToTop />
         <Routes>
           <Route path="/register" element={<Register />} />
           <Route path="/login" element={<Login />} />

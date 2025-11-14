@@ -4,6 +4,7 @@ import Footer from "../../components/Footer/Footer";
 import Header from "../../components/Header/Header";
 import Home from "./Home/Home";
 import Courses from "./Courses/Courses";
+import CourseDetail from "./CourseDetail/CourseDetail";
 import RegisteredCourses from "./RegisteredCourses/RegisteredCourses";
 import UserAcc from "./UserAccount/UserAccount";
 import Chatbot from "../../components/Chatbot/Chatbot";
@@ -29,6 +30,7 @@ function UserLayout() {
                         <Routes>
                             <Route path="/" element={<Home />} />     
                             <Route path="/courses" element={<Courses/>}/>
+                            <Route path="/courses/:courseId" element={<CourseDetail />} />
                             <Route path="/my-courses/:id" element={<RegisteredCourses />} />
                             <Route path="/user/account/:id" element={<UserAcc />} />                                                                             
                         </Routes>

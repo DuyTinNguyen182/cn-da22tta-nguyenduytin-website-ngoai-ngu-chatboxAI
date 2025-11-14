@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import banner from "../../../imgs/banner.png";
 import banner2 from "../../../imgs/banner2.png";
 import banner3 from "../../../imgs/banner3.png";
@@ -9,11 +9,11 @@ import { useAuth } from "../../../context/AuthContext";
 
 import apiClient from "../../../api/axiosConfig";
 
-import CourseDetailModal from "../../../components/CourseDetailModal/CourseDetailModal";
 import CourseCard from "../../../components/CourseCard/CourseCard";
 
 function Home() {
-  const [selectedCourse, setSelectedCourse] = useState(null);
+  const navigate = useNavigate();
+  // const [selectedCourse, setSelectedCourse] = useState(null);
   const [featuredCourses, setFeaturedCourses] = useState([]);
   const [spinning, setSpinning] = useState(false);
 
@@ -36,20 +36,23 @@ function Home() {
       content: msg,
     });
   };
-  
+
   const handleRegister = async (courseId) => {
     if (!userId) {
       errorMessage("Hãy đăng nhập để tiếp tục!");
       return;
     }
     try {
-      const response = await apiClient.post(
-        "/registration",
-        { user_id: userId, course_id: courseId }
-      );
+      const response = await apiClient.post("/registration", {
+        user_id: userId,
+        course_id: courseId,
+      });
 
       if (response.status === 201) {
         successMessage();
+        setTimeout(() => {
+          navigate(`/my-courses/${userId}`);
+        }, 1000);
       } else {
         errorMessage();
       }
@@ -105,17 +108,17 @@ function Home() {
             <CourseCard
               key={course.id}
               course={course}
-              onDetailClick={setSelectedCourse}
+              // onDetailClick={setSelectedCourse}
               onRegisterClick={handleRegister}
             />
           ))}
         </div>
 
         {/* Modal chi tiết */}
-        <CourseDetailModal
+        {/* <CourseDetailModal
           course={selectedCourse}
           onClose={() => setSelectedCourse(null)}
-        />
+        /> */}
       </section>
     </div>
   );
