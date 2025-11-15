@@ -18,15 +18,15 @@ function Chatbot() {
 
     // Các câu hỏi gợi ý
     const suggestionQuestions = [
-        "Khóa học Tiếng Anh có những cấp độ nào?",
-        "Học phí khóa học Tiếng Trung là bao nhiêu?",
-        "Khóa học Tiếng Pháp kéo dài trong bao lâu?",
+        "Khóa học Tiếng Anh kéo dài trong bao lâu?",
+        "Khóa học Tiếng Hàn có những cấp độ nào?",
+        "Học phí khóa học Tiếng Nhật N1?",
     ];
 
     useEffect(() => {
         const welcomeMessage = {
             sender: 'bot',
-            text: `Xin chào ${currentUser?.fullname || 'bạn'}, em là trợ lý ảo của DREAM. Em có thể giúp gì cho anh/chị ạ?`
+            text: `Xin chào ${currentUser?.fullname || 'anh/chị'}, em là trợ lý ảo của DREAM. Em có thể giúp gì cho anh/chị ạ?`
         };
         setMessages([welcomeMessage]);
     }, [currentUser]);
