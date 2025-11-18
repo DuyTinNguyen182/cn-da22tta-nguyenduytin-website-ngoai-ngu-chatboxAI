@@ -13,12 +13,17 @@ import {
   Result,
   DatePicker,
   InputNumber,
+  Upload,
+  Image,
+  Tag,
+  Tooltip,
 } from "antd";
 import { Link } from "react-router-dom";
-import { PlusOutlined, EditOutlined } from "@ant-design/icons";
+import { PlusOutlined, EditOutlined, UploadOutlined } from "@ant-design/icons";
 import { useAuth } from "../../../context/AuthContext";
 import apiClient from "../../../api/axiosConfig";
 import moment from "moment";
+import ImgCrop from "antd-img-crop";
 
 function CourseManager() {
   const [open, setOpen] = useState(false);
@@ -32,6 +37,7 @@ function CourseManager() {
   const [filteredCourses, setFilteredCourses] = useState([]);
   const [messageApi, contextHolder] = message.useMessage();
   const [selectedLanguageId, setSelectedLanguageId] = useState(null);
+  const [fileList, setFileList] = useState([]);
   const [form] = Form.useForm();
   const { state } = useAuth();
   const { currentUser } = state;
@@ -39,43 +45,96 @@ function CourseManager() {
   const successMessage = (content) => messageApi.success(content);
   const errorMessage = (content) => messageApi.error(content);
 
+  const getStatusTag = (status) => {
+    switch (status) {
+      case "upcoming":
+        return <Tag color="blue">Sắp diễn ra</Tag>;
+      case "ongoing":
+        return <Tag color="green">Đang diễn ra</Tag>;
+      case "finished":
+        return <Tag color="red">Đã kết thúc</Tag>;
+      default:
+        return <Tag>{status}</Tag>;
+    }
+  };
+
   const columns = [
-    { title: "Mã khóa học", dataIndex: "courseid" },
     {
-      title: "Ngôn ngữ",
-      dataIndex: ["language_id", "language"],
-      filters: languages.map((lang) => ({
-        text: lang.language,
-        value: lang._id,
-      })),
-      onFilter: (value, record) => record.language_id?._id === value,
+      title: "Ảnh",
+      dataIndex: "image",
+      render: (url) => <Image src={url} width={60} />,
     },
-    { title: "Trình độ", dataIndex: ["languagelevel_id", "language_level"] },
-    { title: "Giảng viên", dataIndex: ["teacher_id", "full_name"], width: 200 },
     {
-      title: "Ngày bắt đầu",
+      title: "Mã khóa học",
+      dataIndex: "courseid",
+      // sorter: (a, b) => a.courseid.localeCompare(b.courseid),
+    },
+    { title: "Ngôn ngữ", dataIndex: ["language_id", "language"] },
+    { title: "Trình độ", dataIndex: ["languagelevel_id", "language_level"] },
+    { title: "Giảng viên", dataIndex: ["teacher_id", "full_name"], width: 180 },
+    {
+      title: "Ngày BĐ",
       dataIndex: "Start_Date",
       render: (date) => moment(date).format("DD/MM/YYYY"),
     },
-    { title: "Số tiết", dataIndex: "Number_of_periods" },
     {
-      title: "Học phí (VNĐ)",
+      title: "Ngày KT",
+      dataIndex: "end_date",
+      render: (date) => moment(date).format("DD/MM/YYYY"),
+    },
+    {
+      title: "Học phí",
       dataIndex: "Tuition",
-      render: (fee) => fee?.toLocaleString() + " ₫",
+      render: (fee, record) => (
+        <div>
+          {record.discount_percent > 0 && (
+            <span style={{ textDecoration: "line-through", color: "#888" }}>
+              {fee?.toLocaleString()}₫
+            </span>
+          )}
+          <div style={{ fontWeight: "bold", color: "#d70018" }}>
+            {record.discounted_price?.toLocaleString()}₫
+          </div>
+        </div>
+      ),
+    },
+    {
+      title: "Giảm giá",
+      dataIndex: "discount_percent",
+      render: (percent) => `${percent}%`,
+    },
+    { title: "Views", dataIndex: "views", sorter: (a, b) => a.views - b.views },
+    {
+      title: "Đ.Ký",
+      dataIndex: "registration_count",
+      sorter: (a, b) => a.registration_count - b.registration_count,
+    },
+    {
+      title: "Trạng thái",
+      dataIndex: "status",
+      render: getStatusTag,
+      filters: [
+        { text: "Sắp diễn ra", value: "upcoming" },
+        { text: "Đang diễn ra", value: "ongoing" },
+        { text: "Đã kết thúc", value: "finished" },
+      ],
+      onFilter: (value, record) => record.status === value,
     },
     {
       title: "Mô tả",
       dataIndex: "Description",
-      width: 250,
+      render: (text) => (
+        <Tooltip title={text}>
+          <div className="description-cell">{text}</div>
+        </Tooltip>
+      ),
     },
     {
       title: "Sửa",
       dataIndex: "_id",
       render: (id) => (
         <Link to={`update/${id}`}>
-          <EditOutlined
-            style={{ color: "#1997ffff", fontSize: "18px", cursor: "pointer" }}
-          />
+          <EditOutlined style={{ fontSize: "18px" }} />
         </Link>
       ),
       width: 60,
@@ -129,15 +188,26 @@ function CourseManager() {
 
   const onFinish = async (values) => {
     setSpinning(true);
+    const formData = new FormData();
+
+    Object.keys(values).forEach((key) => {
+      if (key !== "image") {
+        formData.append(key, values[key]);
+      }
+    });
+
+    if (fileList.length > 0 && fileList[0].originFileObj) {
+      formData.append("image", fileList[0].originFileObj);
+    }
+
     try {
-      const formattedValues = {
-        ...values,
-        Start_Date: moment(values.Start_Date).toISOString(),
-      };
-      await apiClient.post(`/course`, formattedValues);
+      await apiClient.post(`/course`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
       successMessage("Thêm khóa học mới thành công");
       setOpen(false);
       form.resetFields();
+      setFileList([]); // Reset file list
       await fetchData();
     } catch (error) {
       errorMessage(error.response?.data?.message || "Thêm khóa học thất bại");
@@ -179,7 +249,7 @@ function CourseManager() {
   }
 
   return (
-    <Flex vertical gap={20}>
+    <Flex vertical gap={20} className="CourseManager">
       {contextHolder}
       <Spin spinning={spinning} fullscreen />
       <Breadcrumb
@@ -206,6 +276,7 @@ function CourseManager() {
         <Flex
           align="center"
           justify="space-between"
+          className="selection-bar"
           style={{
             padding: "10px 15px",
             borderRadius: "5px",
@@ -236,6 +307,7 @@ function CourseManager() {
         columns={columns}
         dataSource={filteredCourses}
         bordered
+        scroll={{ x: 1500 }}
       />
 
       <Modal
@@ -263,45 +335,73 @@ function CourseManager() {
         title="Thêm khóa học mới"
         onCancel={() => {
           setOpen(false);
-          setSelectedLanguageId(null);
+          setFileList([]);
+          form.resetFields();
         }}
         footer={null}
         centered
+        width={700}
       >
         <Form form={form} layout="vertical" onFinish={onFinish}>
-          <Form.Item
-            name="language_id"
-            label="Ngôn ngữ"
-            rules={[{ required: true, message: "Vui lòng chọn ngôn ngữ!" }]}
-          >
-            <Select
-              placeholder="Chọn ngôn ngữ"
-              onChange={setSelectedLanguageId}
+          <Form.Item label="Ảnh bìa khóa học" name="image">
+            <ImgCrop rotationSlider aspect={16 / 9}>
+              <Upload
+                listType="picture-card"
+                fileList={fileList}
+                onChange={({ fileList: newFileList }) =>
+                  setFileList(newFileList)
+                }
+                beforeUpload={() => false}
+                maxCount={1}
+              >
+                {fileList.length < 1 && (
+                  <div>
+                    <PlusOutlined />
+                    <div>Tải lên</div>
+                  </div>
+                )}
+              </Upload>
+            </ImgCrop>
+          </Form.Item>
+
+          <Flex gap="middle">
+            <Form.Item
+              name="language_id"
+              label="Ngôn ngữ"
+              rules={[{ required: true }]}
+              style={{ flex: 1 }}
             >
-              {languages.map((lang) => (
-                <Select.Option key={lang._id} value={lang._id}>
-                  {lang.language}
-                </Select.Option>
-              ))}
-            </Select>
-          </Form.Item>
-          <Form.Item
-            name="languagelevel_id"
-            label="Trình độ"
-            rules={[{ required: true, message: "Vui lòng chọn trình độ!" }]}
-          >
-            <Select placeholder="Chọn trình độ">
-              {languageLevels.map((level) => (
-                <Select.Option key={level._id} value={level._id}>
-                  {level.language_level}
-                </Select.Option>
-              ))}
-            </Select>
-          </Form.Item>
+              <Select
+                placeholder="Chọn ngôn ngữ"
+                onChange={setSelectedLanguageId}
+              >
+                {languages.map((lang) => (
+                  <Select.Option key={lang._id} value={lang._id}>
+                    {lang.language}
+                  </Select.Option>
+                ))}
+              </Select>
+            </Form.Item>
+            <Form.Item
+              name="languagelevel_id"
+              label="Trình độ"
+              rules={[{ required: true }]}
+              style={{ flex: 1 }}
+            >
+              <Select placeholder="Chọn trình độ">
+                {languageLevels.map((level) => (
+                  <Select.Option key={level._id} value={level._id}>
+                    {level.language_level}
+                  </Select.Option>
+                ))}
+              </Select>
+            </Form.Item>
+          </Flex>
+
           <Form.Item
             name="teacher_id"
             label="Giảng viên"
-            rules={[{ required: true, message: "Vui lòng chọn giảng viên!" }]}
+            rules={[{ required: true }]}
           >
             <Select
               placeholder="Chọn giảng viên"
@@ -318,45 +418,92 @@ function CourseManager() {
                 ))}
             </Select>
           </Form.Item>
-          <Form.Item
-            name="Start_Date"
-            label="Ngày bắt đầu"
-            rules={[{ required: true, message: "Vui lòng chọn ngày!" }]}
-          >
-            <DatePicker
-              format="DD/MM/YYYY"
-              style={{ width: "100%" }}
-              disabledDate={(current) =>
-                current && current < moment().startOf("day")
-              }
-            />
-          </Form.Item>
-          <Form.Item
-            name="Number_of_periods"
-            label="Số tiết"
-            rules={[{ required: true, message: "Vui lòng nhập số tiết!" }]}
-          >
-            <InputNumber min={1} style={{ width: "100%" }} />
-          </Form.Item>
-          <Form.Item
-            name="Tuition"
-            label="Học phí (VNĐ)"
-            rules={[{ required: true, message: "Vui lòng nhập học phí!" }]}
-          >
-            <InputNumber
-              min={0}
-              style={{ width: "100%" }}
-              formatter={(value) =>
-                `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-              }
-              parser={(value) => value.replace(/\$\s?|(,*)/g, "")}
-            />
-          </Form.Item>
+
+          <Flex gap="middle">
+            <Form.Item
+              name="Start_Date"
+              label="Ngày bắt đầu"
+              rules={[{ required: true }]}
+              style={{ flex: 1 }}
+            >
+              <DatePicker
+                format="DD/MM/YYYY"
+                style={{ width: "100%" }}
+                placeholder="Chọn ngày bắt đầu"
+              />
+            </Form.Item>
+            <Form.Item
+              name="end_date"
+              label="Ngày kết thúc"
+              rules={[{ required: true }]}
+              style={{ flex: 1 }}
+            >
+              <DatePicker
+                format="DD/MM/YYYY"
+                style={{ width: "100%" }}
+                placeholder="Chọn ngày kết thúc"
+              />
+            </Form.Item>
+          </Flex>
+
+          <Flex gap="middle">
+            <Form.Item
+              name="Number_of_periods"
+              label="Số tiết"
+              rules={[{ required: true }]}
+              style={{ flex: 1 }}
+            >
+              <InputNumber
+                min={1}
+                style={{ width: "100%" }}
+                placeholder="Nhập số tiết"
+              />
+            </Form.Item>
+            <Form.Item
+              name="Tuition"
+              label="Học phí (VNĐ)"
+              rules={[{ required: true }]}
+              style={{ flex: 1 }}
+            >
+              <InputNumber
+                min={0}
+                style={{ width: "100%" }}
+                formatter={(value) =>
+                  `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                }
+                parser={(value) => value.replace(/\$\s?|(,*)/g, "")}
+                placeholder="Nhập học phí"
+              />
+            </Form.Item>
+            <Form.Item
+              name="discount_percent"
+              label="% Giảm giá"
+              initialValue={0}
+              style={{ flex: 1 }}
+            >
+              <InputNumber
+                min={0}
+                max={100}
+                style={{ width: "100%" }}
+                addonAfter="%"
+              />
+            </Form.Item>
+          </Flex>
+
           <Form.Item name="Description" label="Mô tả">
-            <Input.TextArea rows={3} />
+            <Input.TextArea
+              rows={4}
+              placeholder="Nhập mô tả chi tiết cho khóa học"
+            />
           </Form.Item>
+
           <Form.Item>
-            <Button type="primary" htmlType="submit" style={{ width: "100%" }}>
+            <Button
+              type="primary"
+              htmlType="submit"
+              style={{ width: "100%" }}
+              size="large"
+            >
               Tạo khóa học
             </Button>
           </Form.Item>

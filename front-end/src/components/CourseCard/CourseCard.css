@@ -1,79 +1,96 @@
-.course-card {
-  width: auto;
-  min-height: 270px;
-  border-radius: 20px;
+.course-card-link {
+  text-decoration: none;
+  color: inherit;
+}
+
+.course-card-new {
+  background-color: #fff;
+  border: 1px solid #f0f0f0;
+  border-radius: 8px;
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  background-color: transparent;
+  height: 100%;
   transition: all 0.3s ease;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 }
 
-.course-card:hover {
+.course-card-new:hover {
   transform: translateY(-5px);
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
 }
 
-.top-half {
-  min-height: 100px;
-  background-color: rgb(89, 121, 207);
-  text-align: center;
-  font-weight: 600;
-  font-size: 23px;
-  color: white;
-  letter-spacing: 1px;
+/* Phần ảnh */
+.course-image-container {
+  width: 100%;
+  padding-top: 56.25%; /* Tỷ lệ 16:9 */
+  position: relative;
+  background-color: #f5f5f5;
 }
 
-.language {
-  margin-top: 10px;
-  padding: 5px;
+.course-image-container img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
-.bottom-half {
-  flex: 1;
-  background-color: rgb(255, 255, 255);
+/* Phần thông tin */
+.course-info-container {
+  padding: 15px;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  color: rgb(0, 0, 0);
-  gap: 10px;
-  text-align: left;
-  justify-content: space-between;
+  flex-grow: 1;
 }
 
-.course-description {
-  font-weight: 470;
-  font-size: 18px;
-  padding-top: 15px;
-  line-height: 1.7;
-  letter-spacing: 0.5;
+.course-title-new {
+  font-size: 16px; /* Size cho desktop */
+  font-weight: 600;
+  margin: 0 0 10px 0;
+  display: -webkit-box;
+  /* -webkit-line-clamp: 2; */
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-height: 48px;
 }
 
-.action-buttons {
+/* Phần giá */
+.course-price-container {
   display: flex;
-  justify-content: space-between;
-  gap: 10px;
-  width: 80%;
-  margin: 10px;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
 }
 
-.action-buttons .sign-up-course,
-.action-buttons .properties-course-link {
-  flex: 1;
-  padding: 10px;
-  border-radius: 5px;
-  background-color: white;
-  color: blue;
-  font-weight: bold;
-  cursor: pointer;
-  font-size: 17px;
-  text-align: center;
-  text-decoration: none;
-  transition: all 0.2s ease;
+.new-price {
+  font-size: 18px; /* Size cho desktop */
+  font-weight: 700;
+  color: #d70018;
 }
 
-.action-buttons .sign-up-course:hover,
-.action-buttons .properties-course-link:hover {
-  background-color: #eee;
+.old-price {
+  font-size: 14px; /* Size cho desktop */
+  color: #707070;
+  text-decoration: line-through;
+}
+
+/* Phần thống kê */
+.course-stats-container {
+  margin-top: auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 13px; /* Size cho desktop */
+  color: #888;
+  border-top: 1px solid #f0f0f0;
+  padding-top: 10px;
+}
+
+.stat-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
 }

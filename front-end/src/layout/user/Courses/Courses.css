@@ -1,0 +1,7 @@
+.allcourses-page{
+    display: flex;
+  flex-direction: column;
+  gap: 0px;
+  width: 70%;
+  margin: 0 auto;
+}

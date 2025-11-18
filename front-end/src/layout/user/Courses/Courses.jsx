@@ -4,7 +4,7 @@ import { Spin, message, Button, Select, Space } from "antd";
 import { useAuth } from "../../../context/AuthContext";
 import apiClient from "../../../api/axiosConfig";
 import CourseCard from "../../../components/CourseCard/CourseCard";
-
+import "./Courses.css";
 const { Option } = Select;
 
 function Courses() {
@@ -100,12 +100,13 @@ function Courses() {
       {contextHolder}
       <div
         className="filters"
-        style={{
-          marginBottom: "20px",
-          display: "flex",
-          alignItems: "center",
-          gap: "15px",
-        }}
+        // style={{
+        //   marginBottom: "0px",
+        //   display: "flex",
+        //   alignItems: "center",
+        //   gap: "15px",
+          
+        // }}
       >
         <Space wrap>
           <Select

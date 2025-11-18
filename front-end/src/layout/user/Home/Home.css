@@ -1,139 +1,134 @@
+/* --- PHẦN BANNER --- */
 .homepage {
   display: flex;
   flex-direction: column;
-  gap: 60px;
+  gap: 40px;
+  width: 80%;
+  margin: 0 auto;
 }
-
 .homepage-banner {
   width: 100%;
-  height: 350px;
+  height: auto;
   border-radius: 10px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
   overflow: hidden;
+  transition: height 0.3s ease;
 }
-
-.Header_logo img{
-  /* width: 60px;
-  height: 60px; */
-  margin-left: 20px;
-}
-
 .homepage-banner > img {
-  display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
+/* --- LAYOUT CHÍNH 2 CỘT --- */
+.main-content-wrapper {
+  display: flex;
+  align-items: flex-start;
+  gap: 30px;
+}
+
+/* --- MENU BÊN TRÁI --- */
+.course-status-menu {
+  flex: 0 0 220px;
+  position: sticky;
+  top: 100px;
+  border: 1px solid #f0f0f0;
+  border-radius: 8px;
+  padding: 15px;
+  background-color: #fff;
+}
+.course-status-menu h4 {
+  margin-top: 0;
+  margin-bottom: 15px;
+  font-size: 16px;
+  font-weight: 600;
+}
+.course-status-menu ul {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.course-status-menu li a {
+  display: block;
+  padding: 10px 15px;
+  text-decoration: none;
+  color: #333;
+  font-weight: 500;
+  border-radius: 6px;
+  transition: all 0.2s;
+}
+.course-status-menu li a:hover {
+  background-color: #e6f7ff;
+  color: #1890ff;
+}
+.course-status-menu li a.active {
+  background-color: #1890ff;
+  color: white;
+  font-weight: 600;
+}
+
+/* --- NỘI DUNG BÊN PHẢI --- */
+.courses-display {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
 .homepage-section {
   display: flex;
   flex-direction: column;
-  width: 100%;
   gap: 20px;
+  scroll-margin-top: 100px;
 }
-
 .section-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  width: 100%;
+  border-bottom: 2px solid #1890ff;
+  padding-bottom: 10px;
 }
-
 .section-header > span {
   font-weight: 700;
-  font-size: 19px;
+  font-size: 22px;
 }
-
 .section-header a {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   text-decoration: none;
-  color: rgb(150, 150, 150);
+  color: #888;
   font-weight: 600;
 }
 
+/* --- DANH SÁCH KHÓA HỌC (GRID) --- */
 .course-list {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 30px;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 20px;
+}
+.course-list p {
+  grid-column: 1 / -1;
+  color: #888;
 }
 
-.course-card {
-  width: auto;
-  min-height: 270px;
-  border-radius: 20px;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  background-color: transparent;
-  transition: all 0.3s ease;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+@media (max-width: 992px) {
+  .course-status-menu {
+    display: none;
+  }
+  
+  .course-list {
+    gap: 15px;
+  }
+  
+  .homepage-banner {
+    height: 200px;
+  }
 }
 
-.course-card:hover{
-  transform: translateY(-5px);
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
-}
-
-.top-half {
-  min-height: 100px;
-  background-color: rgb(89, 121, 207);
-  text-align: center;
-  font-weight: 600;
-  font-size: 23px;
-  color: white;
-  letter-spacing: 1px;
-}
-
-.language {
-  margin-top: 10px;
-  padding: 5px;
-}
-
-.bottom-half {
-  flex: 1;
-  background-color: rgb(255, 255, 255);
-  display: flex;
-  flex-direction: column;
-  /* justify-content: center; */
-  align-items: center;
-  color: rgb(0, 0, 0);
-  gap: 10px;
-  text-align: left;
-  justify-content: space-between;
-}
-
-.course-description {
-  font-weight: 470;
-  font-size: 18px;
-  padding-top: 15px;
-  line-height: 1.7;
-  letter-spacing: 0.5;
-}
-
-.action-buttons {
-  display: flex;
-  justify-content: space-between;
-  gap: 10px;
-  width: 80%;
-  margin: 10px;
-}
-
-.action-buttons button {
-  flex: 1;
-  padding: 10px;
-  border: none;
-  border-radius: 5px;
-  background-color: white;
-  color: blue;
-  font-weight: bold;
-  cursor: pointer;
-  font-size: 17px;
-}
-
-.action-buttons button:hover {
-  background-color: #eee;
+@media (max-width: 480px) {
+  .homepage-banner {
+    height: 150px;
+  }
 }

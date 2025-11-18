@@ -1,32 +1,18 @@
-.UserLayout{
-    display: flex;
-    width: 100%;
-    height: auto;
+.UserLayout {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
 }
 
-
-
-.User-content{
-    display: flex;
-    flex-direction: column;
-    flex: 1;
-    background-color: rgb(243, 243, 243);
-    min-height:130vh;
-    justify-content: space-between;
-    overflow-y: auto;
-    padding-top: 80px;
+.User-content {
+  flex: 1;
+  width: 100%;
+  padding-top: 100px;
 }
-
-/* .User-content-top{
-    display: flex;
-    flex-direction: column;
-    padding: 0px;
-    flex: 1;
-    width: 100%;
-} */
 
 .content-fill {
-    padding: 30px;
-    max-width: calc(100vw - 60px); /* Tránh tràn */
-    height: 100%;
+  width: 100%;
+  max-width: none !important;
+  padding-bottom: 50px;
+  min-height: 500px;
 }

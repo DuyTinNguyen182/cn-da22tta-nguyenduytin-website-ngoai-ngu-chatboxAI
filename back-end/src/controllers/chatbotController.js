@@ -12,12 +12,12 @@ const handleAsk = async (req, res) => {
         }
 
         const completion = await openai.chat.completions.create({
-            model: "gpt-4o-mini", // Hoặc "gpt-4" nếu bạn có quyền truy cập
+            model: "gpt-4o-mini",
             messages: [
                 // System Prompt: "Dạy" cho AI biết nó là ai
                 { 
                     role: "system", 
-                    content: "Bạn là một trợ lý ảo am hiểu của trung tâm ngoại ngữ DREAM. Hãy trả lời các câu hỏi của học viên về các khóa học, lịch học, và các thông tin liên quan một cách thân thiện và chuyên nghiệp." 
+                    content: "Bạn là một trợ lý ảo am hiểu của trung tâm ngoại ngữ DREAM. Hãy trả lời các câu hỏi của học viên về các khóa học, lịch học và các thông tin liên quan một cách thân thiện và chuyên nghiệp." 
                 },
                 // User's message
                 { 

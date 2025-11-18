@@ -1,62 +1,54 @@
 import React from "react";
 import "./CourseCard.css";
-import { Link } from 'react-router-dom';
+import { Link } from "react-router-dom";
+import { EyeOutlined, UsergroupAddOutlined } from "@ant-design/icons";
 
-const CourseCard = ({ course, onRegisterClick }) => {
+import courseImagePlaceholder from "../../imgs/avt.jpg";
+
+const CourseCard = ({ course }) => {
   if (!course) {
     return null;
   }
 
   const languageName = course.language_id?.language;
   const levelName = course.languagelevel_id?.language_level;
-  const teacherName = course.teacher_id?.full_name;
+
+  const oldPrice = course.Tuition ? course.Tuition + 1500000 : 0;
+  const views = Math.floor(Math.random() * 2000) + 500;
+  const registeredCount = Math.floor(Math.random() * 80) + 10;
 
   return (
-    <div className="course-card">
-      <div className="top-half">
-        <div className="language">
-          KHÓA HỌC {languageName?.toUpperCase() || "CHƯA RÕ"}
+    <Link to={`/courses/${course._id}`} className="course-card-link">
+      <div className="course-card-new">
+        <div className="course-image-container">
+          <img
+            src={course.image || courseImagePlaceholder}
+            alt={`${languageName} - ${levelName}`}
+          />
         </div>
-        <div className="level">{levelName?.toUpperCase() || "CHƯA RÕ"}</div>
-      </div>
-
-      <div className="bottom-half">
-        <div className="course-description">
-          <div>
-            <ion-icon name="caret-forward-outline"></ion-icon> Ngày bắt đầu:{" "}
-            {course.Start_Date
-              ? new Date(course.Start_Date).toLocaleDateString("vi-VN")
-              : "N/A"}
+        <div className="course-info-container">
+          <h3 className="course-title-new">
+            {languageName} - {levelName}
+          </h3>
+          <div className="course-price-container">
+            <span className="new-price">
+              {course.Tuition?.toLocaleString()}₫
+            </span>
+            <span className="old-price">
+              {oldPrice > 0 ? oldPrice.toLocaleString() + "₫" : ""}
+            </span>
           </div>
-          <div>
-            <ion-icon name="pie-chart"></ion-icon> Số tiết:{" "}
-            {course.Number_of_periods}
+          <div className="course-stats-container">
+            <span className="stat-item">
+              <EyeOutlined /> {views}
+            </span>
+            <span className="stat-item">
+              <UsergroupAddOutlined /> {registeredCount}
+            </span>
           </div>
-          <div>
-            <ion-icon name="cash"></ion-icon> Học phí:{" "}
-            {course.Tuition?.toLocaleString()} đ
-          </div>
-          <div>
-            <ion-icon name="person"></ion-icon> Giảng viên:{" "}
-            {teacherName || "Đang cập nhật"}
-          </div>
-        </div>
-        <div className="action-buttons">
-          <Link
-            to={`/courses/${course._id}`}
-            className="properties-course-link"
-          >
-            Chi tiết
-          </Link>
-          <button
-            className="sign-up-course"
-            onClick={() => onRegisterClick(course._id)}
-          >
-            Đăng ký
-          </button>
         </div>
       </div>
-    </div>
+    </Link>
   );
 };
 

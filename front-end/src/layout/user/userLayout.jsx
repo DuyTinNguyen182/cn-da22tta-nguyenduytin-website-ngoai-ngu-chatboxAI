@@ -11,37 +11,35 @@ import Chatbot from "../../components/Chatbot/Chatbot";
 import "./userLayout.css";
 
 function UserLayout() {
-    const userContentRef = useRef(null);
-    const location = useLocation();
+  const userContentRef = useRef(null);
+  const location = useLocation();
 
-    useEffect(() => {
-        if (userContentRef.current) {
-            userContentRef.current.scrollTop = 0;
-        }
-    }, [location]);
+  useEffect(() => {
+    if (userContentRef.current) {
+      userContentRef.current.scrollTop = 0;
+    }
+  }, [location]);
 
-    return (
-        <div className="UserLayout">
-            <div className="User-content" ref={userContentRef}>
-            <div className="User-content-top">
-                <Header />
-            </div>
-                    <div className="content-fill">
-                        <Routes>
-                            <Route path="/" element={<Home />} />     
-                            <Route path="/courses" element={<Courses/>}/>
-                            <Route path="/courses/:courseId" element={<CourseDetail />} />
-                            <Route path="/my-courses/:id" element={<RegisteredCourses />} />
-                            <Route path="/user/account/:id" element={<UserAcc />} />                                                                             
-                        </Routes>
-                        <Chatbot />
-                    </div>
-                <Footer />
-            </div>
+  return (
+    <div className="UserLayout">
+      <div className="User-content" ref={userContentRef}>
+        <div className="User-content-top">  
+          <Header />
         </div>
-
-    )
+        <div className="content-fill">
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/courses" element={<Courses />} />
+            <Route path="/courses/:courseId" element={<CourseDetail />} />  
+            <Route path="/my-courses/:id" element={<RegisteredCourses />} />
+            <Route path="/user/account/:id" element={<UserAcc />} />
+          </Routes>
+          <Chatbot />
+        </div>
+        <Footer />
+      </div>
+    </div>
+  );
 }
-
 
 export default UserLayout;
