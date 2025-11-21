@@ -3,8 +3,9 @@ import banner from "../../../imgs/banner.png";
 import banner2 from "../../../imgs/banner2.png";
 import banner3 from "../../../imgs/banner3.png";
 import "./Home.css";
-import { Spin, Carousel, message, Flex } from "antd";
+import { Spin, Carousel, message, Flex, Statistic, Card } from "antd";
 import { useEffect, useState, useRef } from "react";
+// import { BookOutlined, TeamOutlined, UserOutlined, GlobalOutlined } from '@ant-design/icons';
 import { useAuth } from "../../../context/AuthContext";
 import apiClient from "../../../api/axiosConfig";
 import CourseCard from "../../../components/CourseCard/CourseCard";
@@ -12,15 +13,19 @@ import CourseCard from "../../../components/CourseCard/CourseCard";
 function Home() {
   const navigate = useNavigate();
   const [allCourses, setAllCourses] = useState([]);
+  const [stats, setStats] = useState({
+    teachers: 0,
+    students: 0,
+    languages: 0,
+  });
   const [spinning, setSpinning] = useState(true);
   const [activeSection, setActiveSection] = useState("featured");
 
-  // Khởi tạo refs để theo dõi các section
   const sectionRefs = {
     featured: useRef(null),
     upcoming: useRef(null),
     ongoing: useRef(null),
-    finished: useRef(null),
+    discount: useRef(null),
   };
 
   const { state } = useAuth();
@@ -28,14 +33,17 @@ function Home() {
   const userId = currentUser?._id;
   const [messageApi, contextHolder] = message.useMessage();
 
-  // useEffect để tải dữ liệu khóa học
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const courseRes = await apiClient.get("/course");
+        const [courseRes, statsRes] = await Promise.all([
+          apiClient.get("/course"),
+          apiClient.get("/overview/stats"),
+        ]);
         setAllCourses(courseRes.data);
+        setStats(statsRes.data);
       } catch (error) {
-        messageApi.error("Không thể tải dữ liệu khóa học!");
+        messageApi.error("Không thể tải dữ liệu trang chủ!");
       } finally {
         setSpinning(false);
       }
@@ -43,7 +51,6 @@ function Home() {
     fetchData();
   }, []);
 
-  // useEffect để theo dõi sự kiện cuộn và cập nhật active section
   useEffect(() => {
     if (spinning) return;
 
@@ -71,16 +78,28 @@ function Home() {
     };
   }, [spinning]); // Chạy lại khi spinning chuyển thành false
 
-  // Phân loại khóa học
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  const featuredCourses = allCourses.slice(0, 4);
-  const upcomingCourses = allCourses.filter(
-    (c) => new Date(c.Start_Date) > today
-  );
-  const ongoingCourses = allCourses.filter(
-    (c) => new Date(c.Start_Date) <= today
-  );
+
+  // Nổi bật
+  const featuredCourses = [...allCourses]
+    .sort((a, b) => (b.registration_count || 0) - (a.registration_count || 0))
+    .slice(0, 8);
+
+  // Sắp diễn ra
+  const upcomingCourses = allCourses
+    .filter((c) => new Date(c.Start_Date) > today)
+    .slice(0, 8);
+
+  // Đang diễn ra
+  const ongoingCourses = allCourses
+    .filter((c) => new Date(c.Start_Date) <= today && c.status === "ongoing")
+    .slice(0, 8);
+
+  // Giảm giá
+  const discountCourses = allCourses
+    .filter((c) => c.discount_percent > 0 && new Date(c.Start_Date) > today)
+    .slice(0, 8);
 
   return (
     <div className="homepage">
@@ -93,15 +112,54 @@ function Home() {
           </div>
         ))}
       </Carousel>
+      <div className="stats-cards-container">
+        <Card className="stat-card">
+          <Statistic
+            title="Khóa học đa dạng"
+            value={allCourses.length}
+            /*prefix={<BookOutlined />}*/ suffix="+"
+          />
+        </Card>
+        <Card className="stat-card">
+          <Statistic
+            title="Giảng viên kinh nghiệm"
+            value={stats.teachers}
+            /*prefix={<TeamOutlined />}*/ suffix="+"
+          />
+        </Card>
+        <Card className="stat-card">
+          <Statistic
+            title="Học viên tin tưởng"
+            value={stats.students}
+            /*prefix={<UserOutlined />}*/ suffix="+"
+          />
+        </Card>
+        <Card className="stat-card">
+          <Statistic
+            title="Ngôn ngữ phổ biến"
+            value={stats.languages}
+            /*prefix={<GlobalOutlined />}*/ suffix="+"
+          />
+        </Card>
+      </div>
       <Flex className="main-content-wrapper" gap="large">
         <div className="course-status-menu">
+          <h4>Danh mục khóa học</h4>
           <ul>
             <li>
               <a
                 href="#featured"
                 className={activeSection === "featured" ? "active" : ""}
               >
-                Khóa học nổi bật
+                Nổi bật nhất
+              </a>
+            </li>
+            <li>
+              <a
+                href="#discount"
+                className={activeSection === "discount" ? "active" : ""}
+              >
+                Đang giảm giá
               </a>
             </li>
             <li>
@@ -109,7 +167,7 @@ function Home() {
                 href="#upcoming"
                 className={activeSection === "upcoming" ? "active" : ""}
               >
-                Sắp diễn ra
+                Sắp khai giảng
               </a>
             </li>
             <li>
@@ -118,14 +176,6 @@ function Home() {
                 className={activeSection === "ongoing" ? "active" : ""}
               >
                 Đang diễn ra
-              </a>
-            </li>
-            <li>
-              <a
-                href="#finished"
-                className={activeSection === "finished" ? "active" : ""}
-              >
-                Đã kết thúc
               </a>
             </li>
           </ul>
@@ -137,34 +187,60 @@ function Home() {
             className="homepage-section"
           >
             <div className="section-header">
-              <span>Khóa học nổi bật</span>
+              <span>Nổi bật nhất</span>
+              {/* <Link to="/courses">
+                Xem tất cả <ion-icon name="arrow-forward"></ion-icon>
+              </Link> */}
             </div>
             <div className="course-list">
-              {featuredCourses.map((course) => (
-                <CourseCard key={course._id} course={course} />
-              ))}
+              {featuredCourses.length > 0 ? (
+                featuredCourses.map((c) => (
+                  <CourseCard key={c._id} course={c} />
+                ))
+              ) : (
+                <p>Chưa có khóa học nổi bật.</p>
+              )}
             </div>
           </section>
+
+          <section
+            id="discount"
+            ref={sectionRefs.discount}
+            className="homepage-section"
+          >
+            <div className="section-header">
+              <span>Khuyến mãi hot</span>
+            </div>
+            <div className="course-list">
+              {discountCourses.length > 0 ? (
+                discountCourses.map((c) => (
+                  <CourseCard key={c._id} course={c} />
+                ))
+              ) : (
+                <p>Hiện không có khóa học nào đang giảm giá.</p>
+              )}
+            </div>
+          </section>
+
           <section
             id="upcoming"
             ref={sectionRefs.upcoming}
             className="homepage-section"
           >
             <div className="section-header">
-              <span>Sắp diễn ra</span>
+              <span>Sắp khai giảng</span>
             </div>
             <div className="course-list">
               {upcomingCourses.length > 0 ? (
-                upcomingCourses
-                  .slice(0, 4)
-                  .map((course) => (
-                    <CourseCard key={course._id} course={course} />
-                  ))
+                upcomingCourses.map((c) => (
+                  <CourseCard key={c._id} course={c} />
+                ))
               ) : (
                 <p>Hiện chưa có khóa học nào sắp diễn ra.</p>
               )}
             </div>
           </section>
+
           <section
             id="ongoing"
             ref={sectionRefs.ongoing}
@@ -175,26 +251,10 @@ function Home() {
             </div>
             <div className="course-list">
               {ongoingCourses.length > 0 ? (
-                ongoingCourses
-                  .slice(0, 6)
-                  .map((course) => (
-                    <CourseCard key={course._id} course={course} />
-                  ))
+                ongoingCourses.map((c) => <CourseCard key={c._id} course={c} />)
               ) : (
                 <p>Hiện chưa có khóa học nào đang diễn ra.</p>
               )}
-            </div>
-          </section>
-          <section
-            id="finished"
-            ref={sectionRefs.finished}
-            className="homepage-section"
-          >
-            <div className="section-header">
-              <span>Đã kết thúc</span>
-            </div>
-            <div className="course-list">
-              <p>Chưa có dữ liệu cho các khóa học đã kết thúc.</p>
             </div>
           </section>
         </div>

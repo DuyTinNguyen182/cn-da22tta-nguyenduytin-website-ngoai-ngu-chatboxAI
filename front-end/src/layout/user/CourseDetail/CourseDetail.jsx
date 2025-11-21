@@ -88,13 +88,13 @@ function CourseDetailPage() {
   return (
     <div className="course-detail-page">
       {contextHolder}
-      <Button
+      {/* <Button
         className="back-button"
         icon={<ArrowLeftOutlined />}
         onClick={handleGoBack}
       >
         Quay lại
-      </Button>
+      </Button> */}
 
       <div className="course-header">
         <img
@@ -161,9 +161,9 @@ function CourseDetailPage() {
             size="large"
             className="register-button"
             onClick={handleRegister}
-            disabled={course.status === "finished"} // Không cho đăng ký nếu khóa học đã kết thúc
+            disabled={course.status === "finished" || course.status === "ongoing"} // Không cho đăng ký nếu khóa học đã kết thúc
           >
-            {course.status === "finished" ? "Đã kết thúc" : "Đăng ký ngay"}
+            {course.status === "finished" || course.status === "ongoing" ? "Ngoài thời gian đăng ký" : "Đăng ký ngay"}
           </Button>
         </div>
       </div>

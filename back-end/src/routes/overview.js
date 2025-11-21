@@ -4,7 +4,7 @@ const { authenticate } = require("../middleware/authMiddleware");
 
 const router = express.Router();
 
-router.get("/stats", authenticate, getStats);
+router.get("/stats", /*authenticate,*/ getStats);
 router.get("/revenue-stats", authenticate, getRevenueStats);
 
 module.exports = router;

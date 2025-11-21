@@ -46,7 +46,7 @@
 }
 
 .course-title-new {
-  font-size: 16px; /* Size cho desktop */
+  font-size: 16px;
   font-weight: 600;
   margin: 0 0 10px 0;
   display: -webkit-box;
@@ -66,13 +66,13 @@
 }
 
 .new-price {
-  font-size: 18px; /* Size cho desktop */
+  font-size: 18px;
   font-weight: 700;
   color: #d70018;
 }
 
 .old-price {
-  font-size: 14px; /* Size cho desktop */
+  font-size: 14px;
   color: #707070;
   text-decoration: line-through;
 }
@@ -83,7 +83,7 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  font-size: 13px; /* Size cho desktop */
+  font-size: 13px;
   color: #888;
   border-top: 1px solid #f0f0f0;
   padding-top: 10px;
@@ -93,4 +93,24 @@
   display: flex;
   align-items: center;
   gap: 5px;
+}
+
+.status-tag-overlay {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+}
+
+.discount-badge {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background-color: #d70018;
+  color: white;
+  padding: 5px 10px;
+  font-size: 14px;
+  font-weight: bold;
+  z-index: 1;
+  
+  border-bottom-left-radius: 8px;
 }

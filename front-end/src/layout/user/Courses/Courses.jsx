@@ -1,187 +1,162 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { Spin, message, Button, Select, Space } from "antd";
+import { Spin, message, Button, Select, Radio, Slider, Space } from 'antd';
 import { useAuth } from "../../../context/AuthContext";
 import apiClient from "../../../api/axiosConfig";
 import CourseCard from "../../../components/CourseCard/CourseCard";
 import "./Courses.css";
+
 const { Option } = Select;
 
 function Courses() {
-  const navigate = useNavigate();
-  // const [selectedCourse, setSelectedCourse] = useState(null);
   const [allCourses, setAllCourses] = useState([]);
   const [languages, setLanguages] = useState([]);
+  const [languageLevels, setLanguageLevels] = useState([]);
   const [spinning, setSpinning] = useState(true);
+
+  const [filters, setFilters] = useState({
+    language: null,
+    level: null,
+    status: null,
+    priceRange: [0, 10000000],
+  });
+  const [sortBy, setSortBy] = useState('views');
+  const [visibleCount, setVisibleCount] = useState(12);
 
   const { state } = useAuth();
   const { currentUser } = state;
   const userId = currentUser?._id;
-
-  const [selectedLanguage, setSelectedLanguage] = useState(null);
-  const [selectedLevel, setSelectedLevel] = useState(null);
-
   const [messageApi, contextHolder] = message.useMessage();
 
-  const successMessage = (content) => messageApi.success(content);
-  const errorMessage = (content) => messageApi.error(content);
-
-  const handleRegister = async (courseId) => {
-    if (!userId) {
-      errorMessage("Hãy đăng nhập để tiếp tục!");
-      return;
-    }
-    try {
-      await apiClient.post("/registration", {
-        user_id: userId,
-        course_id: courseId,
-      });
-      successMessage("Đăng ký thành công!");
-      setTimeout(() => {
-        navigate(`/my-courses/${userId}`);
-      }, 1000);
-    } catch (error) {
-      errorMessage(error.response?.data?.message || "Đăng ký thất bại.");
-    }
-  };
-
-  const fetchData = async () => {
-    try {
-      const courseRes = await apiClient.get("/course");
-      const courses = courseRes.data;
-      setAllCourses(courses);
-
-      const uniqueLanguages = [
-        ...new Map(
-          courses
-            .filter((c) => c.language_id)
-            .map((c) => [
-              c.language_id._id,
-              { _id: c.language_id._id, language: c.language_id.language },
-            ])
-        ).values(),
-      ];
-
-      setLanguages(
-        uniqueLanguages.sort((a, b) =>
-          a.language.localeCompare(b.language, "vi")
-        )
-      );
-    } catch (error) {
-      errorMessage("Không thể tải dữ liệu khóa học");
-    } finally {
-      setSpinning(false);
-    }
-  };
-
   useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [courseRes, langRes, levelRes] = await Promise.all([
+          apiClient.get("/course"),
+          apiClient.get("/language"),
+          apiClient.get("/languagelevel"),
+        ]);
+        setAllCourses(courseRes.data);
+        setLanguages(langRes.data);
+        setLanguageLevels(levelRes.data);
+      } catch (error) {
+        message.error("Không thể tải dữ liệu");
+      } finally {
+        setSpinning(false);
+      }
+    };
     fetchData();
   }, []);
-
-  const filteredCourses = allCourses.filter((course) => {
-    if (selectedLanguage && course.language_id?._id !== selectedLanguage)
-      return false;
-    if (selectedLevel && course.languagelevel_id?._id !== selectedLevel)
-      return false;
-    return true;
-  });
-
-  const resetFilters = () => {
-    setSelectedLanguage(null);
-    setSelectedLevel(null);
+  
+  const handleFilterChange = (key, value) => {
+    setFilters(prev => ({ ...prev, [key]: value }));
   };
 
+  const processedCourses = allCourses
+    .filter(course => {
+      const { language, level, status, priceRange } = filters;
+      if (language && course.language_id?._id !== language) return false;
+      if (level && course.languagelevel_id?._id !== level) return false;
+      if (status && course.status !== status) return false;
+      if (course.discounted_price < priceRange[0] || course.discounted_price > priceRange[1]) return false;
+      return true;
+    })
+    .sort((a, b) => {
+      switch (sortBy) {
+        case 'registrations':
+          return (b.registration_count || 0) - (a.registration_count || 0);
+        case 'views':
+          return (b.views || 0) - (a.views || 0);
+        case 'price_asc':
+          return (a.discounted_price || 0) - (b.discounted_price || 0);
+        case 'price_desc':
+          return (b.discounted_price || 0) - (a.discounted_price || 0);
+        default:
+          return 0;
+      }
+    });
+
+  const handleShowMore = () => {
+    setVisibleCount(prev => prev + 8);
+  };
+  
   if (spinning) {
     return <Spin fullscreen tip="Đang tải danh sách khóa học..." />;
   }
 
   return (
-    <div className="allcourses-page">
+    <div className="all-courses-container">
       {contextHolder}
-      <div
-        className="filters"
-        // style={{
-        //   marginBottom: "0px",
-        //   display: "flex",
-        //   alignItems: "center",
-        //   gap: "15px",
-          
-        // }}
-      >
-        <Space wrap>
+      <div className="filter-panel">
+        <div className="filter-group">
+          <h4>Lọc theo:</h4>
           <Select
             allowClear
-            style={{ minWidth: 200 }}
-            placeholder="Lọc theo ngôn ngữ"
-            value={selectedLanguage}
-            onChange={(value) => {
-              setSelectedLanguage(value);
-              setSelectedLevel(null);
-            }}
+            placeholder="Ngôn ngữ"
+            value={filters.language}
+            onChange={(value) => handleFilterChange('language', value)}
           >
-            {languages.map((lang) => (
-              <Option key={lang._id} value={lang._id}>
-                {lang.language}
-              </Option>
-            ))}
+            {languages.map(lang => <Option key={lang._id} value={lang._id}>{lang.language}</Option>)}
           </Select>
-
           <Select
             allowClear
-            style={{ minWidth: 200 }}
-            placeholder="Lọc theo trình độ"
-            value={selectedLevel}
-            onChange={setSelectedLevel}
-            disabled={!selectedLanguage}
+            placeholder="Trình độ"
+            value={filters.level}
+            onChange={(value) => handleFilterChange('level', value)}
+            disabled={!filters.language}
           >
-            {[
-              ...new Map(
-                allCourses
-                  .filter(
-                    (c) =>
-                      c.language_id?._id === selectedLanguage &&
-                      c.languagelevel_id
-                  )
-                  .map((c) => [c.languagelevel_id._id, c.languagelevel_id])
-              ).values(),
-            ].map((level) => (
-              <Option key={level._id} value={level._id}>
-                {level.language_level}
-              </Option>
-            ))}
+             {languageLevels.map(level => <Option key={level._id} value={level._id}>{level.language_level}</Option>)}
           </Select>
+          <Select
+            allowClear
+            placeholder="Trạng thái"
+            value={filters.status}
+            onChange={(value) => handleFilterChange('status', value)}
+          >
+            <Option value="upcoming">Sắp diễn ra</Option>
+            <Option value="ongoing">Đang diễn ra</Option>
+            <Option value="finished">Đã kết thúc</Option>
+          </Select>
+        </div>
 
-          <Button onClick={resetFilters}>Reset</Button>
-        </Space>
+        <div className="filter-group">
+            <h4>Lọc theo mức giá:</h4>
+            <Slider 
+                range 
+                min={0} 
+                max={10000000} 
+                step={100000}
+                defaultValue={[0, 10000000]} 
+                onAfterChange={(value) => handleFilterChange('priceRange', value)}
+                tipFormatter={value => `${value.toLocaleString()}₫`}
+            />
+        </div>
+
+        <div className="filter-group">
+          <h4>Sắp xếp theo:</h4>
+          <Radio.Group onChange={(e) => setSortBy(e.target.value)} value={sortBy}>
+            <Space direction="vertical">
+              <Radio value="registrations">Lượt đăng ký</Radio>
+              <Radio value="views">Lượt xem</Radio>
+              <Radio value="price_asc">Giá tăng dần</Radio>
+              <Radio value="price_desc">Giá giảm dần</Radio>
+            </Space>
+          </Radio.Group>
+        </div>
       </div>
 
-      {languages.map((lang) => {
-        const coursesInLang = filteredCourses.filter(
-          (course) => course.language_id?._id === lang._id
-        );
-        if (coursesInLang.length === 0) return null;
-
-        return (
-          <div className="language-group" key={lang._id}>
-            <h2>KHÓA HỌC {lang.language?.toUpperCase()}</h2>
-            <div className="course-list">
-              {coursesInLang.map((course) => (
-                <CourseCard
-                  key={course._id}
-                  course={course}
-                  // onDetailClick={setSelectedCourse}
-                  onRegisterClick={handleRegister}
-                />
-              ))}
-            </div>
+      <div className="courses-grid-panel">
+        <div className="courses-grid">
+          {processedCourses.slice(0, visibleCount).map((course) => (
+            <CourseCard key={course._id} course={course} />
+          ))}
+        </div>
+        {processedCourses.length === 0 && <p>Không tìm thấy khóa học nào phù hợp.</p>}
+        {visibleCount < processedCourses.length && (
+          <div className="show-more-container">
+            <Button onClick={handleShowMore}>Xem thêm</Button>
           </div>
-        );
-      })}
-
-      {/* <CourseDetailModal
-        course={selectedCourse}
-        onClose={() => setSelectedCourse(null)}
-      /> */}
+        )}
+      </div>
     </div>
   );
 }

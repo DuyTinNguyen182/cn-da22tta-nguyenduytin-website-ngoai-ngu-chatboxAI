@@ -10,13 +10,13 @@ import {
   DatePicker,
   InputNumber,
   Upload,
-  Image,
+  Space,
 } from "antd";
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import apiClient from "../../../api/axiosConfig";
 import moment from "moment";
-import { PlusOutlined } from '@ant-design/icons';
+import { PlusOutlined } from "@ant-design/icons";
 import ImgCrop from "antd-img-crop";
 
 function UpdateCourse() {
@@ -30,7 +30,6 @@ function UpdateCourse() {
   const [teachers, setTeachers] = useState([]);
   const [selectedLanguageId, setSelectedLanguageId] = useState(null);
   const [courseName, setCourseName] = useState("");
-
   const [fileList, setFileList] = useState([]);
   const [isImageChanged, setIsImageChanged] = useState(false);
 
@@ -91,41 +90,38 @@ function UpdateCourse() {
   }, [id, form]);
 
   const onFinish = async (values) => {
-    setSpinning(true);
-    const formData = new FormData();
+  setSpinning(true);
+  const formData = new FormData();
 
-    Object.keys(values).forEach((key) => {
-      if (key === "Start_Date" || key === "end_date") {
-        formData.append(key, moment(values[key]).toISOString());
-      } else if (key !== "image") {
-        formData.append(key, values[key]);
-      }
+  for (const key in values) {
+    if (key !== "image") {
+      formData.append(key, values[key]);
+    }
+  }
+
+  if (isImageChanged && fileList.length > 0 && fileList[0].originFileObj) {
+    formData.append("image", fileList[0].originFileObj);
+  }
+
+  try {
+    await apiClient.put(`/course/${id}`, formData, {
+      headers: { "Content-Type": "multipart/form-data" },
     });
+    successMessage("Cập nhật khóa học thành công");
+    setTimeout(() => navigate("/admin/courses"), 1000);
+  } catch (error) {
+    errorMessage(error.response?.data?.message || "Cập nhật thất bại");
+  } finally {
+    setSpinning(false);
+  }
+};
 
-    // Chỉ thêm file ảnh nếu người dùng đã chọn ảnh mới
-    if (isImageChanged && fileList.length > 0 && fileList[0].originFileObj) {
-      formData.append("image", fileList[0].originFileObj);
-    }
-
-    try {
-      await apiClient.put(`/course/${id}`, formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-      successMessage("Cập nhật khóa học thành công");
-      setTimeout(() => navigate("/admin/courses"), 1000);
-    } catch (error) {
-      errorMessage(error.response?.data?.message || "Cập nhật thất bại");
-    } finally {
-      setSpinning(false);
-    }
-  };
 
   const handleFileChange = ({ fileList: newFileList }) => {
     setFileList(newFileList);
     if (newFileList.length > 0 && newFileList[0].originFileObj) {
       setIsImageChanged(true);
     } else if (newFileList.length === 0) {
-      // Xử lý khi người dùng xóa ảnh
       setIsImageChanged(true);
     }
   };
@@ -278,12 +274,12 @@ function UpdateCourse() {
             label="% Giảm giá"
             style={{ flex: 1 }}
           >
-            <InputNumber
-              min={0}
-              max={100}
-              style={{ width: "100%" }}
-              addonAfter="%"
-            />
+            <Space.Compact style={{ width: "100%" }}>
+              <InputNumber min={0} max={100} style={{ width: "100%" }} />
+              <Button disabled style={{ width: 80, cursor: "default" }}>
+                %
+              </Button>
+            </Space.Compact>
           </Form.Item>
         </Flex>
         <Form.Item name="Description" label="Mô tả">
