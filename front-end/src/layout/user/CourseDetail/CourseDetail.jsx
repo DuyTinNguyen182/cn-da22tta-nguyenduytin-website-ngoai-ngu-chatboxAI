@@ -1,45 +1,95 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Button, Spin, message, Descriptions, Tag, Flex } from "antd";
+import { Button, Spin, message, Descriptions, Tag, Flex, Rate } from "antd";
 import {
-  ArrowLeftOutlined,
   EyeOutlined,
   UsergroupAddOutlined,
+  StarFilled,
 } from "@ant-design/icons";
 import apiClient from "../../../api/axiosConfig";
 import { useAuth } from "../../../context/AuthContext";
 import "./CourseDetail.css";
+import ReviewList from "../../../components/ReviewList/ReviewList";
+import ReviewForm from "../../../components/ReviewForm/ReviewForm";
 
 function CourseDetailPage() {
   const { courseId } = useParams();
   const navigate = useNavigate();
   const [course, setCourse] = useState(null);
+  const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [messageApi, contextHolder] = message.useMessage();
+  const [userHasPaid, setUserHasPaid] = useState(false);
+  const [userHasReviewed, setUserHasReviewed] = useState(false);
+  const [isReviewFormVisible, setIsReviewFormVisible] = useState(false);
+  const [isSubmittingReview, setIsSubmittingReview] = useState(false);
 
+  const [messageApi, contextHolder] = message.useMessage();
   const { state } = useAuth();
   const { currentUser } = state;
   const userId = currentUser?._id;
 
-  useEffect(() => {
-    const fetchCourseDetail = async () => {
-      if (!courseId) return;
-      setLoading(true);
+  const fetchPageData = async () => {
+    if (!courseId) return;
+    setLoading(true);
+    try {
+      const [courseRes, reviewRes] = await Promise.all([
+        apiClient.get(`/course/${courseId}`),
+        apiClient.get(`/review/course/${courseId}`),
+      ]);
 
-      try {
-        const res = await apiClient.get(`/course/${courseId}`);
-        setCourse(res.data);
+      setCourse(courseRes.data);
+      setReviews(reviewRes.data);
 
-        apiClient.patch(`/course/${courseId}/view`);
-      } catch (error) {
-        console.log(error);
-      } finally {
-        setLoading(false);
+      // Kiểm tra xem user đã đánh giá khóa học này chưa
+      if (
+        userId &&
+        reviewRes.data.some((review) => review.user_id?._id === userId)
+      ) {
+        setUserHasReviewed(true);
       }
-    };
 
-    fetchCourseDetail();
-  }, [courseId]);
+      // Gửi request tăng lượt xem
+      apiClient.patch(`/course/${courseId}/view`);
+
+      // Nếu user đã đăng nhập, kiểm tra xem đã thanh toán khóa học này chưa
+      if (userId) {
+        const userRegistrations = await apiClient.get(
+          `/registration/user/${userId}`
+        );
+        const hasPaid = userRegistrations.data.some(
+          (reg) => reg.course_id?._id === courseId && reg.isPaid
+        );
+        setUserHasPaid(hasPaid);
+      }
+    } catch (error) {
+      messageApi.error("Không thể tải dữ liệu trang.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchPageData();
+  }, [courseId, userId]);
+
+  const handleCreateReview = async (values) => {
+    setIsSubmittingReview(true);
+    try {
+      await apiClient.post("/review", {
+        course_id: courseId,
+        ...values,
+      });
+      messageApi.success("Gửi đánh giá thành công!");
+      setIsReviewFormVisible(false);
+      fetchPageData();
+    } catch (error) {
+      messageApi.error(
+        error.response?.data?.message || "Gửi đánh giá thất bại."
+      );
+    } finally {
+      setIsSubmittingReview(false);
+    }
+  };
 
   const handleRegister = async () => {
     if (!userId) {
@@ -58,7 +108,7 @@ function CourseDetailPage() {
     }
   };
 
-  const handleGoBack = () => navigate(-1);
+  // const handleGoBack = () => navigate(-1);
 
   const getStatusTag = (status) => {
     switch (status) {
@@ -73,17 +123,23 @@ function CourseDetailPage() {
     }
   };
 
-  if (loading) {
-    return <Spin fullscreen tip="Đang tải chi tiết khóa học..." />;
-  }
+  const averageRating =
+    reviews.length > 0
+      ? (
+          reviews.reduce((acc, review) => acc + review.rating, 0) /
+          reviews.length
+        ).toFixed(1)
+      : 0;
 
-  if (!course) {
-    return <div>Không tìm thấy thông tin khóa học.</div>;
-  }
+  if (loading) return <Spin fullscreen tip="Đang tải..." />;
+  if (!course) return <div>Không tìm thấy thông tin khóa học.</div>;
 
   const languageName = course.language_id?.language;
   const levelName = course.languagelevel_id?.language_level;
   const teacherName = course.teacher_id?.full_name;
+
+  const canWriteReview =
+    !userHasReviewed && (userHasPaid || currentUser?.role === "Admin");
 
   return (
     <div className="course-detail-page">
@@ -109,6 +165,11 @@ function CourseDetailPage() {
           <p className="course-teacher">
             Giảng viên: <strong>{teacherName || "Đang cập nhật"}</strong>
           </p>
+          <div className="course-rating">
+            <span className="average-rating-number">{averageRating}</span>
+            <Rate disabled allowHalf value={parseFloat(averageRating)} />
+            <span className="total-reviews">({reviews.length} đánh giá)</span>
+          </div>
           <div className="course-stats">
             <span>
               <EyeOutlined /> {course.views || 0} Lượt xem
@@ -128,6 +189,20 @@ function CourseDetailPage() {
             {course.Description ||
               "Hiện chưa có mô tả chi tiết cho khóa học này."}
           </p>
+          <div className="reviews-section">
+            <div className="reviews-header">
+              <h2>Đánh giá từ học viên</h2>
+              {canWriteReview && (
+                <Button
+                  type="primary"
+                  onClick={() => setIsReviewFormVisible(true)}
+                >
+                  Viết đánh giá
+                </Button>
+              )}
+            </div>
+            <ReviewList reviews={reviews} />
+          </div>
         </div>
         <div className="course-info-panel">
           <Descriptions bordered column={1} size="middle">
@@ -161,12 +236,22 @@ function CourseDetailPage() {
             size="large"
             className="register-button"
             onClick={handleRegister}
-            disabled={course.status === "finished" || course.status === "ongoing"} // Không cho đăng ký nếu khóa học đã kết thúc
+            disabled={
+              course.status === "finished" || course.status === "ongoing"
+            } // Không cho đăng ký nếu khóa học đã kết thúc
           >
-            {course.status === "finished" || course.status === "ongoing" ? "Ngoài thời gian đăng ký" : "Đăng ký ngay"}
+            {course.status === "finished" || course.status === "ongoing"
+              ? "Ngoài thời gian đăng ký"
+              : "Đăng ký ngay"}
           </Button>
         </div>
       </div>
+      <ReviewForm
+        open={isReviewFormVisible}
+        onCreate={handleCreateReview}
+        onCancel={() => setIsReviewFormVisible(false)}
+        loading={isSubmittingReview}
+      />
     </div>
   );
 }

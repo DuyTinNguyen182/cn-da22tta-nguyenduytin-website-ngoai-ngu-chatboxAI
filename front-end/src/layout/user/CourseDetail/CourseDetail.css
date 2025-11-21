@@ -107,6 +107,41 @@
   width: 100%;
 }
 
+.course-rating {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 20px;
+}
+.average-rating-number {
+    font-size: 18px;
+    font-weight: bold;
+    color: #faad14;
+}
+.total-reviews {
+    font-size: 14px;
+    color: #888;
+}
+.course-rating .ant-rate {
+    font-size: 20px;
+}
+
+.reviews-section {
+    margin-top: 40px;
+    padding-top: 30px;
+    border-top: 1px solid #f0f0f0;
+}
+.reviews-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+.reviews-header h2 {
+    margin: 0;
+    font-size: 24px;
+}
+
 @media (max-width: 768px) {
     .course-header, .course-content-wrapper {
         flex-direction: column;

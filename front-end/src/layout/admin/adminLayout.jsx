@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import {
   PieChartOutlined, UserOutlined, BookOutlined, TeamOutlined,
-  ExportOutlined, GlobalOutlined, BarChartOutlined, ReadOutlined,
+  ExportOutlined, GlobalOutlined, BarChartOutlined, ReadOutlined, StarOutlined
 } from "@ant-design/icons";
 import { Flex, Layout, Menu, Spin, Result, Button } from "antd";
 import { Link, Route, Routes, useLocation, Navigate } from "react-router-dom";
@@ -21,6 +21,7 @@ import CourseManager from "./CourseManager/CourseManager";
 import UpdateCourse from "./CourseManager/UpdateCourse";
 import CourseRegistrationManager from "./CourseRegistrationManager/CourseRegistrationManager";
 import UpdateCourseRegistration from "./CourseRegistrationManager/UpdateCourseRegistration";
+import ReviewManager from "./ReviewManager/ReviewManager";
 
 const { Sider } = Layout;
 
@@ -36,6 +37,7 @@ const menuItems = [
   getItem(<Link to="teachers">Quản lý giảng viên</Link>, "teachers", <TeamOutlined />),
   getItem(<Link to="courses">Quản lý khóa học</Link>, "courses", <ReadOutlined />),
   getItem(<Link to="registercourses">Quản lý đăng ký học</Link>, "registercourses", <BookOutlined />),
+  getItem(<Link to="reviews">Quản lý đánh giá</Link>, "reviews", <StarOutlined />),
 ];
 
 const AdminLayout = () => {
@@ -99,6 +101,7 @@ const AdminLayout = () => {
           <Route path="courses/update/:id" element={<UpdateCourse />} />
           <Route path="registercourses" element={<CourseRegistrationManager />} />
           <Route path="registercourses/update/:registrationId" element={<UpdateCourseRegistration />} />
+          <Route path="reviews" element={<ReviewManager />} />
         </Routes>
       </Layout>
     </Layout>
