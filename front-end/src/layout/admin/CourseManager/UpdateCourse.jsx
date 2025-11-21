@@ -270,17 +270,18 @@ function UpdateCourse() {
             />
           </Form.Item>
           <Form.Item
-            name="discount_percent"
-            label="% Giảm giá"
-            style={{ flex: 1 }}
-          >
-            <Space.Compact style={{ width: "100%" }}>
-              <InputNumber min={0} max={100} style={{ width: "100%" }} />
-              <Button disabled style={{ width: 80, cursor: "default" }}>
-                %
-              </Button>
-            </Space.Compact>
-          </Form.Item>
+              name="discount_percent"
+              label="% Giảm giá"
+              initialValue={0}
+              style={{ flex: 1 }}
+            >
+              <InputNumber
+                min={0}
+                max={100}
+                style={{ width: "100%" }}
+                addonAfter="%"
+              />
+            </Form.Item>
         </Flex>
         <Form.Item name="Description" label="Mô tả">
           <Input.TextArea rows={3} />
