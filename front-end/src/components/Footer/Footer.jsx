@@ -7,7 +7,7 @@ function Footer(){
         <div className="Footer">
             <div className='Footer_left'>
                 <h2>Trung tâm ngoại ngữ DREAM</h2>
-                <div>Địa chỉ: Số 126, Nguyễn Thiện Thành, Phường Hòa Thuận, Tỉnh Vĩnh Long</div>
+                <div>Địa chỉ: Số 123, Phường Hòa Thuận, Tỉnh Vĩnh Long</div>
                 <img src={logo} alt=""/>
                 <p>Copyright by DREAM © 2025. All right reserved.</p>
             </div>

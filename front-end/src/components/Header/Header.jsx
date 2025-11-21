@@ -106,11 +106,19 @@ function Header() {
             </Link>
           </>
         )}
+        <Link
+          className={`Header_nav_item ${isActive("/contact") ? "active" : ""}`}
+          to="/contact"
+        >
+          <ion-icon name="call"></ion-icon>
+          <span>Liên hệ</span>
+        </Link>       
       </div>
 
       {/* Tài khoản */}
       {currentUser ? (
         <div className="Header_avatar">
+          <div className="welcome">Hi, {currentUser.fullname}</div>
           <img
             src={currentUser.avatar}
             alt=""
