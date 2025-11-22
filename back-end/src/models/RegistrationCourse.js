@@ -6,6 +6,7 @@ const RegistrationCourseSchema = new mongoose.Schema({
   enrollment_date: { type: Date, default: Date.now },
 
   isPaid: { type: Boolean, default: false },
+  paymentDate: { type: Date, default: null },
 },
 { 
   timestamps: true 

@@ -68,6 +68,11 @@ function CourseRegistrationManager() {
       render: (date) => moment(date).format("DD/MM/YYYY"),
     },
     {
+      title: "Ngày thanh toán",
+      dataIndex: "paymentDate",
+      render: (date) => moment(date).format("DD/MM/YYYY"),
+    },
+    {
       title: "Trạng thái",
       dataIndex: "isPaid",
       render: (isPaid, record) => (
