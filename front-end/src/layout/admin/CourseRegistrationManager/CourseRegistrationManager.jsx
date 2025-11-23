@@ -70,7 +70,7 @@ function CourseRegistrationManager() {
     {
       title: "Ngày thanh toán",
       dataIndex: "paymentDate",
-      render: (date) => moment(date).format("DD/MM/YYYY"),
+      render: (date) => (date ? moment(date).format("DD/MM/YYYY") : "-"),
     },
     {
       title: "Trạng thái",

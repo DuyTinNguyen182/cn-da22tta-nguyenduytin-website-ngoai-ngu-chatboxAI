@@ -1,39 +1,162 @@
-.registered-course-card {
-  background-color: #edf4ff;
-  border-radius: 12px !important;
+.registered-course-card-horizontal {
+  display: flex;
+  background-color: #fff;
+  border-radius: 12px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  border: 1px solid #f0f0f0;
+  margin-bottom: 20px;
+  position: relative;
+}
+
+.registered-course-card-horizontal:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+}
+
+.card-left {
+  width: 40%;
+  aspect-ratio: 16 / 9;
+  position: relative;
+  cursor: pointer;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-right: 1px solid #f0f0f0;
+}
+
+.course-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s ease;
+}
+
+.card-left:hover .course-img {
+  transform: scale(1.05);
+}
+
+.card-status-tag {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 2;
+}
+
+.card-right {
+  flex: 1;
+  padding: 10px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
 }
 
-.registered-course-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+.info-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  /* margin-bottom: 12px; */
 }
 
-.registered-course-card p {
-  margin: 6px 0;
-  color: #444444;
+.course-name {
+  margin: 0 !important;
+  color: #1890ff;
   font-size: 14px;
+  line-height: 1.2;
 }
 
-.registered-course-card b {
-  color: #222;
+.price-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.current-price1 {
+  font-size: 16px;
+  font-weight: bold;
+  color: #d70018;
+}
+.original-price1 {
+  font-size: 14px;
+  color: #888;
+  text-decoration: line-through;
 }
 
-.card-title {
+.info-details p {
+  margin: 6px 0;
+  color: #595959;
+  font-size: 14px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: 8px;
 }
 
-.card-actions {
+.payment-date-highlight {
+  color: #389e0d !important;
+  background-color: #f6ffed;
+  padding: 5px 10px;
+  border-radius: 6px;
+  display: inline-flex;
+  border: 1px solid #b7eb8f;
+  margin-top: 8px !important;
+  font-weight: 500;
+}
+
+.card-footer-actions {
   display: flex;
   justify-content: flex-end;
-  gap: 8px;
-  margin-top: 16px;
-  border-top: 1px solid #d9e6fa;
-  padding-top: 16px;
+  gap: 12px;
+  margin-top: 5px;
+  padding-top: 5px;
+  border-top: 1px solid #f0f0f0;
+}
+
+@media (max-width: 768px) {
+  .registered-course-card-horizontal {
+    flex-direction: column;
+  }
+
+  .card-left {
+    width: 100%;
+    height: 100%;
+  }
+
+  .price-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+    font-size: 14px;
+  }
+
+  .current-price1 {
+    font-size: 14px;
+    font-weight: bold;
+    color: #d70018;
+  }
+  .original-price1 {
+    font-size: 10px;
+    color: #888;
+    text-decoration: line-through;
+  }
+
+  .info-header {
+    flex-direction: column;
+    gap: 5px;
+  }
+  .card-footer-actions {
+    display: flex;
+    flex-direction: column;
+  }
+}
+
+.course-card-error {
+  padding: 20px;
+  border: 1px dashed #ff4d4f;
+  color: #ff4d4f;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  text-align: center;
 }

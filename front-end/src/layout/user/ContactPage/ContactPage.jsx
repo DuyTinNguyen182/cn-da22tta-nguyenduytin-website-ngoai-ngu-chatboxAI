@@ -54,8 +54,7 @@ function ContactPage() {
               <CheckCircleOutlined /> Chất lượng đào tạo cao – lộ trình rõ ràng
             </li>
             <li>
-              <CheckCircleOutlined /> Giảng viên giàu chuyên môn – thân thiện -
-              phương pháp giảng dạy mới mẻ
+              <CheckCircleOutlined /> Giảng viên giàu chuyên môn – thân thiện
             </li>
             <li>
               <CheckCircleOutlined /> Môi trường tích cực – truyền cảm hứng

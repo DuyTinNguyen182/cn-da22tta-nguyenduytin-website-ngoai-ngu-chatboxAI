@@ -139,7 +139,7 @@ function CourseDetailPage() {
   const teacherName = course.teacher_id?.full_name;
 
   const canWriteReview =
-    !userHasReviewed && (userHasPaid || currentUser?.role === "Admin");
+    !userHasReviewed && (userHasPaid || currentUser?.role === "Admin"); 
 
   return (
     <div className="course-detail-page">
@@ -160,7 +160,8 @@ function CourseDetailPage() {
         />
         <div className="course-header-info">
           <h1 className="course-title">
-            {languageName} - {levelName}
+            Khóa học {languageName} - {levelName}
+            <br/>Mã KH: {course.courseid}
           </h1>
           <p className="course-teacher">
             Giảng viên: <strong>{teacherName || "Đang cập nhật"}</strong>

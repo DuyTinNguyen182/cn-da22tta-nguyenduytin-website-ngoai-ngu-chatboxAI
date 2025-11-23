@@ -1,10 +1,10 @@
-import React from 'react';
-import './CourseCard.css';
-import { Link } from 'react-router-dom';
+import React from "react";
+import "./CourseCard.css";
+import { Link } from "react-router-dom";
 import { EyeOutlined, UsergroupAddOutlined } from "@ant-design/icons";
-import { Tag } from 'antd';
+import { Tag } from "antd";
 
-import courseImagePlaceholder from '../../imgs/images.jpg'; 
+import courseImagePlaceholder from "../../imgs/image.png";
 
 const CourseCard = ({ course }) => {
   if (!course) {
@@ -14,6 +14,7 @@ const CourseCard = ({ course }) => {
   const languageName = course.language_id?.language;
   const levelName = course.languagelevel_id?.language_level;
   const courseIdCode = course.courseid;
+  const teacherName = course.teacher_id?.full_name;
 
   const newPrice = course.discounted_price;
   const oldPrice = course.Tuition;
@@ -39,23 +40,21 @@ const CourseCard = ({ course }) => {
     <Link to={`/courses/${course._id}`} className="course-card-link">
       <div className="course-card-new">
         <div className="course-image-container">
-          <img src={course.image || courseImagePlaceholder} alt={`${languageName} - ${levelName}`} />
-          {/* Hiển thị tag trạng thái trên ảnh */}
-          <div className="status-tag-overlay">
-            {getStatusTag(status)}
-          </div>
+          <img
+            src={course.image || courseImagePlaceholder}
+            alt={`${languageName} - ${levelName}`}
+          />
+          <div className="status-tag-overlay">{getStatusTag(status)}</div>
           {discountPercent > 0 && (
-            <div className="discount-badge">
-              -{discountPercent}%
-            </div>
+            <div className="discount-badge">-{discountPercent}%</div>
           )}
         </div>
         <div className="course-info-container">
           <h3 className="course-title-new">
             {languageName} - {levelName} ({courseIdCode})
           </h3>
+          <div className="teacher">GV: {teacherName}</div>
           <div className="course-price-container">
-            {/* Hiển thị giá đã giảm và giá gốc */}
             <span className="new-price">{newPrice?.toLocaleString()}₫</span>
             {discountPercent > 0 && (
               <span className="old-price">{oldPrice?.toLocaleString()}₫</span>
