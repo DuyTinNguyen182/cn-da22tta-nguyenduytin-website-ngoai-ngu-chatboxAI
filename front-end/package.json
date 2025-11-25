@@ -13,6 +13,7 @@
     "@ant-design/compatible": "^5.1.4",
     "@ant-design/icons": "^6.1.0",
     "@fortawesome/fontawesome-free": "^6.7.2",
+    "@tailwindcss/vite": "^4.1.17",
     "@testing-library/dom": "^10.4.0",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.2.0",
@@ -26,8 +27,9 @@
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-router-dom": "^6.23.0",
-    "react-scripts": "^5.0.1",
+    "react-youtube": "^10.1.0",
     "recharts": "^3.2.1",
+    "tailwindcss": "^4.1.17",
     "web-vitals": "^2.1.4"
   },
   "devDependencies": {

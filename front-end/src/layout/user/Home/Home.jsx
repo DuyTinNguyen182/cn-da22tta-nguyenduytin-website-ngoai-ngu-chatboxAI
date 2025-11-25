@@ -2,13 +2,11 @@ import { Link, useNavigate } from "react-router-dom";
 import banner from "../../../imgs/banner.png";
 import banner2 from "../../../imgs/banner2.png";
 import banner3 from "../../../imgs/banner3.png";
-import "./Home.css";
-import { Spin, Carousel, message, Flex, Statistic, Card } from "antd";
+import { Spin, Carousel, message } from "antd";
 import { useEffect, useState, useRef } from "react";
-// import { BookOutlined, TeamOutlined, UserOutlined, GlobalOutlined } from '@ant-design/icons';
-import { useAuth } from "../../../context/AuthContext";
 import apiClient from "../../../api/axiosConfig";
 import CourseCard from "../../../components/CourseCard/CourseCard";
+import { useAuth } from "../../../context/AuthContext";
 
 function Home() {
   const navigate = useNavigate();
@@ -29,8 +27,6 @@ function Home() {
   };
 
   const { state } = useAuth();
-  const { currentUser } = state;
-  const userId = currentUser?._id;
   const [messageApi, contextHolder] = message.useMessage();
 
   useEffect(() => {
@@ -53,214 +49,267 @@ function Home() {
 
   useEffect(() => {
     if (spinning) return;
-
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            setActiveSection(entry.target.id);
-          }
+          if (entry.isIntersecting) setActiveSection(entry.target.id);
         });
       },
-      {
-        rootMargin: "-40% 0px -60% 0px",
-        threshold: 0,
-      }
+      { rootMargin: "-40% 0px -60% 0px", threshold: 0 }
     );
-
     const currentRefs = Object.values(sectionRefs)
       .map((ref) => ref.current)
       .filter(Boolean);
     currentRefs.forEach((ref) => observer.observe(ref));
-
-    return () => {
-      currentRefs.forEach((ref) => observer.unobserve(ref));
-    };
-  }, [spinning]); // Chạy lại khi spinning chuyển thành false
+    return () => currentRefs.forEach((ref) => observer.unobserve(ref));
+  }, [spinning]);
 
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
-  // Nổi bật
   const featuredCourses = [...allCourses]
     .sort((a, b) => (b.registration_count || 0) - (a.registration_count || 0))
     .slice(0, 8);
 
-  // Sắp diễn ra
   const upcomingCourses = allCourses
     .filter((c) => new Date(c.Start_Date) > today)
     .slice(0, 8);
 
-  // Đang diễn ra
   const ongoingCourses = allCourses
     .filter((c) => new Date(c.Start_Date) <= today && c.status === "ongoing")
     .slice(0, 8);
 
-  // Giảm giá
   const discountCourses = allCourses
     .filter((c) => c.discount_percent > 0 && new Date(c.Start_Date) > today)
     .slice(0, 8);
 
+  const StatCard = ({ title, value, iconName, colorClass }) => (
+    <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 relative overflow-hidden group hover:shadow-md transition-all duration-300">
+      <div className="relative z-10">
+        <p className="text-gray-500 text-sm font-medium mb-1">{title}</p>
+        <h3 className="text-3xl font-bold text-gray-800">{value}+</h3>
+      </div>
+      <div
+        className={`absolute -right-2 -bottom-4 text-6xl opacity-10 group-hover:scale-110 transition-transform duration-300 ${colorClass}`}
+      >
+        <ion-icon name={iconName}></ion-icon>
+      </div>
+    </div>
+  );
+
   return (
-    <div className="homepage">
+    <div className="w-full min-h-screen bg-gray-50/50 pb-20">
       {contextHolder}
       <Spin spinning={spinning} fullscreen />
-      <Carousel autoplay autoplaySpeed={3000}>
-        {[banner, banner2, banner3].map((img, i) => (
-          <div className="homepage-banner" key={i}>
-            <img src={img} alt={`Banner ${i + 1}`} />
-          </div>
-        ))}
-      </Carousel>
-      <div className="stats-cards-container">
-        <Card className="stat-card">
-          <Statistic
+
+      <div className="w-full max-w-7xl mx-auto pt-6 px-4 md:px-6">
+        <div className="rounded-2xl overflow-hidden shadow-lg">
+          <Carousel autoplay autoplaySpeed={3000} effect="fade">
+            {[banner, banner2, banner3].map((img, i) => (
+              <div
+                key={i}
+                className="w-full h-[200px] md:h-[350px] lg:h-[300px]"
+              >
+                <img
+                  src={img}
+                  alt="Banner"
+                  className="w-full h-full object-cover object-center"
+                />
+              </div>
+            ))}
+          </Carousel>
+        </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 md:px-6 mt-8">
+        <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-6">
+          <StatCard
             title="Khóa học đa dạng"
             value={allCourses.length}
-            /*prefix={<BookOutlined />}*/ suffix="+"
+            iconName="book"
+            colorClass="text-blue-600"
           />
-        </Card>
-        <Card className="stat-card">
-          <Statistic
+          <StatCard
             title="Giảng viên kinh nghiệm"
             value={stats.teachers}
-            /*prefix={<TeamOutlined />}*/ suffix="+"
+            iconName="people"
+            colorClass="text-green-600"
           />
-        </Card>
-        <Card className="stat-card">
-          <Statistic
+          <StatCard
             title="Học viên tin tưởng"
             value={stats.students}
-            /*prefix={<UserOutlined />}*/ suffix="+"
+            iconName="school"
+            colorClass="text-orange-600"
           />
-        </Card>
-        <Card className="stat-card">
-          <Statistic
+          <StatCard
             title="Ngôn ngữ phổ biến"
             value={stats.languages}
-            /*prefix={<GlobalOutlined />}*/ suffix="+"
+            iconName="globe"
+            colorClass="text-purple-600"
           />
-        </Card>
-      </div>
-      <Flex className="main-content-wrapper" gap="large">
-        <div className="course-status-menu">
-          <h4>Danh mục khóa học</h4>
-          <ul>
-            <li>
-              <a
-                href="#featured"
-                className={activeSection === "featured" ? "active" : ""}
-              >
-                Nổi bật nhất
-              </a>
-            </li>
-            <li>
-              <a
-                href="#discount"
-                className={activeSection === "discount" ? "active" : ""}
-              >
-                Đang giảm giá
-              </a>
-            </li>
-            <li>
-              <a
-                href="#upcoming"
-                className={activeSection === "upcoming" ? "active" : ""}
-              >
-                Sắp khai giảng
-              </a>
-            </li>
-            <li>
-              <a
-                href="#ongoing"
-                className={activeSection === "ongoing" ? "active" : ""}
-              >
-                Đang diễn ra
-              </a>
-            </li>
-          </ul>
         </div>
-        <div className="courses-display">
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 md:px-6 mt-12 flex flex-col lg:flex-row gap-10 items-start">
+        <aside className="hidden lg:block w-64 sticky top-24 shrink-0">
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+            <h4 className="font-bold text-gray-800 text-lg mb-4 flex items-center gap-2">
+              <ion-icon name="list-outline" class="text-blue-600"></ion-icon>
+              Danh mục
+            </h4>
+            <ul className="flex flex-col gap-1">
+              {[
+                { id: "featured", label: "Nổi bật nhất", icon: "star-outline" },
+                {
+                  id: "discount",
+                  label: "Đang giảm giá",
+                  icon: "pricetag-outline",
+                },
+                {
+                  id: "upcoming",
+                  label: "Sắp khai giảng",
+                  icon: "calendar-outline",
+                },
+                {
+                  id: "ongoing",
+                  label: "Đang diễn ra",
+                  icon: "play-circle-outline",
+                },
+              ].map((item) => (
+                <li key={item.id}>
+                  <a
+                    href={`#${item.id}`}
+                    className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 ${
+                      activeSection === item.id
+                        ? "bg-blue-600 text-white shadow-md shadow-blue-200"
+                        : "text-gray-600 hover:bg-gray-50 hover:text-blue-600"
+                    }`}
+                  >
+                    <ion-icon name={item.icon}></ion-icon>
+                    {item.label}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </aside>
+
+        <div className="flex-1 flex flex-col gap-16 w-full">
           <section
             id="featured"
             ref={sectionRefs.featured}
-            className="homepage-section"
+            className="scroll-mt-28"
           >
-            <div className="section-header">
-              <span>Nổi bật nhất</span>
-              {/* <Link to="/courses">
+            <div className="flex items-center justify-between mb-6 pb-2 border-b border-gray-200">
+              <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
+                <span className="text-yellow-500 text-3xl">
+                  <ion-icon name="trophy"></ion-icon>
+                </span>
+                Nổi bật nhất
+              </h2>
+              <Link
+                to="/courses"
+                className="text-sm font-semibold text-blue-600 hover:underline flex items-center gap-1"
+              >
                 Xem tất cả <ion-icon name="arrow-forward"></ion-icon>
-              </Link> */}
+              </Link>
             </div>
-            <div className="course-list">
-              {featuredCourses.length > 0 ? (
-                featuredCourses.map((c) => (
+
+            {featuredCourses.length > 0 ? (
+              <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-6">
+                {featuredCourses.map((c) => (
                   <CourseCard key={c._id} course={c} />
-                ))
-              ) : (
-                <p>Chưa có khóa học nổi bật.</p>
-              )}
-            </div>
+                ))}
+              </div>
+            ) : (
+              <EmptyState message="Chưa có khóa học nổi bật." />
+            )}
           </section>
 
           <section
             id="discount"
             ref={sectionRefs.discount}
-            className="homepage-section"
+            className="scroll-mt-28"
           >
-            <div className="section-header">
-              <span>Khuyến mãi hot</span>
+            <div className="flex items-center justify-between mb-6 pb-2 border-b border-gray-200">
+              <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
+                <span className="text-red-500 text-3xl">
+                  <ion-icon name="flame"></ion-icon>
+                </span>
+                Khuyến mãi hot
+              </h2>
             </div>
-            <div className="course-list">
-              {discountCourses.length > 0 ? (
-                discountCourses.map((c) => (
+            {discountCourses.length > 0 ? (
+              <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-6">
+                {discountCourses.map((c) => (
                   <CourseCard key={c._id} course={c} />
-                ))
-              ) : (
-                <p>Hiện không có khóa học nào đang giảm giá.</p>
-              )}
-            </div>
+                ))}
+              </div>
+            ) : (
+              <EmptyState message="Hiện không có khóa học nào đang giảm giá." />
+            )}
           </section>
 
           <section
             id="upcoming"
             ref={sectionRefs.upcoming}
-            className="homepage-section"
+            className="scroll-mt-28"
           >
-            <div className="section-header">
-              <span>Sắp khai giảng</span>
+            <div className="flex items-center justify-between mb-6 pb-2 border-b border-gray-200">
+              <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
+                <span className="text-blue-500 text-3xl">
+                  <ion-icon name="calendar-number"></ion-icon>
+                </span>
+                Sắp khai giảng
+              </h2>
             </div>
-            <div className="course-list">
-              {upcomingCourses.length > 0 ? (
-                upcomingCourses.map((c) => (
+            {upcomingCourses.length > 0 ? (
+              <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-6">
+                {upcomingCourses.map((c) => (
                   <CourseCard key={c._id} course={c} />
-                ))
-              ) : (
-                <p>Hiện chưa có khóa học nào sắp diễn ra.</p>
-              )}
-            </div>
+                ))}
+              </div>
+            ) : (
+              <EmptyState message="Hiện chưa có khóa học nào sắp diễn ra." />
+            )}
           </section>
 
           <section
             id="ongoing"
             ref={sectionRefs.ongoing}
-            className="homepage-section"
+            className="scroll-mt-28"
           >
-            <div className="section-header">
-              <span>Đang diễn ra</span>
+            <div className="flex items-center justify-between mb-6 pb-2 border-b border-gray-200">
+              <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
+                <span className="text-green-500 text-3xl">
+                  <ion-icon name="play-circle"></ion-icon>
+                </span>
+                Đang diễn ra
+              </h2>
             </div>
-            <div className="course-list">
-              {ongoingCourses.length > 0 ? (
-                ongoingCourses.map((c) => <CourseCard key={c._id} course={c} />)
-              ) : (
-                <p>Hiện chưa có khóa học nào đang diễn ra.</p>
-              )}
-            </div>
+            {ongoingCourses.length > 0 ? (
+              <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-6">
+                {ongoingCourses.map((c) => (
+                  <CourseCard key={c._id} course={c} />
+                ))}
+              </div>
+            ) : (
+              <EmptyState message="Hiện chưa có khóa học nào đang diễn ra." />
+            )}
           </section>
         </div>
-      </Flex>
+      </div>
     </div>
   );
 }
+
+const EmptyState = ({ message }) => (
+  <div className="flex flex-col items-center justify-center py-10 bg-white rounded-lg border border-dashed border-gray-300">
+    <div className="text-4xl text-gray-300 mb-2">
+      <ion-icon name="file-tray-outline"></ion-icon>
+    </div>
+    <p className="text-gray-500 font-medium">{message}</p>
+  </div>
+);
 
 export default Home;

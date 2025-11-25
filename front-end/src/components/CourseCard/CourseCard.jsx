@@ -1,72 +1,106 @@
 import React from "react";
-import "./CourseCard.css";
 import { Link } from "react-router-dom";
 import { EyeOutlined, UsergroupAddOutlined } from "@ant-design/icons";
-import { Tag } from "antd";
-
 import courseImagePlaceholder from "../../imgs/image.png";
 
 const CourseCard = ({ course }) => {
-  if (!course) {
-    return null;
-  }
+  if (!course) return null;
 
-  const languageName = course.language_id?.language;
-  const levelName = course.languagelevel_id?.language_level;
-  const courseIdCode = course.courseid;
-  const teacherName = course.teacher_id?.full_name;
+  const {
+    _id,
+    courseid,
+    image,
+    status,
+    discount_percent,
+    Tuition: oldPrice,
+    discounted_price: newPrice,
+    views,
+    registration_count,
+    language_id,
+    languagelevel_id,
+    teacher_id,
+  } = course;
 
-  const newPrice = course.discounted_price;
-  const oldPrice = course.Tuition;
-  const discountPercent = course.discount_percent;
-  const views = course.views;
-  const registeredCount = course.registration_count;
-  const status = course.status;
+  const languageName = language_id?.language;
+  const levelName = languagelevel_id?.language_level;
+  const teacherName = teacher_id?.full_name;
 
-  const getStatusTag = (status) => {
+  const renderStatusBadge = () => {
+    const badgeStyles =
+      "absolute top-3 left-3 px-3 py-1 rounded-full text-xs font-bold text-white shadow-md z-10 backdrop-blur-sm";
+
     switch (status) {
       case "upcoming":
-        return <Tag color="blue">Sắp diễn ra</Tag>;
+        return (
+          <span className={`${badgeStyles} bg-blue-500/90`}>Sắp diễn ra</span>
+        );
       case "ongoing":
-        return <Tag color="green">Đang diễn ra</Tag>;
+        return (
+          <span className={`${badgeStyles} bg-emerald-500/90`}>
+            Đang diễn ra
+          </span>
+        );
       case "finished":
-        return <Tag color="default">Đã kết thúc</Tag>;
+        return (
+          <span className={`${badgeStyles} bg-gray-500/90`}>Đã kết thúc</span>
+        );
       default:
         return null;
     }
   };
 
   return (
-    <Link to={`/courses/${course._id}`} className="course-card-link">
-      <div className="course-card-new">
-        <div className="course-image-container">
+    <Link to={`/courses/${_id}`} className="group h-full">
+      <div className="bg-white border border-gray-100 rounded-xl overflow-hidden flex flex-col h-full transition-all duration-300 hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)] hover:-translate-y-1">
+        <div className="relative w-full pt-[56.25%] bg-gray-50 overflow-hidden">
           <img
-            src={course.image || courseImagePlaceholder}
+            src={image || courseImagePlaceholder}
             alt={`${languageName} - ${levelName}`}
+            className="absolute top-0 left-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
           />
-          <div className="status-tag-overlay">{getStatusTag(status)}</div>
-          {discountPercent > 0 && (
-            <div className="discount-badge">-{discountPercent}%</div>
+
+          {renderStatusBadge()}
+
+          {discount_percent > 0 && (
+            <div className="absolute top-0 right-0 bg-red-600 text-white text-xs font-bold px-3 py-1.5 rounded-bl-lg shadow-sm z-10">
+              -{discount_percent}%
+            </div>
           )}
         </div>
-        <div className="course-info-container">
-          <h3 className="course-title-new">
-            {languageName} - {levelName} ({courseIdCode})
+
+        <div className="p-4 flex flex-col flex-grow">
+          <h3 className="text-[16px] font-bold text-gray-800 mb-1 leading-snug line-clamp-2 min-h-[44px] group-hover:text-blue-600 transition-colors">
+            {languageName} - {levelName}{" "}
+            <span className="text-gray-400 font-normal text-sm">
+              ({courseid})
+            </span>
           </h3>
-          <div className="teacher">GV: {teacherName}</div>
-          <div className="course-price-container">
-            <span className="new-price">{newPrice?.toLocaleString()}₫</span>
-            {discountPercent > 0 && (
-              <span className="old-price">{oldPrice?.toLocaleString()}₫</span>
+
+          <div className="text-sm font-medium text-blue-600 mb-3 flex items-center gap-1">
+            <ion-icon name="person-circle"></ion-icon>
+            <span>GV: {teacherName}</span>
+          </div>
+
+          <div className="flex items-end gap-2 mb-4 mt-auto">
+            <span className="text-lg font-bold text-red-600">
+              {newPrice?.toLocaleString()}₫
+            </span>
+            {discount_percent > 0 && (
+              <span className="text-sm text-gray-400 line-through mb-0.5">
+                {oldPrice?.toLocaleString()}₫
+              </span>
             )}
           </div>
-          <div className="course-stats-container">
-            <span className="stat-item">
-              <EyeOutlined /> {views || 0}
-            </span>
-            <span className="stat-item">
-              <UsergroupAddOutlined /> {registeredCount || 0}
-            </span>
+
+          <div className="pt-3 border-t border-gray-100 flex items-center gap-4 text-xs text-gray-500 font-medium">
+            <div className="flex items-center gap-1.5">
+              <EyeOutlined className="text-gray-400" />
+              <span>{views || 0}</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <UsergroupAddOutlined className="text-gray-400" />
+              <span>{registration_count || 0} học viên</span>
+            </div>
           </div>
         </div>
       </div>
