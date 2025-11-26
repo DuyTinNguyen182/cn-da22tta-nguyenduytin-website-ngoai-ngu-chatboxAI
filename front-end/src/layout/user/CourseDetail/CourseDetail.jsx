@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Button, Spin, message, Tag, Rate, Modal } from "antd";
+import { Button, Spin, message, Rate, Modal, Divider } from "antd";
 import {
   StarFilled,
   EyeOutlined,
@@ -9,6 +9,9 @@ import {
   ClockCircleOutlined,
   CalendarOutlined,
   CheckCircleOutlined,
+  SafetyCertificateOutlined,
+  FileTextOutlined,
+  LikeOutlined,
 } from "@ant-design/icons";
 import YouTube from "react-youtube";
 import apiClient from "../../../api/axiosConfig";
@@ -77,10 +80,7 @@ function CourseDetailPage() {
   const handleCreateReview = async (values) => {
     setIsSubmittingReview(true);
     try {
-      await apiClient.post("/review", {
-        course_id: courseId,
-        ...values,
-      });
+      await apiClient.post("/review", { course_id: courseId, ...values });
       messageApi.success("Gửi đánh giá thành công!");
       setIsReviewFormVisible(false);
       fetchPageData();
@@ -174,16 +174,23 @@ function CourseDetailPage() {
   return (
     <div className="w-full bg-[#F2F4F7] min-h-screen pb-20">
       {contextHolder}
+
       <div className="bg-gradient-to-r from-slate-900 to-slate-800 text-white py-12 md:py-16">
         <div className="max-w-6xl mx-auto px-4 md:px-8 flex flex-col md:flex-row gap-8 items-center md:items-start">
-          <div className="relative shrink-0">
+          <div
+            className="relative shrink-0 group cursor-pointer"
+            onClick={() => setIsVideoModalVisible(true)}
+          >
             <img
               src={course.image || courseImagePlaceholder}
               alt={languageName}
-              className="w-[340px] h-[220px] object-cover rounded-xl shadow-2xl border-4 border-slate-700/50"
+              className="w-[340px] h-[220px] object-cover rounded-xl shadow-2xl border-4 border-slate-700/50 group-hover:brightness-75 transition-all"
             />
             <div className="absolute top-4 left-4">
               {getStatusTag(course.status)}
+            </div>
+            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+              <PlayCircleOutlined className="text-5xl text-white drop-shadow-lg" />
             </div>
           </div>
 
@@ -235,6 +242,7 @@ function CourseDetailPage() {
               >
                 Học thử miễn phí
               </Button>
+
               <Button
                 type="primary"
                 size="large"
@@ -255,54 +263,77 @@ function CourseDetailPage() {
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto px-4 md:px-8 mt-8 flex flex-col lg:flex-row gap-10 items-start">
-        <div className="flex-1 flex flex-col gap-8">
-          <div className="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-gray-100">
-            <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
-              <ion-icon
-                name="document-text-outline"
-                class="text-blue-600"
-              ></ion-icon>
-              Mô tả khóa học
+      <div className="max-w-6xl mx-auto px-4 md:px-8 mt-8 flex flex-col lg:flex-row gap-8 items-start">
+        <div className="flex-1 bg-white rounded-2xl shadow-sm border border-gray-100 p-6 md:p-10 order-2 lg:order-1 w-full">
+          <div className="mb-8">
+            <h2 className="text-2xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+              <FileTextOutlined className="text-blue-600" />
+              Giới thiệu khóa học
             </h2>
-            <div className="text-gray-600 leading-relaxed whitespace-pre-line text-lg">
+            <div className="text-gray-600 leading-relaxed whitespace-pre-line text-lg text-justify">
               {course.Description ||
                 "Hiện chưa có mô tả chi tiết cho khóa học này."}
             </div>
           </div>
 
-          <div className="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-gray-100">
+          <Divider />
+
+          <div className="my-8">
             <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
-              <ion-icon
-                name="checkmark-circle-outline"
-                class="text-green-600"
-              ></ion-icon>
-              Bạn sẽ học được gì?
+              <LikeOutlined className="text-green-600" />
+              Lợi ích khi tham gia
             </h2>
-            <ul className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {[
-                "Nắm vững kiến thức nền tảng",
-                "Thực hành giao tiếp phản xạ",
-                "Mở rộng vốn từ vựng chuyên ngành",
-                "Tự tin tham gia các kỳ thi chứng chỉ",
-              ].map((item, index) => (
-                <li
-                  key={index}
-                  className="flex items-start gap-3 text-gray-700"
+            <div className="bg-green-50/50 p-6 rounded-xl border border-green-100">
+              <ul className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {[
+                  "Nắm vững kiến thức nền tảng",
+                  "Thực hành giao tiếp phản xạ",
+                  "Mở rộng vốn từ vựng chuyên ngành",
+                  "Tự tin tham gia các kỳ thi chứng chỉ",
+                  "Giảng viên hỗ trợ nhiệt tình",
+                  "Môi trường học tập năng động",
+                ].map((item, index) => (
+                  <li
+                    key={index}
+                    className="flex items-start gap-3 text-gray-700"
+                  >
+                    <CheckCircleOutlined className="text-green-500 mt-1 shrink-0" />
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+
+          <Divider />
+
+          <div className="mt-8" id="reviews-section">
+            <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-6">
+              <div>
+                <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
+                  <StarFilled className="text-yellow-400" />
+                  Đánh giá từ học viên
+                </h2>
+              </div>
+              {canWriteReview && (
+                <Button
+                  type="primary"
+                  className="bg-blue-600"
+                  onClick={() => setIsReviewFormVisible(true)}
                 >
-                  <CheckCircleOutlined className="text-green-500 mt-1 shrink-0" />
-                  <span>{item}</span>
-                </li>
-              ))}
-            </ul>
+                  Viết đánh giá
+                </Button>
+              )}
+            </div>
+            <ReviewList reviews={reviews} />
           </div>
         </div>
 
-        <div className="lg:w-[380px] shrink-0 ">
+        <div className="lg:w-[360px] w-full shrink-0 order-1 lg:order-2">
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
             <div className="bg-blue-50 p-6 border-b border-blue-100">
               <div className="text-sm text-blue-600 font-semibold uppercase tracking-wider mb-2">
-                Học phí khóa học
+                Học phí ưu đãi
               </div>
               <div className="flex items-end gap-3">
                 <span className="text-4xl font-black text-red-600">
@@ -339,15 +370,19 @@ function CourseDetailPage() {
               />
               {/* <InfoItem
                 icon={<UsergroupAddOutlined />}
-                label="Sĩ số tối đa"
-                value="30 học viên"
+                label="Sĩ số lớp"
+                value="Tối đa 30 HV"
+              />
+              <InfoItem
+                icon={<SafetyCertificateOutlined />}
+                label="Chứng chỉ"
+                value="Có"
               /> */}
 
-              {/* Nút Đăng Ký (Desktop) */}
-              {/* <Button
+              <Button
                 type="primary"
                 size="large"
-                className={`!w-full !h-14 !text-lg !font-bold !rounded-xl !mt-4 !shadow-md ${
+                className={`!w-full !h-12 !text-lg !font-bold !rounded-xl !mt-2 !shadow-md ${
                   isRegisterDisabled
                     ? "!bg-gray-500 !border-gray-500"
                     : "!bg-blue-600 hover:!bg-blue-500"
@@ -355,47 +390,17 @@ function CourseDetailPage() {
                 onClick={handleRegister}
                 disabled={isRegisterDisabled}
               >
-                {isRegisterDisabled
-                  ? "Ngoài thời gian đăng ký"
-                  : "Đăng ký ngay"}
-              </Button> */}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="max-w-6xl mx-auto px-4 md:px-8 mt-12">
-        <div
-          className="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-gray-100"
-          id="reviews-section"
-        >
-          <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-8 pb-6 border-b border-gray-100">
-            <div>
-              <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-2 mb-1">
-                <ion-icon
-                  name="star-outline"
-                  class="text-yellow-500"
-                ></ion-icon>
-                Đánh giá từ học viên
-              </h2>
-              <p className="text-gray-500 text-sm">
-                Những nhận xét chân thực nhất về khóa học này từ học viên đã học
-                tại trung tâm
-              </p>
-            </div>
-
-            {canWriteReview && (
-              <Button
-                type="primary"
-                icon={<StarFilled />}
-                className="!flex !items-center !gap-2 !bg-blue-600 hover:!bg-blue-500 !font-semibold !px-6 !h-10 !rounded-lg"
-                onClick={() => setIsReviewFormVisible(true)}
-              >
-                Viết đánh giá
+                {isRegisterDisabled ? "Đã đóng đăng ký" : "Đăng ký ngay"}
               </Button>
-            )}
+
+              <div className="text-center text-xs text-gray-400 mt-2">
+                Cần hỗ trợ? Gọi ngay:{" "}
+                <a href="tel:0794325729" className="text-blue-500 font-bold">
+                  0794 325 729
+                </a>
+              </div>
+            </div>
           </div>
-          <ReviewList reviews={reviews} />
         </div>
       </div>
 
@@ -428,7 +433,6 @@ function CourseDetailPage() {
         loading={isSubmittingReview}
       />
 
-      {/* Video Modal */}
       <Modal
         open={isVideoModalVisible}
         onCancel={() => setIsVideoModalVisible(false)}
@@ -444,11 +448,7 @@ function CourseDetailPage() {
             opts={{
               width: "100%",
               height: "100%",
-              playerVars: {
-                autoplay: 1,
-                modestbranding: 1,
-                rel: 0,
-              },
+              playerVars: { autoplay: 1, modestbranding: 1, rel: 0 },
             }}
             className="w-full h-full"
           />

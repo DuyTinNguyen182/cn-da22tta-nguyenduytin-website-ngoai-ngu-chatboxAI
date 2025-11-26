@@ -77,7 +77,7 @@ const CourseCard = ({ course }) => {
           </h3>
 
           <div className="text-sm font-medium text-blue-600 mb-3 flex items-center gap-1">
-            <ion-icon name="person-circle"></ion-icon>
+            <ion-icon name="person"></ion-icon>
             <span>GV: {teacherName}</span>
           </div>
 
