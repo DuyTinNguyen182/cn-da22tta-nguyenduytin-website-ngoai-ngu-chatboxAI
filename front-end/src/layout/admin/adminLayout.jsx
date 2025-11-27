@@ -1,7 +1,15 @@
 import { useEffect, useState } from "react";
 import {
-  PieChartOutlined, UserOutlined, BookOutlined, TeamOutlined,
-  ExportOutlined, GlobalOutlined, BarChartOutlined, ReadOutlined, StarOutlined
+  PieChartOutlined,
+  UserOutlined,
+  BookOutlined,
+  TeamOutlined,
+  ExportOutlined,
+  GlobalOutlined,
+  BarChartOutlined,
+  ReadOutlined,
+  StarOutlined,
+  PhoneOutlined,
 } from "@ant-design/icons";
 import { Flex, Layout, Menu, Spin, Result, Button } from "antd";
 import { Link, Route, Routes, useLocation, Navigate } from "react-router-dom";
@@ -22,6 +30,7 @@ import UpdateCourse from "./CourseManager/UpdateCourse";
 import CourseRegistrationManager from "./CourseRegistrationManager/CourseRegistrationManager";
 import UpdateCourseRegistration from "./CourseRegistrationManager/UpdateCourseRegistration";
 import ReviewManager from "./ReviewManager/ReviewManager";
+import ContactManager from "./ContactManager/Contactmanager";
 
 const { Sider } = Layout;
 
@@ -30,14 +39,51 @@ function getItem(label, key, icon, children) {
 }
 
 const menuItems = [
-  getItem(<Link to="overview">Tổng quan</Link>, "overview", <PieChartOutlined />),
-  getItem(<Link to="users">Quản lý người dùng</Link>, "users", <UserOutlined />),
-  getItem(<Link to="languages">Quản lý ngôn ngữ</Link>, "languages", <GlobalOutlined />),
-  getItem(<Link to="languageslevel">Quản lý trình độ</Link>, "languageslevel", <BarChartOutlined />),
-  getItem(<Link to="teachers">Quản lý giảng viên</Link>, "teachers", <TeamOutlined />),
-  getItem(<Link to="courses">Quản lý khóa học</Link>, "courses", <ReadOutlined />),
-  getItem(<Link to="registercourses">Quản lý đăng ký học</Link>, "registercourses", <BookOutlined />),
-  getItem(<Link to="reviews">Quản lý đánh giá</Link>, "reviews", <StarOutlined />),
+  getItem(
+    <Link to="overview">Tổng quan</Link>,
+    "overview",
+    <PieChartOutlined />
+  ),
+  getItem(
+    <Link to="users">Quản lý người dùng</Link>,
+    "users",
+    <UserOutlined />
+  ),
+  getItem(
+    <Link to="languages">Quản lý ngôn ngữ</Link>,
+    "languages",
+    <GlobalOutlined />
+  ),
+  getItem(
+    <Link to="languageslevel">Quản lý trình độ</Link>,
+    "languageslevel",
+    <BarChartOutlined />
+  ),
+  getItem(
+    <Link to="teachers">Quản lý giảng viên</Link>,
+    "teachers",
+    <TeamOutlined />
+  ),
+  getItem(
+    <Link to="courses">Quản lý khóa học</Link>,
+    "courses",
+    <ReadOutlined />
+  ),
+  getItem(
+    <Link to="registercourses">Quản lý đăng ký học</Link>,
+    "registercourses",
+    <BookOutlined />
+  ),
+  getItem(
+    <Link to="reviews">Quản lý đánh giá</Link>,
+    "reviews",
+    <StarOutlined />
+  ),
+  getItem(
+    <Link to="contacts">Quản lý liên hệ</Link>,
+    "contacts",
+    <PhoneOutlined />
+  ),
 ];
 
 const AdminLayout = () => {
@@ -47,14 +93,14 @@ const AdminLayout = () => {
   const { state } = useAuth();
   const { currentUser, loading } = state;
 
-  const pathSnippets = location.pathname.split('/').filter(i => i);
-  const activeTab = pathSnippets.length > 1 ? pathSnippets[1] : 'overview';
+  const pathSnippets = location.pathname.split("/").filter((i) => i);
+  const activeTab = pathSnippets.length > 1 ? pathSnippets[1] : "overview";
 
   if (loading) {
     return <Spin fullscreen tip="Đang kiểm tra quyền truy cập..." />;
   }
 
-  if (!currentUser || currentUser.role !== 'Admin') {
+  if (!currentUser || currentUser.role !== "Admin") {
     return (
       <Result
         status="403"
@@ -71,7 +117,12 @@ const AdminLayout = () => {
 
   return (
     <Layout style={{ minHeight: "100vh" }}>
-      <Sider collapsible collapsed={collapsed} onCollapse={setCollapsed} width={260}>
+      <Sider
+        collapsible
+        collapsed={collapsed}
+        onCollapse={setCollapsed}
+        width={260}
+      >
         <Flex
           className="admin-logo"
           style={{ color: "white", padding: "20px", height: "64px" }}
@@ -80,12 +131,19 @@ const AdminLayout = () => {
         >
           {!collapsed && <h2>DREAM ADMIN</h2>}
           <Link to="/" target="_blank" title="Xem trang người dùng">
-            <ExportOutlined style={{ color: "white", fontSize: '16px' }} />
+            <ExportOutlined style={{ color: "white", fontSize: "16px" }} />
           </Link>
         </Flex>
-        <Menu theme="dark" selectedKeys={[activeTab]} mode="inline" items={menuItems} />
+        <Menu
+          theme="dark"
+          selectedKeys={[activeTab]}
+          mode="inline"
+          items={menuItems}
+        />
       </Sider>
-      <Layout style={{ padding: "20px 30px", height: "100vh", overflowY: "auto" }}>
+      <Layout
+        style={{ padding: "20px 30px", height: "100vh", overflowY: "auto" }}
+      >
         <Routes>
           <Route index element={<Navigate to="overview" replace />} />
           <Route path="overview" element={<Overview />} />
@@ -94,14 +152,24 @@ const AdminLayout = () => {
           <Route path="languages" element={<LanguageManager />} />
           <Route path="languages/update/:id" element={<UpdateLanguage />} />
           <Route path="languageslevel" element={<LanguageLevelManager />} />
-          <Route path="languageslevel/update/:id" element={<UpdateLanguageLevel />} />
+          <Route
+            path="languageslevel/update/:id"
+            element={<UpdateLanguageLevel />}
+          />
           <Route path="teachers" element={<TeacherManager />} />
           <Route path="teachers/update/:id" element={<UpdateTeacher />} />
           <Route path="courses" element={<CourseManager />} />
           <Route path="courses/update/:id" element={<UpdateCourse />} />
-          <Route path="registercourses" element={<CourseRegistrationManager />} />
-          <Route path="registercourses/update/:registrationId" element={<UpdateCourseRegistration />} />
+          <Route
+            path="registercourses"
+            element={<CourseRegistrationManager />}
+          />
+          <Route
+            path="registercourses/update/:registrationId"
+            element={<UpdateCourseRegistration />}
+          />
           <Route path="reviews" element={<ReviewManager />} />
+          <Route path="contacts" element={<ContactManager />} />
         </Routes>
       </Layout>
     </Layout>

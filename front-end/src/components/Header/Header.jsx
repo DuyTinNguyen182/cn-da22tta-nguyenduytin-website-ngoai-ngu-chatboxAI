@@ -74,7 +74,7 @@ function Header() {
         />
       </div>
 
-      <nav className="hidden md:flex items-center gap-4 lg:gap-8">
+      <nav className="hidden md:flex items-center gap-0 lg:gap-8">
         <Link className={navItemClass("/")} to="/">
           <ion-icon name="home" style={{ fontSize: "20px" }}></ion-icon>
           <span>Trang chủ</span>

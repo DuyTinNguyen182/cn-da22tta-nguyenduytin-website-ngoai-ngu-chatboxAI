@@ -1,22 +1,16 @@
-import { HomeOutlined, MailOutlined, SmileOutlined } from "@ant-design/icons";
 import {
-  Button,
-  Flex,
-  Form,
-  Input,
-  Spin,
-  message,
-  Select,
-  Upload,
-  Typography,
-} from "antd";
+  HomeOutlined,
+  MailOutlined,
+  UserOutlined,
+  ManOutlined,
+  WomanOutlined,
+} from "@ant-design/icons";
+import { Button, Form, Input, Spin, message, Select, Upload } from "antd";
 import { useEffect, useState } from "react";
 import imageCompression from "browser-image-compression";
 import ImgCrop from "antd-img-crop";
 import { useAuth } from "../../../context/AuthContext";
 import apiClient from "../../../api/axiosConfig";
-
-const { Title } = Typography;
 
 function UserAcc() {
   const [form] = Form.useForm();
@@ -47,7 +41,6 @@ function UserAcc() {
       const response = await apiClient.get(`/user/${uid}`);
       const user = response.data;
 
-      // Set giá trị cho Form
       form.setFieldsValue({
         name: user.fullname,
         email: user.email,
@@ -74,7 +67,6 @@ function UserAcc() {
     }
   };
 
-  // Effect để tải dữ liệu khi component được mount hoặc userId thay đổi
   useEffect(() => {
     setSpinning(true);
     if (userId) {
@@ -116,26 +108,13 @@ function UserAcc() {
       email: values.email,
       address: values.address,
       avatar: avatarUrl,
-      ...(!genderEdited && { gender: values.gender }), // Chỉ gửi gender nếu chưa bị sửa
+      ...(!genderEdited && { gender: values.gender }),
     };
 
-    // try {
-    //   await apiClient.put(`/user/${userId}`, updatedUserData);
-    //   successMessage();
-    // } catch (error) {
-    //   errorMessage(error.response?.data?.message || "Cập nhật thất bại");
-    // } finally {
-    //   setSpinning(false);
-    // }
     try {
-      // Giả sử API trả về thông tin user đã được cập nhật
       const response = await apiClient.put(`/user/${userId}`, updatedUserData);
       const updatedUserFromDB = response.data;
-
-      // 2. DISPATCH HÀNH ĐỘNG ĐỂ CẬP NHẬT CONTEXT TOÀN CỤC
-      // Đây là bước quan trọng nhất!
       dispatch({ type: "UPDATE_USER_SUCCESS", payload: updatedUserFromDB });
-
       successMessage();
     } catch (error) {
       errorMessage(error.response?.data?.message || "Cập nhật thất bại");
@@ -144,7 +123,6 @@ function UserAcc() {
     }
   };
 
-  // Hàm xử lý thay đổi file upload
   const handleFileChange = ({ fileList: newFileList }) => {
     setFileList(newFileList);
     if (newFileList.length > 0 && newFileList[0].originFileObj) {
@@ -154,104 +132,149 @@ function UserAcc() {
     }
   };
 
-  if (spinning && !form.getFieldValue("name")) {
-    return <Spin spinning={true} fullscreen />;
-  }
-
   return (
-    <Flex className="UpdateUser" vertical gap={20}>
+    <div className="w-full min-h-screen bg-[#F2F4F7] py-0 px-4 flex justify-center items-start">
       {contextHolder}
       <Spin spinning={spinning} fullscreen />
 
-      <Form
-        form={form}
-        name="update_user"
-        layout="vertical"
-        style={{ maxWidth: "500px", margin: "0 auto", width: "100%" }}
-        onFinish={onFinish}
-      >
-        <div
-          style={{
-            textAlign: "center",
-            marginBottom: "20px",
-            fontWeight: 500,
-            fontSize: 24,
-          }}
-        >
-          Thông tin tài khoản
+      <div className="bg-white p-8 md:p-10 rounded-2xl shadow-sm border border-gray-100 w-full max-w-lg mt-0">
+        <div className="text-center mb-8">
+          <h1 className="text-2xl font-bold text-gray-800">Hồ sơ cá nhân</h1>
+          <p className="text-gray-500 text-sm mt-1">
+            Quản lý thông tin tài khoản
+          </p>
         </div>
 
-        <Form.Item style={{ display: "flex", justifyContent: "center" }}>
-          <ImgCrop aspect={1} showGrid rotationSlider quality={0.9}>
-            <Upload
-              listType="picture-circle"
-              fileList={fileList}
-              onChange={handleFileChange}
-              maxCount={1}
-            >
-              {fileList.length < 1 && "+ Tải lên"}
-            </Upload>
-          </ImgCrop>
-        </Form.Item>
-
-        <Form.Item
-          name="name"
-          label="Họ và tên"
-          rules={[{ required: true, message: "Vui lòng nhập họ và tên!" }]}
+        <Form
+          form={form}
+          name="update_user"
+          layout="vertical"
+          onFinish={onFinish}
+          className="flex flex-col gap-2"
         >
-          <Input
-            prefix={<SmileOutlined />}
-            placeholder="Nhập họ và tên"
-            size="large"
-          />
-        </Form.Item>
+          <div className="flex justify-center mb-6">
+            <Form.Item name="avatar" valuePropName="fileList" noStyle>
+              <div className="flex flex-col items-center gap-3">
+                <ImgCrop
+                  aspect={1}
+                  showGrid
+                  rotationSlider
+                  quality={0.9}
+                  modalTitle="Chỉnh sửa ảnh đại diện"
+                >
+                  <Upload
+                    listType="picture-circle"
+                    fileList={fileList}
+                    onChange={handleFileChange}
+                    maxCount={1}
+                    className="cursor-pointer hover:opacity-80 transition-opacity"
+                  >
+                    {fileList.length < 1 && (
+                      <div className="flex flex-col items-center justify-center text-gray-400 text-xs">
+                        <span>+ Tải ảnh</span>
+                      </div>
+                    )}
+                  </Upload>
+                </ImgCrop>
+                <span className="text-xs text-gray-400">
+                  Nhấn vào ảnh để thay đổi
+                </span>
+              </div>
+            </Form.Item>
+          </div>
 
-        <Form.Item
-          name="gender"
-          label="Giới tính"
-          rules={[{ required: true, message: "Vui lòng chọn giới tính!" }]}
-        >
-          {genderEdited ? (
-            <Input disabled size="large" />
-          ) : (
-            <Select placeholder="Chọn giới tính" size="large">
-              <Select.Option value="Nam">Nam</Select.Option>
-              <Select.Option value="Nữ">Nữ</Select.Option>
-            </Select>
-          )}
-        </Form.Item>
-
-        <Form.Item
-          name="email"
-          label="Email"
-          rules={[
-            { required: true, message: "Vui lòng nhập Email!" },
-            { type: "email", message: "Email không hợp lệ" },
-          ]}
-        >
-          <Input prefix={<MailOutlined />} placeholder="Email" size="large" />
-        </Form.Item>
-
-        <Form.Item
-          name="address"
-          label="Địa chỉ"
-          rules={[{ required: true, message: "Vui lòng nhập địa chỉ!" }]}
-        >
-          <Input prefix={<HomeOutlined />} placeholder="Địa chỉ" size="large" />
-        </Form.Item>
-
-        <Form.Item>
-          <Button
-            type="primary"
-            htmlType="submit"
-            size="large"
-            style={{ width: "100%" }}
+          <Form.Item
+            name="name"
+            label={
+              <span className="font-semibold text-gray-700">Họ và tên</span>
+            }
+            rules={[{ required: true, message: "Vui lòng nhập họ và tên!" }]}
           >
-            Cập nhật thông tin
-          </Button>
-        </Form.Item>
-      </Form>
-    </Flex>
+            <Input
+              prefix={<UserOutlined className="text-gray-400" />}
+              placeholder="Nhập họ và tên của bạn"
+              size="large"
+              className="rounded-lg py-2.5"
+            />
+          </Form.Item>
+
+          <div className="">
+            <Form.Item
+              name="gender"
+              label={
+                <span className="font-semibold text-gray-700">Giới tính</span>
+              }
+              rules={[{ required: true, message: "Vui lòng chọn giới tính!" }]}
+              className="mb-0"
+            >
+              {genderEdited ? (
+                <Input
+                  disabled
+                  size="large"
+                  className="rounded-lg bg-gray-50 text-gray-500"
+                />
+              ) : (
+                <Select
+                  placeholder="Chọn giới tính"
+                  size="large"
+                  className="h-[42px]"
+                >
+                  <Select.Option value="Nam">
+                    <ManOutlined className="mr-2 text-blue-500" /> Nam
+                  </Select.Option>
+                  <Select.Option value="Nữ">
+                    <WomanOutlined className="mr-2 text-pink-500" /> Nữ
+                  </Select.Option>
+                </Select>
+              )}
+            </Form.Item>
+
+            <Form.Item
+              name="email"
+              label={<span className="font-semibold text-gray-700">Email</span>}
+              rules={[
+                { required: true, message: "Vui lòng nhập Email!" },
+                { type: "email", message: "Email không hợp lệ" },
+              ]}
+              className="mb-0"
+            >
+              <Input
+                prefix={<MailOutlined className="text-gray-400" />}
+                placeholder="Email"
+                size="large"
+                className="rounded-lg py-2.5"
+                disabled
+              />
+            </Form.Item>
+          </div>
+
+          <Form.Item
+            name="address"
+            label={<span className="font-semibold text-gray-700">Địa chỉ</span>}
+            rules={[{ required: true, message: "Vui lòng nhập địa chỉ!" }]}
+            className="mt-4"
+          >
+            <Input
+              prefix={<HomeOutlined className="text-gray-400" />}
+              placeholder="Nhập địa chỉ liên hệ"
+              size="large"
+              className="rounded-lg py-2.5"
+            />
+          </Form.Item>
+
+          <Form.Item className="mt-4 mb-0">
+            <Button
+              type="primary"
+              htmlType="submit"
+              size="large"
+              className="w-full h-12 bg-blue-600 hover:!bg-blue-500 font-bold text-lg rounded-xl shadow-md shadow-blue-200 transition-transform active:scale-95"
+            >
+              Lưu thay đổi
+            </Button>
+          </Form.Item>
+        </Form>
+      </div>
+    </div>
   );
 }
 
