@@ -103,6 +103,41 @@ const updatePaymentStatus = async (registrationId, userId, isAdmin = false) => {
   return updatedRegistration;
 };
 
+const scanAndCancelOverdue = async () => {
+  const now = new Date();
+
+  // Chỉ tìm những đơn chưa thanh toán và trạng thái đang KHÔNG PHẢI là đã hủy
+  const unpaidRegistrations = await RegistrationCourse.find({
+    isPaid: false,
+    status: { $ne: "cancelled_overdue" }, // Tránh update lại những cái đã hủy rồi
+  }).populate("course_id");
+
+  const idsToUpdate = [];
+
+  unpaidRegistrations.forEach((reg) => {
+    if (reg.course_id && reg.course_id.Start_Date) {
+      const startDate = new Date(reg.course_id.Start_Date);
+      const deadline = new Date(startDate);
+      deadline.setDate(startDate.getDate() - 2); // Hạn chót là trước 2 ngày
+
+      // Nếu hiện tại đã vượt quá hạn chót -> Đưa vào danh sách cần hủy
+      if (now > deadline) {
+        idsToUpdate.push(reg._id);
+      }
+    }
+  });
+
+  if (idsToUpdate.length > 0) {
+    await RegistrationCourse.updateMany(
+      { _id: { $in: idsToUpdate } },
+      { status: "cancelled_overdue" } // Đặt trạng thái riêng
+    );
+    console.log(
+      `[Auto-Cancel] Đã chuyển trạng thái ${idsToUpdate.length} đăng ký sang 'cancelled_overdue'.`
+    );
+  }
+};
+
 module.exports = {
   registerCourse,
   getCoursesByUser,
@@ -113,4 +148,5 @@ module.exports = {
   deleteManyRegistrations,
   updateRegistration,
   updatePaymentStatus,
+  scanAndCancelOverdue,
 };

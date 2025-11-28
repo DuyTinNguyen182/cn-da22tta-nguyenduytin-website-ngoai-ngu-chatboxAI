@@ -8,9 +8,9 @@ import {
   Modal,
   Divider,
   Radio,
-  Space,
   Tag,
   Typography,
+  Tooltip,
 } from "antd";
 import {
   StarFilled,
@@ -102,10 +102,9 @@ function CourseDetailPage() {
       messageApi.error("Vui lòng đăng nhập để đăng ký khóa học!");
       return;
     }
-    if (course.status === "finished" || course.status === "ongoing") {
-      messageApi.warning(
-        "Khóa học đã kết thúc hoặc đang diễn ra, không thể đăng ký."
-      );
+
+    if (isRegisterDisabled) {
+      messageApi.warning("Hiện tại không thể đăng ký khóa học này.");
       return;
     }
 
@@ -236,10 +235,20 @@ function CourseDetailPage() {
   const languageName = course.language_id?.language;
   const levelName = course.languagelevel_id?.language_level;
   const teacherName = course.teacher_id?.full_name;
-  const canWriteReview =
-    !userHasReviewed && (userHasPaid || currentUser?.role === "Admin");
+
+  const startDate = new Date(course.Start_Date);
+  const registerDeadline = new Date(startDate);
+  registerDeadline.setDate(startDate.getDate() - 2);
+  const isLateToRegister = new Date() > registerDeadline;
+
   const isRegisterDisabled =
-    course.status === "finished" || course.status === "ongoing";
+    course.status === "finished" ||
+    course.status === "ongoing" ||
+    isLateToRegister;
+
+  const shouldShowReviewButton =
+    !userHasReviewed && (userHasPaid || currentUser?.role === "Admin");
+  const canSubmitReview = course.status === "finished";
 
   return (
     <div className="w-full bg-[#F2F4F7] min-h-screen pb-20">
@@ -324,8 +333,10 @@ function CourseDetailPage() {
                 onClick={handleOpenRegisterModal}
                 disabled={isRegisterDisabled}
               >
-                {isRegisterDisabled
-                  ? "Ngoài thời gian đăng ký"
+                {isLateToRegister
+                  ? "Hết hạn đăng ký"
+                  : isRegisterDisabled
+                  ? "Đã đóng đăng ký"
                   : "Đăng ký ngay"}
               </Button>
             </div>
@@ -381,14 +392,24 @@ function CourseDetailPage() {
                   Đánh giá từ học viên
                 </h2>
               </div>
-              {canWriteReview && (
-                <Button
-                  type="primary"
-                  className="bg-blue-600"
-                  onClick={() => setIsReviewFormVisible(true)}
+              {/* [MỚI] Logic hiển thị nút đánh giá */}
+              {shouldShowReviewButton && (
+                <Tooltip
+                  title={
+                    !canSubmitReview
+                      ? "Bạn chỉ có thể đánh giá sau khi khóa học kết thúc"
+                      : ""
+                  }
                 >
-                  Viết đánh giá
-                </Button>
+                  <Button
+                    type="primary"
+                    className={!canSubmitReview ? "bg-gray-400" : "bg-blue-600"}
+                    disabled={!canSubmitReview}
+                    onClick={() => setIsReviewFormVisible(true)}
+                  >
+                    Viết đánh giá
+                  </Button>
+                </Tooltip>
               )}
             </div>
             <ReviewList reviews={reviews} />
@@ -445,7 +466,11 @@ function CourseDetailPage() {
                 onClick={handleOpenRegisterModal}
                 disabled={isRegisterDisabled}
               >
-                {isRegisterDisabled ? "Đã đóng đăng ký" : "Đăng ký ngay"}
+                {isLateToRegister
+                  ? "Hết hạn đăng ký"
+                  : isRegisterDisabled
+                  ? "Đã đóng đăng ký"
+                  : "Đăng ký ngay"}
               </Button>
 
               <div className="text-center text-xs text-gray-400 mt-2">
@@ -476,7 +501,11 @@ function CourseDetailPage() {
           onClick={handleOpenRegisterModal}
           disabled={isRegisterDisabled}
         >
-          {isRegisterDisabled ? "Đã đóng" : "Đăng ký ngay"}
+          {isLateToRegister
+            ? "Hết hạn"
+            : isRegisterDisabled
+            ? "Đã đóng"
+            : "Đăng ký ngay"}
         </Button>
       </div>
       <Modal

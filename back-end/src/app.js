@@ -5,6 +5,17 @@ const cors = require("cors");
 const connect = require("./config/db");
 const cookieParser = require("cookie-parser");
 const session = require("express-session");
+const cron = require("node-cron");
+const registrationService = require("./services/registrationService");
+
+cron.schedule("0 0 * * *", async () => {
+  console.log("--- Bắt đầu quét các đơn đăng ký quá hạn ---");
+  try {
+    await registrationService.scanAndCancelOverdue();
+  } catch (error) {
+    console.error("Lỗi khi chạy cron job:", error);
+  }
+});
 
 const app = express();
 
