@@ -1,6 +1,17 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Button, Spin, message, Rate, Modal, Divider } from "antd";
+import {
+  Button,
+  Spin,
+  message,
+  Rate,
+  Modal,
+  Divider,
+  Radio,
+  Space,
+  Tag,
+  Typography,
+} from "antd";
 import {
   StarFilled,
   EyeOutlined,
@@ -9,9 +20,9 @@ import {
   ClockCircleOutlined,
   CalendarOutlined,
   CheckCircleOutlined,
-  SafetyCertificateOutlined,
   FileTextOutlined,
   LikeOutlined,
+  ExclamationCircleOutlined,
 } from "@ant-design/icons";
 import YouTube from "react-youtube";
 import apiClient from "../../../api/axiosConfig";
@@ -20,18 +31,27 @@ import ReviewList from "../../../components/ReviewList/ReviewList";
 import ReviewForm from "../../../components/ReviewForm/ReviewForm";
 import courseImagePlaceholder from "../../../imgs/image.png";
 
+const { Text } = Typography;
+
 function CourseDetailPage() {
   const { courseId } = useParams();
   const navigate = useNavigate();
   const [course, setCourse] = useState(null);
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
+
   const [userHasPaid, setUserHasPaid] = useState(false);
   const [userHasReviewed, setUserHasReviewed] = useState(false);
 
   const [isVideoModalVisible, setIsVideoModalVisible] = useState(false);
   const [isReviewFormVisible, setIsReviewFormVisible] = useState(false);
   const [isSubmittingReview, setIsSubmittingReview] = useState(false);
+
+  const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
+  const [sessions, setSessions] = useState([]);
+  const [selectedSession, setSelectedSession] = useState(null);
+  const [loadingSessions, setLoadingSessions] = useState(false);
+  const [registering, setRegistering] = useState(false);
 
   const [messageApi, contextHolder] = message.useMessage();
   const { state } = useAuth();
@@ -77,6 +97,80 @@ function CourseDetailPage() {
     fetchPageData();
   }, [courseId, userId]);
 
+  const handleOpenRegisterModal = async () => {
+    if (!userId) {
+      messageApi.error("Vui lòng đăng nhập để đăng ký khóa học!");
+      return;
+    }
+    if (course.status === "finished" || course.status === "ongoing") {
+      messageApi.warning(
+        "Khóa học đã kết thúc hoặc đang diễn ra, không thể đăng ký."
+      );
+      return;
+    }
+
+    setIsRegisterModalOpen(true);
+    setLoadingSessions(true);
+
+    try {
+      const [allSessionsRes, courseRegsRes] = await Promise.all([
+        apiClient.get("/class-sessions"),
+        apiClient.get(`/registration/course/${courseId}`),
+      ]);
+
+      const allSessions = allSessionsRes.data;
+      const registeredList = courseRegsRes.data;
+
+      const sessionCounts = {};
+      registeredList.forEach((reg) => {
+        if (reg.class_session_id && reg.class_session_id._id) {
+          const sId = reg.class_session_id._id;
+          sessionCounts[sId] = (sessionCounts[sId] || 0) + 1;
+        }
+      });
+
+      const sessionsWithStats = allSessions.map((session) => ({
+        ...session,
+        studentCount: sessionCounts[session._id] || 0,
+      }));
+
+      setSessions(sessionsWithStats);
+    } catch (error) {
+      messageApi.error("Không thể tải thông tin lớp học.");
+    } finally {
+      setLoadingSessions(false);
+    }
+  };
+
+  const handleConfirmRegister = async () => {
+    if (!selectedSession) {
+      messageApi.error("Vui lòng chọn một buổi học!");
+      return;
+    }
+
+    setRegistering(true);
+    try {
+      await apiClient.post("/registration", {
+        user_id: userId,
+        course_id: course._id,
+        class_session_id: selectedSession,
+      });
+
+      messageApi.success("Đăng ký thành công! Đang chuyển hướng...");
+      setIsRegisterModalOpen(false);
+      setTimeout(() => navigate(`/my-courses/${userId}`), 1000);
+    } catch (error) {
+      const msg = error.response?.data?.message || "Đăng ký thất bại.";
+      if (error.response?.data?.status === "already_registered") {
+        messageApi.warning("Bạn đã đăng ký khóa học này rồi!");
+      } else {
+        messageApi.error(msg);
+      }
+    } finally {
+      setRegistering(false);
+    }
+  };
+
   const handleCreateReview = async (values) => {
     setIsSubmittingReview(true);
     try {
@@ -90,29 +184,6 @@ function CourseDetailPage() {
       );
     } finally {
       setIsSubmittingReview(false);
-    }
-  };
-
-  const handleRegister = async () => {
-    if (!userId) {
-      messageApi.error("Vui lòng đăng nhập để đăng ký khóa học!");
-      return;
-    }
-    if (course.status === "finished" || course.status === "ongoing") {
-      messageApi.warning(
-        "Khóa học đã kết thúc hoặc đang diễn ra, không thể đăng ký."
-      );
-      return;
-    }
-    try {
-      await apiClient.post("/registration", {
-        user_id: userId,
-        course_id: course._id,
-      });
-      messageApi.success("Đăng ký thành công! Đang chuyển hướng...");
-      setTimeout(() => navigate(`/my-courses/${userId}`), 1000);
-    } catch (error) {
-      messageApi.error(error.response?.data?.message || "Đăng ký thất bại.");
     }
   };
 
@@ -144,7 +215,6 @@ function CourseDetailPage() {
     const match = url.match(regExp);
     return match && match[2].length === 11 ? match[2] : null;
   };
-
   const demoVideoId = getYouTubeID(course?.demo_video_url) || "DXj1TJLM1Mc";
 
   const averageRating =
@@ -251,7 +321,7 @@ function CourseDetailPage() {
                     ? "!bg-gray-500 !border-gray-500"
                     : "!bg-blue-600 hover:!bg-blue-500"
                 }`}
-                onClick={handleRegister}
+                onClick={handleOpenRegisterModal}
                 disabled={isRegisterDisabled}
               >
                 {isRegisterDisabled
@@ -275,9 +345,7 @@ function CourseDetailPage() {
                 "Hiện chưa có mô tả chi tiết cho khóa học này."}
             </div>
           </div>
-
           <Divider />
-
           <div className="my-8">
             <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
               <LikeOutlined className="text-green-600" />
@@ -304,9 +372,7 @@ function CourseDetailPage() {
               </ul>
             </div>
           </div>
-
           <Divider />
-
           <div className="mt-8" id="reviews-section">
             <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-6">
               <div>
@@ -328,7 +394,6 @@ function CourseDetailPage() {
             <ReviewList reviews={reviews} />
           </div>
         </div>
-
         <div className="lg:w-[360px] w-full shrink-0 order-1 lg:order-2">
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
             <div className="bg-blue-50 p-6 border-b border-blue-100">
@@ -368,16 +433,6 @@ function CourseDetailPage() {
                 label="Thời lượng"
                 value={`${course.Number_of_periods} tiết`}
               />
-              {/* <InfoItem
-                icon={<UsergroupAddOutlined />}
-                label="Sĩ số lớp"
-                value="Tối đa 30 HV"
-              />
-              <InfoItem
-                icon={<SafetyCertificateOutlined />}
-                label="Chứng chỉ"
-                value="Có"
-              /> */}
 
               <Button
                 type="primary"
@@ -387,7 +442,7 @@ function CourseDetailPage() {
                     ? "!bg-gray-500 !border-gray-500"
                     : "!bg-blue-600 hover:!bg-blue-500"
                 }`}
-                onClick={handleRegister}
+                onClick={handleOpenRegisterModal}
                 disabled={isRegisterDisabled}
               >
                 {isRegisterDisabled ? "Đã đóng đăng ký" : "Đăng ký ngay"}
@@ -403,7 +458,6 @@ function CourseDetailPage() {
           </div>
         </div>
       </div>
-
       <div className="md:hidden fixed bottom-0 left-0 w-full bg-white border-t border-gray-200 p-4 z-50 shadow-[0_-4px_10px_rgba(0,0,0,0.05)] flex items-center justify-between gap-4">
         <div className="flex flex-col">
           <span className="text-gray-500 text-xs font-medium">Học phí:</span>
@@ -419,20 +473,101 @@ function CourseDetailPage() {
               ? "!bg-gray-500 !border-gray-500"
               : "!bg-blue-600 hover:!bg-blue-500"
           }`}
-          onClick={handleRegister}
+          onClick={handleOpenRegisterModal}
           disabled={isRegisterDisabled}
         >
           {isRegisterDisabled ? "Đã đóng" : "Đăng ký ngay"}
         </Button>
       </div>
+      <Modal
+        title={
+          <div className="text-xl font-bold text-blue-700 border-b border-gray-100 pb-3">
+            <ClockCircleOutlined className="mr-2" /> Chọn lịch học
+          </div>
+        }
+        open={isRegisterModalOpen}
+        onCancel={() => setIsRegisterModalOpen(false)}
+        footer={[
+          <Button key="back" onClick={() => setIsRegisterModalOpen(false)}>
+            Hủy bỏ
+          </Button>,
+          <Button
+            key="submit"
+            type="primary"
+            loading={registering}
+            onClick={handleConfirmRegister}
+            disabled={!selectedSession}
+            className="bg-blue-600"
+          >
+            Xác nhận đăng ký
+          </Button>,
+        ]}
+        centered
+      >
+        <div className="py-4">
+          <p className="mb-4 text-gray-600">
+            Vui lòng chọn buổi học phù hợp với thời gian biểu của bạn:
+          </p>
 
+          {loadingSessions ? (
+            <div className="flex justify-center py-8">
+              <Spin />
+            </div>
+          ) : (
+            <Radio.Group
+              onChange={(e) => setSelectedSession(e.target.value)}
+              value={selectedSession}
+              className="w-full flex flex-col gap-3"
+            >
+              {sessions.map((session) => (
+                <div
+                  key={session._id}
+                  className={`border rounded-lg p-3 cursor-pointer transition-all ${
+                    selectedSession === session._id
+                      ? "border-blue-500 bg-blue-50"
+                      : "border-gray-200 hover:border-blue-300"
+                  }`}
+                >
+                  <Radio value={session._id} className="w-full">
+                    <div className="flex justify-between items-center w-full ml-2">
+                      <div>
+                        <div className="font-bold text-gray-800">
+                          {session.days}
+                        </div>
+                        <div className="text-gray-500 text-sm">
+                          {session.time}
+                        </div>
+                      </div>
+                      <Tag
+                        color={session.studentCount >= 15 ? "green" : "orange"}
+                        className="mr-0 text-sm py-1 px-2"
+                      >
+                        <UsergroupAddOutlined /> {session.studentCount} HV đã
+                        đăng ký
+                      </Tag>
+                    </div>
+                  </Radio>
+                </div>
+              ))}
+            </Radio.Group>
+          )}
+
+          <div className="mt-6 p-3 bg-orange-50 border border-orange-200 rounded-lg text-orange-700 flex items-start gap-2 text-sm">
+            <ExclamationCircleOutlined className="mt-0.5 text-lg" />
+            <span>
+              <strong>Lưu ý quan trọng:</strong> Lớp học sẽ chỉ được mở khi số
+              lượng đăng ký đạt <strong>trên 15 học viên</strong>. Nếu lớp chưa
+              đủ sĩ số, trung tâm sẽ liên hệ để sắp xếp lịch khác hoặc hoàn phí.
+            </span>
+          </div>
+        </div>
+      </Modal>
       <ReviewForm
         open={isReviewFormVisible}
         onCreate={handleCreateReview}
         onCancel={() => setIsReviewFormVisible(false)}
         loading={isSubmittingReview}
       />
-
       <Modal
         open={isVideoModalVisible}
         onCancel={() => setIsVideoModalVisible(false)}

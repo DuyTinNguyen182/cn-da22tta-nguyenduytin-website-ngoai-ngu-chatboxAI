@@ -12,9 +12,14 @@ import {
   Select,
   Tag,
   Result,
+  Tooltip,
 } from "antd";
 import { Link } from "react-router-dom";
-import { PlusOutlined, EditOutlined } from "@ant-design/icons";
+import {
+  PlusOutlined,
+  EditOutlined,
+  DollarCircleOutlined,
+} from "@ant-design/icons";
 import { useAuth } from "../../../context/AuthContext";
 import apiClient from "../../../api/axiosConfig";
 import moment from "moment";
@@ -30,6 +35,7 @@ function CourseRegistrationManager() {
 
   const [coursesForModal, setCoursesForModal] = useState([]);
   const [usersForModal, setUsersForModal] = useState([]);
+  const [sessionsForModal, setSessionsForModal] = useState([]);
 
   const [spinning, setSpinning] = useState(true);
   const [messageApi, contextHolder] = message.useMessage();
@@ -39,6 +45,36 @@ function CourseRegistrationManager() {
 
   const successMessage = (content) => messageApi.success(content);
   const errorMessage = (content) => messageApi.error(content);
+
+  const getClassStatusTag = (status) => {
+    switch (status) {
+      case "confirmed":
+        return <Tag color="green">Đã mở lớp</Tag>;
+      case "cancelled":
+        return <Tag color="red">Đã hủy</Tag>;
+      default:
+        return <Tag color="orange">Chờ xếp lớp</Tag>;
+    }
+  };
+
+  const showConfirmPayment = (record) => {
+    modal.confirm({
+      title: "Xác nhận thanh toán",
+      icon: <DollarCircleOutlined style={{ color: "#52c41a" }} />,
+      content: (
+        <div>
+          <p>
+            Xác nhận học viên <b>{record.user_id?.fullname}</b> đã đóng học phí?
+          </p>
+          <p>Khóa học: {record.course_id?.courseid}</p>
+        </div>
+      ),
+      okText: "Xác nhận đã thu tiền",
+      okType: "primary",
+      cancelText: "Hủy bỏ",
+      onOk: () => handleConfirmPayment(record._id),
+    });
+  };
 
   const handleConfirmPayment = async (registrationId) => {
     setSpinning(true);
@@ -54,52 +90,102 @@ function CourseRegistrationManager() {
   };
 
   const columns = [
-    { title: "Mã khóa học", dataIndex: ["course_id", "courseid"] },
-    { title: "Ngôn ngữ", dataIndex: ["course_id", "language_id", "language"] },
+    { title: "Mã KH", dataIndex: ["course_id", "courseid"], width: 100 },
+    // { title: "Ngôn ngữ", dataIndex: ["course_id", "language_id", "language"] },
     {
-      title: "Trình độ",
-      dataIndex: ["course_id", "languagelevel_id", "language_level"],
+      title: "Tên khóa học",
+      render: (_, record) =>
+        `${record.course_id?.language_id?.language} - ${record.course_id?.languagelevel_id?.language_level}`,
     },
-    { title: "Mã học viên", dataIndex: ["user_id", "userid"] },
-    { title: "Tên học viên", dataIndex: ["user_id", "fullname"] },
+    {
+      title: "Lịch học",
+      width: 180,
+      render: (_, record) =>
+        record.class_session_id ? (
+          <div>
+            <div style={{ fontWeight: 500 }}>
+              {record.class_session_id.days}
+            </div>
+            <div style={{ color: "#666", fontSize: 12 }}>
+              {record.class_session_id.time}
+            </div>
+          </div>
+        ) : (
+          <span style={{ color: "#ccc" }}>Chưa xếp lịch</span>
+        ),
+    },
+    {
+      title: "Học viên",
+      render: (_, record) => (
+        <div>
+          <div>{record.user_id?.fullname}</div>
+          <div style={{ fontSize: 12, color: "#888" }}>
+            {record.user_id?.userid}
+          </div>
+        </div>
+      ),
+    },
     {
       title: "Ngày đăng ký",
       dataIndex: "enrollment_date",
+      width: 120,
       render: (date) => moment(date).format("DD/MM/YYYY"),
+      sorter: (a, b) =>
+        new Date(a.enrollment_date) - new Date(b.enrollment_date),
     },
     {
-      title: "Ngày thanh toán",
-      dataIndex: "paymentDate",
-      render: (date) => (date ? moment(date).format("DD/MM/YYYY") : "-"),
+      title: "Trạng thái lớp",
+      dataIndex: "status",
+      width: 130,
+      align: "center",
+      render: (status) => getClassStatusTag(status),
+      filters: [
+        { text: "Chờ xếp lớp", value: "pending" },
+        { text: "Đã mở lớp", value: "confirmed" },
+        { text: "Đã hủy", value: "cancelled" },
+      ],
+      onFilter: (value, record) => record.status === value,
     },
     {
-      title: "Trạng thái",
-      dataIndex: "isPaid",
-      render: (isPaid, record) => (
-        <Tag
-          color={isPaid ? "green" : "volcano"}
-          style={{ cursor: isPaid ? "default" : "pointer" }}
-          onClick={() => {
-            if (isPaid) return;
-            modal.confirm({
-              title: "Xác nhận thanh toán",
-              content: `Xác nhận học viên "${record.user_id?.fullname}" đã thanh toán?`,
-              okText: "Xác nhận",
-              cancelText: "Hủy",
-              onOk: () => handleConfirmPayment(record._id),
-            });
-          }}
-        >
-          {isPaid ? "Đã thanh toán" : "Chưa thanh toán"}
-        </Tag>
-      ),
+      title: "Thanh toán",
+      key: "payment",
+      width: 160,
+      align: "center",
+      render: (_, record) => {
+        if (record.isPaid) {
+          return (
+            <div style={{ color: "#389e0d", fontWeight: 500 }}>
+              {record.paymentDate
+                ? moment(record.paymentDate).format("DD/MM/YYYY")
+                : "Đã thanh toán"}
+            </div>
+          );
+        } else {
+          return (
+            <Tooltip title="Bấm để xác nhận thu tiền">
+              <Tag
+                color="volcano"
+                style={{ cursor: "pointer" }}
+                onClick={() => showConfirmPayment(record)}
+              >
+                Chưa thanh toán
+              </Tag>
+            </Tooltip>
+          );
+        }
+      },
+      filters: [
+        { text: "Đã thanh toán", value: true },
+        { text: "Chưa thanh toán", value: false },
+      ],
+      onFilter: (value, record) => record.isPaid === value,
     },
     {
       title: "Sửa",
       dataIndex: "_id",
       render: (id) => (
         <Link to={`update/${id}`}>
-          <EditOutlined style={{ fontSize: "18px" }} />
+          <Button type="text" icon={<EditOutlined />} />
         </Link>
       ),
       width: 60,
@@ -126,16 +212,20 @@ function CourseRegistrationManager() {
 
   const fetchModalData = async () => {
     try {
-      if (coursesForModal.length === 0 || usersForModal.length === 0) {
-        const [courseRes, userRes] = await Promise.all([
-          apiClient.get("/course"),
-          apiClient.get("/user"),
-        ]);
-        setCoursesForModal(courseRes.data);
-        setUsersForModal(userRes.data);
-      }
+      setSpinning(true);
+      const [courseRes, userRes, sessionRes] = await Promise.all([
+        apiClient.get("/course"),
+        apiClient.get("/user"),
+        apiClient.get("/class-sessions"),
+      ]);
+
+      setCoursesForModal(courseRes.data);
+      setUsersForModal(userRes.data);
+      setSessionsForModal(sessionRes.data);
     } catch (error) {
       errorMessage("Không thể tải dữ liệu cho form");
+    } finally {
+      setSpinning(false);
     }
   };
 
@@ -181,11 +271,9 @@ function CourseRegistrationManager() {
       setFilteredRegistrations(registrations);
       return;
     }
-
     const filtered = registrations.filter((reg) =>
       String(reg.user_id?.userid || "").includes(keyword)
     );
-
     setFilteredRegistrations(filtered);
   };
 
@@ -196,8 +284,6 @@ function CourseRegistrationManager() {
         .toLowerCase()
         .includes(keyword)
     );
-    // console.log("Sample registration:", registrations[0]);
-
     setFilteredRegistrations(filtered);
   };
 
@@ -264,7 +350,7 @@ function CourseRegistrationManager() {
             zIndex: 10,
           }}
         >
-          <span>Đã chọn {selectedRowKeys.length} khóa học</span>
+          <span>Đã chọn {selectedRowKeys.length} đơn đăng ký</span>
           <Button
             type="primary"
             danger
@@ -283,6 +369,7 @@ function CourseRegistrationManager() {
         columns={columns}
         dataSource={filteredRegistrations}
         bordered
+        scroll={{ x: 1300 }}
       />
 
       <Modal
@@ -332,6 +419,7 @@ function CourseRegistrationManager() {
               }))}
             />
           </Form.Item>
+
           <Form.Item
             name="course_id"
             label="Khóa học"
@@ -351,6 +439,21 @@ function CourseRegistrationManager() {
               }))}
             />
           </Form.Item>
+
+          <Form.Item
+            name="class_session_id"
+            label="Lịch học (Buổi học)"
+            rules={[{ required: true, message: "Vui lòng chọn lịch học!" }]}
+          >
+            <Select
+              placeholder="Chọn ca học / buổi học"
+              options={sessionsForModal.map((s) => ({
+                value: s._id,
+                label: `${s.days} - ${s.time}`,
+              }))}
+            />
+          </Form.Item>
+
           <Form.Item>
             <Button type="primary" htmlType="submit" style={{ width: "100%" }}>
               Xác nhận đăng ký

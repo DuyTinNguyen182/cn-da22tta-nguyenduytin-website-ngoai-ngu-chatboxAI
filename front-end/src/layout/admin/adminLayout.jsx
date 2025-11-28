@@ -10,6 +10,7 @@ import {
   ReadOutlined,
   StarOutlined,
   PhoneOutlined,
+  ClockCircleOutlined,
 } from "@ant-design/icons";
 import { Flex, Layout, Menu, Spin, Result, Button } from "antd";
 import { Link, Route, Routes, useLocation, Navigate } from "react-router-dom";
@@ -31,6 +32,8 @@ import CourseRegistrationManager from "./CourseRegistrationManager/CourseRegistr
 import UpdateCourseRegistration from "./CourseRegistrationManager/UpdateCourseRegistration";
 import ReviewManager from "./ReviewManager/ReviewManager";
 import ContactManager from "./ContactManager/Contactmanager";
+import ClassSessionManager from "./ClassSessionManager/ClassSessionManager";
+import AdminClassManager from "./ClassManager/AdminClassManager";
 
 const { Sider } = Layout;
 
@@ -70,8 +73,18 @@ const menuItems = [
     <ReadOutlined />
   ),
   getItem(
+    <Link to="class-sessions">Quản lý buổi học</Link>,
+    "class-sessions",
+    <ClockCircleOutlined />
+  ),
+  getItem(
     <Link to="registercourses">Quản lý đăng ký học</Link>,
     "registercourses",
+    <BookOutlined />
+  ),
+  getItem(
+    <Link to="classes">Quản lý lớp học</Link>,
+    "classes",
     <BookOutlined />
   ),
   getItem(
@@ -170,6 +183,8 @@ const AdminLayout = () => {
           />
           <Route path="reviews" element={<ReviewManager />} />
           <Route path="contacts" element={<ContactManager />} />
+          <Route path="class-sessions" element={<ClassSessionManager />} />
+          <Route path="classes" element={<AdminClassManager />} />
         </Routes>
       </Layout>
     </Layout>

@@ -16,14 +16,16 @@ function UpdateCourseRegistration() {
   const { registrationId } = useParams();
   const navigate = useNavigate();
   const [form] = Form.useForm();
-  
+
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
+
   const [courses, setCourses] = useState([]);
+  const [sessions, setSessions] = useState([]);
+
   const [studentName, setStudentName] = useState("");
   const [initialData, setInitialData] = useState(null);
-  
+
   const [messageApi, contextHolder] = message.useMessage();
 
   const successMessage = (content) => messageApi.success(content);
@@ -39,29 +41,34 @@ function UpdateCourseRegistration() {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const [courseListRes, regRes] = await Promise.all([
+        const [courseListRes, sessionRes, regRes] = await Promise.all([
           apiClient.get("/course"),
+          apiClient.get("/class-sessions"),
           apiClient.get(`/registration/${registrationId}`),
         ]);
 
-        const allCourses = courseListRes.data;
-        const registrationData = regRes.data;
+        setCourses(courseListRes.data);
+        setSessions(sessionRes.data);
 
-        setCourses(allCourses);
+        const registrationData = regRes.data;
 
         if (registrationData?.user_id && registrationData?.course_id) {
           setStudentName(registrationData.user_id.fullname);
+
           setInitialData({
             userid: registrationData.user_id.userid,
             name: registrationData.user_id.fullname,
             course_id: registrationData.course_id._id,
+            class_session_id:
+              registrationData.class_session_id?._id ||
+              registrationData.class_session_id,
           });
         } else {
           errorMessage("Dữ liệu đăng ký trả về không hợp lệ");
         }
       } catch (err) {
         console.error("Lỗi khi tải dữ liệu:", err);
-        errorMessage("Không thể tải dữ liệu. Vui lòng kiểm tra console.");
+        errorMessage("Không thể tải dữ liệu.");
       } finally {
         setLoading(false);
       }
@@ -75,6 +82,7 @@ function UpdateCourseRegistration() {
     try {
       await apiClient.put(`/registration/${registrationId}`, {
         course_id: values.course_id,
+        class_session_id: values.class_session_id,
       });
       successMessage("Cập nhật đăng ký thành công");
       setTimeout(() => navigate("/admin/registercourses"), 1000);
@@ -92,7 +100,7 @@ function UpdateCourseRegistration() {
   return (
     <Flex className="UpdateCourseRegistration" vertical gap={20}>
       {contextHolder}
-      <Spin spinning={isSubmitting} fullscreen /> 
+      <Spin spinning={isSubmitting} fullscreen />
       <Breadcrumb
         items={[
           { title: "Admin Dashboard" },
@@ -100,7 +108,7 @@ function UpdateCourseRegistration() {
           { title: `Cập nhật cho: ${studentName}` },
         ]}
       />
-      
+
       {initialData ? (
         <Form
           form={form}
@@ -115,6 +123,7 @@ function UpdateCourseRegistration() {
           <Form.Item label="Tên học viên" name="name">
             <Input disabled />
           </Form.Item>
+
           <Form.Item
             label="Thay đổi khóa học"
             name="course_id"
@@ -122,9 +131,11 @@ function UpdateCourseRegistration() {
           >
             <Select
               showSearch
-              placeholder="Tìm và chọn khóa học để thay đổi"
+              placeholder="Chọn khóa học"
               filterOption={(input, option) =>
-                (option?.label ?? "").toLowerCase().includes(input.toLowerCase())
+                (option?.label ?? "")
+                  .toLowerCase()
+                  .includes(input.toLowerCase())
               }
               options={courses.map((course) => ({
                 value: course._id,
@@ -132,6 +143,21 @@ function UpdateCourseRegistration() {
               }))}
             />
           </Form.Item>
+
+          <Form.Item
+            label="Thay đổi lịch học"
+            name="class_session_id"
+            rules={[{ required: true, message: "Vui lòng chọn lịch học" }]}
+          >
+            <Select
+              placeholder="Chọn ca học / buổi học"
+              options={sessions.map((s) => ({
+                value: s._id,
+                label: `${s.days} - ${s.time}`,
+              }))}
+            />
+          </Form.Item>
+
           <Form.Item>
             <Button type="primary" htmlType="submit" block size="large">
               Lưu thay đổi

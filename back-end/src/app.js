@@ -45,6 +45,8 @@ app.use("/api/payment", require("./routes/payment"));
 app.use("/api/chatbot", require("./routes/chatbot"));
 app.use("/api/review", require("./routes/review"));
 app.use("/api/contacts", require("./routes/contact"));
+app.use("/api/class-sessions", require("./routes/classSession"));
+app.use("/api/admin/classes", require("./routes/adminClass"));
 
 const PORT = process.env.PORT || 3005;
 app.listen(PORT, () => {
