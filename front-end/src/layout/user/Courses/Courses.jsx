@@ -8,14 +8,19 @@ import {
   Slider,
   Space,
   Empty,
+  AutoComplete,
+  Input,
+  Tag,
 } from "antd";
 import {
   FilterOutlined,
   SortAscendingOutlined,
   DollarOutlined,
   GlobalOutlined,
-  AppstoreOutlined,
   SearchOutlined,
+  DeleteOutlined,
+  CheckCircleOutlined,
+  CloseCircleOutlined,
 } from "@ant-design/icons";
 import { useAuth } from "../../../context/AuthContext";
 import apiClient from "../../../api/axiosConfig";
@@ -28,6 +33,10 @@ function Courses() {
   const [languages, setLanguages] = useState([]);
   const [languageLevels, setLanguageLevels] = useState([]);
   const [spinning, setSpinning] = useState(true);
+
+  // State tìm kiếm & gợi ý
+  const [keyword, setKeyword] = useState("");
+  const [options, setOptions] = useState([]);
 
   const [filters, setFilters] = useState({
     language: null,
@@ -65,6 +74,31 @@ function Courses() {
     setFilters((prev) => ({ ...prev, [key]: value }));
   };
 
+  // --- LOGIC AUTOCOMPLETE ---
+  const handleSearch = (searchText) => {
+    setKeyword(searchText);
+    if (!searchText) {
+      setOptions([]);
+      return;
+    }
+    const text = searchText.toLowerCase();
+    const suggestions = new Set();
+    allCourses.forEach((course) => {
+      const lang = course.language_id?.language;
+      const level = course.languagelevel_id?.language_level;
+      const teacher = course.teacher_id?.full_name;
+      const combined = `${lang} - Trình độ ${level}`;
+      if (lang?.toLowerCase().includes(text)) suggestions.add(lang);
+      if (teacher?.toLowerCase().includes(text)) suggestions.add(teacher);
+      if ((lang + " " + level).toLowerCase().includes(text))
+        suggestions.add(combined);
+    });
+    setOptions([...suggestions].slice(0, 10).map((val) => ({ value: val })));
+  };
+
+  const handleSelect = (value) => setKeyword(value);
+
+  // --- LOGIC LỌC ---
   const processedCourses = allCourses
     .filter((course) => {
       const { language, level, status, priceRange } = filters;
@@ -76,6 +110,18 @@ function Courses() {
         course.discounted_price > priceRange[1]
       )
         return false;
+
+      if (keyword) {
+        const lowerKeyword = keyword.toLowerCase();
+        const searchableText = `
+            ${course.courseid} 
+            ${course.language_id?.language} 
+            ${course.languagelevel_id?.language_level} 
+            ${course.teacher_id?.full_name}
+            ${course.language_id?.language} - Trình độ ${course.languagelevel_id?.language_level}
+        `.toLowerCase();
+        if (!searchableText.includes(lowerKeyword)) return false;
+      }
       return true;
     })
     .sort((a, b) => {
@@ -93,31 +139,75 @@ function Courses() {
       }
     });
 
-  const handleShowMore = () => {
-    setVisibleCount((prev) => prev + 8);
+  const handleShowMore = () => setVisibleCount((prev) => prev + 8);
+
+  const hasActiveFilters =
+    keyword.trim() !== "" ||
+    filters.language !== null ||
+    filters.level !== null ||
+    filters.status !== null ||
+    filters.priceRange[0] !== 0 ||
+    filters.priceRange[1] !== 10000000;
+
+  const clearAllFilters = () => {
+    setFilters({
+      language: null,
+      level: null,
+      status: null,
+      priceRange: [0, 10000000],
+    });
+    setKeyword("");
+    setSortBy("views");
   };
 
-  if (spinning) {
+  if (spinning)
     return (
       <Spin fullscreen tip="Đang tải danh sách khóa học..." size="large" />
     );
-  }
 
   return (
-    <div className="w-full min-h-screen bg-[#F2F4F7] py-2 pb-20">
+    <div className="w-full min-h-screen bg-[#F2F4F7] pb-20">
       {contextHolder}
 
-      <div className="max-w-7xl mx-auto px-4 md:px-8">
-        <div className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-700 flex items-center gap-3">
-            <AppstoreOutlined className="text-blue-600" />
-            Tìm kiếm khóa học phù hợp với trình độ và mục tiêu của bạn
-          </h1>
-          {/* <p className="text-gray-500 mt-2">
-            Tìm kiếm khóa học phù hợp với trình độ và mục tiêu của bạn
-          </p> */}
+      <div className="bg-gradient-to-r from-blue-900 to-indigo-700 pt-10 pb-14 px-4 text-center shadow-lg relative overflow-hidden">
+        <div className="absolute top-0 left-0 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
+        <div className="relative z-10 max-w-4xl mx-auto">
+          <h3 className="text-2xl md:text-3xl font-bold text-white mb-4 tracking-wide">
+            Khám phá các khóa học tại DREAM
+          </h3>
+          <div className="bg-white p-1 rounded-full shadow-2xl flex items-center max-w-2xl mx-auto">
+            <AutoComplete
+              options={options}
+              onSelect={handleSelect}
+              onSearch={handleSearch}
+              className="w-full"
+              size="large"
+              value={keyword}
+              onChange={(val) => setKeyword(val)}
+              backfill
+            >
+              <Input
+                size="large"
+                placeholder="Tìm khóa học, ngôn ngữ, trình độ (VD: Tiếng Anh B1)..."
+                prefix={
+                  <SearchOutlined className="text-gray-400 text-lg ml-2" />
+                }
+                className="!border-none !shadow-none focus:!shadow-none text-gray-700 text-base"
+                allowClear
+              />
+            </AutoComplete>
+            <Button
+              type="primary"
+              size="large"
+              className="!rounded-full !h-12 !px-8 !bg-blue-600 !border-none hover:!bg-blue-500 !font-semibold !text-base shadow-md"
+            >
+              Tìm kiếm
+            </Button>
+          </div>
         </div>
+      </div>
 
+      <div className="max-w-7xl mx-auto px-4 md:px-8 mt-5">
         <div className="flex flex-col lg:flex-row gap-8 items-start">
           <div className="w-full lg:w-1/4 shrink-0 space-y-6">
             <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 sticky top-24">
@@ -232,19 +322,32 @@ function Courses() {
           </div>
 
           <div className="flex-1 min-w-0 w-full">
-            <div className="mb-4 text-gray-500 font-medium text-sm flex justify-between items-center">
-              <span>
-                Tìm thấy{" "}
-                <strong className="text-gray-900">
-                  {processedCourses.length}
-                </strong>{" "}
-                khóa học phù hợp
-              </span>
-            </div>
+            {hasActiveFilters && (
+              <div className="mb-6 bg-blue-50 border border-blue-100 p-4 rounded-xl flex flex-col sm:flex-row justify-between items-center gap-3 animate-fade-in shadow-sm">
+                <span className="text-gray-700 font-medium flex items-center gap-2">
+                  <CheckCircleOutlined className="text-blue-600" />
+                  Tìm thấy{" "}
+                  <strong className="text-blue-600 text-lg">
+                    {processedCourses.length}
+                  </strong>{" "}
+                  kết quả phù hợp
+                </span>
+
+                <Button
+                  type="primary"
+                  danger
+                  icon={<DeleteOutlined />}
+                  onClick={clearAllFilters}
+                  className="shadow-md hover:scale-105 transition-transform font-semibold"
+                >
+                  Xóa tất cả lọc
+                </Button>
+              </div>
+            )}
 
             {processedCourses.length > 0 ? (
               <>
-                <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4  gap-4 md:gap-6">
+                <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-3">
                   {processedCourses.slice(0, visibleCount).map((course) => (
                     <CourseCard key={course._id} course={course} />
                   ))}
@@ -268,24 +371,16 @@ function Courses() {
                   image={Empty.PRESENTED_IMAGE_SIMPLE}
                   description={
                     <span className="text-gray-500 text-base">
-                      Không tìm thấy khóa học nào phù hợp với bộ lọc hiện tại.
+                      Không tìm thấy khóa học nào phù hợp.
                     </span>
                   }
                 />
                 <Button
                   type="primary"
-                  onClick={() => {
-                    setFilters({
-                      language: null,
-                      level: null,
-                      status: null,
-                      priceRange: [0, 10000000],
-                    });
-                    setSortBy("views");
-                  }}
+                  onClick={clearAllFilters}
                   className="mt-4 bg-blue-600"
                 >
-                  Xóa bộ lọc
+                  Xóa bộ lọc & Tìm kiếm lại
                 </Button>
               </div>
             )}
