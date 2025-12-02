@@ -34,14 +34,14 @@ function Chatbot() {
     "Khi nào có lớp Tiếng Hàn mới?",
   ];
 
-  const setGender = (currentUser) => {
-    if (currentUser?.gender == "Nam") {
-      return "Anh";
-    } else if (currentUser?.gender == "Nữ") {
-      return "Nữ";
-    }
-    return "Anh/chị";
-  };
+  // const setGender = (currentUser) => {
+  //   if (currentUser?.gender == "Nam") {
+  //     return "Anh";
+  //   } else if (currentUser?.gender == "Nữ") {
+  //     return "Nữ";
+  //   }
+  //   return "Anh/chị";
+  // };
 
   useEffect(() => {
     if (messages.length === 0) {
@@ -50,8 +50,7 @@ function Chatbot() {
         type: "text",
         text: `Xin chào ${
           currentUser?.fullname || "anh/chị"
-        }, em là trợ lý ảo của DREAM. ${setGender(currentUser)}
-         cần tìm hiểu thông tin gì nói cho em biết nhé?`,
+        }, em là trợ lý ảo của DREAM. Anh/chị cần tìm hiểu thông tin gì nói cho em biết nhé?`,
       };
       setMessages([welcomeMessage]);
     }
