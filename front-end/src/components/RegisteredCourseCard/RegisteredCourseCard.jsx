@@ -79,15 +79,14 @@ const RegisteredCourseCard = ({ registration, onUnregister, onPayment }) => {
 
   return (
     <div
-      className={`group flex flex-col md:flex-row bg-white rounded-2xl shadow-sm border overflow-hidden hover:shadow-lg transition-all duration-300 ${
+      className={`group flex flex-col bg-white rounded-2xl shadow-sm border overflow-hidden hover:shadow-xl transition-all duration-300 h-full ${
         status === "cancelled_overdue"
           ? "opacity-70 border-gray-200 bg-gray-50"
           : "border-gray-200"
       }`}
     >
       <div
-        className="relative w-full md:w-64 lg:w-72 shrink-0 cursor-pointer overflow-hidden bg-white border-r border-gray-100"
-        style={{ height: "170px" }}
+        className="relative w-full h-48 shrink-0 cursor-pointer overflow-hidden bg-gray-100 border-b border-gray-100"
         onClick={handleNavigate}
       >
         <img
@@ -96,11 +95,11 @@ const RegisteredCourseCard = ({ registration, onUnregister, onPayment }) => {
           onError={(e) => {
             e.target.src = courseImagePlaceholder;
           }}
-          className={`w-full h-full object-cover ${
+          className={`w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 ${
             status === "cancelled_overdue" ? "grayscale" : ""
           }`}
         />
-        <div className="absolute top-3 left-3 z-10">
+        <div className="absolute top-3 left-3 z-10 flex gap-2">
           {status !== "cancelled_overdue" &&
             (isPaid ? (
               <Tag
@@ -122,38 +121,37 @@ const RegisteredCourseCard = ({ registration, onUnregister, onPayment }) => {
         </div>
       </div>
 
-      <div className="flex-1 flex flex-col p-4 md:p-5">
-        <div className="flex flex-col xl:flex-row justify-between items-start gap-1 mb-3">
-          <div className="flex-1">
-            <h3
-              className="text-lg font-bold text-gray-800 group-hover:text-blue-700 transition-colors cursor-pointer leading-snug mb-2"
-              onClick={handleNavigate}
-            >
-              {course.language_id.language} -{" "}
-              {course.languagelevel_id.language_level}
-            </h3>
-            <div className="flex items-center gap-2 mb-1">
-              {renderClassStatus()}
-              <div className="flex items-center gap-1 text-[11px] text-slate-500 bg-slate-100 px-2 py-0.5 rounded">
-                <BarcodeOutlined /> {course.courseid}
-              </div>
+      <div className="flex-1 flex flex-col p-5">
+        <div className="mb-4">
+          <div className="flex items-center justify-between mb-2">
+            {renderClassStatus()}
+            <div className="flex items-center gap-1 text-[15px] text-slate-500 bg-slate-100 px-2 py-0.5 rounded">
+              KH: {course.courseid}
             </div>
           </div>
 
-          <div className="text-right shrink-0">
-            <div className="text-xl font-bold text-red-600">
+          <h3
+            className="text-lg font-bold text-gray-800 group-hover:text-blue-700 transition-colors cursor-pointer leading-snug line-clamp-2 min-h-[48px]"
+            onClick={handleNavigate}
+          >
+            {course.language_id.language} -{" "}
+            {course.languagelevel_id.language_level}
+          </h3>
+
+          <div className="mt-2 flex items-baseline gap-2">
+            <span className="text-xl font-bold text-red-600">
               {course.discounted_price?.toLocaleString()}₫
-            </div>
+            </span>
             {course.discount_percent > 0 && (
-              <div className="text-xs text-gray-400 line-through">
+              <span className="text-sm text-gray-400 line-through">
                 {course.Tuition?.toLocaleString()}₫
-              </div>
+              </span>
             )}
           </div>
         </div>
 
-        <div className="bg-gray-50/80 p-3 rounded-lg border border-gray-100 mb-4">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-6 gap-y-2 text-sm text-gray-600">
+        <div className="bg-gray-50/80 p-3 rounded-lg border border-gray-100 mb-4 flex-1">
+          <div className="flex flex-col gap-2 text-sm text-gray-600">
             <div className="flex items-center gap-2">
               <UserOutlined className="text-blue-500 shrink-0" />
               <span className="truncate">
@@ -165,7 +163,7 @@ const RegisteredCourseCard = ({ registration, onUnregister, onPayment }) => {
             </div>
             <div className="flex items-center gap-2">
               <ScheduleOutlined className="text-blue-500 shrink-0" />
-              <span className="truncate">
+              <span className="truncate line-clamp-1">
                 Lịch:{" "}
                 <strong>
                   {session ? `${session.days} (${session.time})` : "Chưa xếp"}
@@ -184,46 +182,37 @@ const RegisteredCourseCard = ({ registration, onUnregister, onPayment }) => {
                 Kết thúc: <strong>{formatDate(course.end_date)}</strong>
               </span>
             </div>
-            <div className="flex items-center gap-2 lg:col-span-2">
-              <ClockCircleOutlined className="text-blue-500 shrink-0" />
-              <span>Thời lượng: {course.Number_of_periods} tiết</span>
-            </div>
           </div>
         </div>
 
-        <div className="flex-1 flex flex-col justify-end">
+        <div className="mb-4">
           {status === "cancelled" && (
-            <div className="mb-3 p-2.5 bg-red-50 border border-red-200 rounded text-red-600 text-sm flex gap-2 items-start">
-              <StopOutlined className="mt-1" />
-              <span>
-                Lớp đã hủy. Trung tâm sẽ liên hệ hoàn tiền trong 02 ngày làm
-                việc.
-              </span>
+            <div className="p-2.5 bg-red-50 border border-red-200 rounded text-red-600 text-xs flex gap-2 items-start">
+              <StopOutlined className="mt-0.5" />
+              <span>Lớp đã hủy. Trung tâm sẽ hoàn tiền trong 02 ngày.</span>
             </div>
           )}
 
           {status === "cancelled_overdue" && (
-            <div className="mb-3 p-2.5 bg-gray-100 border border-gray-300 rounded text-gray-600 text-sm flex gap-2 items-start">
-              <CloseCircleOutlined className="mt-1" />
-              <span>
-                Đã hủy tự động do quá hạn thanh toán. Vui lòng đăng ký lại.
-              </span>
+            <div className="p-2.5 bg-gray-100 border border-gray-300 rounded text-gray-600 text-xs flex gap-2 items-start">
+              <CloseCircleOutlined className="mt-0.5" />
+              <span>Đã hủy tự động do quá hạn. Vui lòng đăng ký lại.</span>
             </div>
           )}
 
           {!isPaid && status === "pending" && (
             <div
-              className={`mb-3 p-2.5 rounded text-sm flex gap-2 items-start border ${
+              className={`p-2.5 rounded text-xs flex gap-2 items-start border ${
                 isOverdue
                   ? "bg-red-50 border-red-200 text-red-600"
                   : "bg-amber-50 border-amber-200 text-amber-700"
               }`}
             >
-              <ExclamationCircleOutlined className="mt-1" />
+              <ExclamationCircleOutlined className="mt-0.5" />
               <span>
                 {isOverdue
                   ? "Đã quá hạn thanh toán."
-                  : `Vui lòng thanh toán trước ngày ${formatDate(
+                  : `Vui lòng thanh toán trước ${formatDate(
                       paymentDeadline.toISOString()
                     )}.`}
               </span>
@@ -231,10 +220,11 @@ const RegisteredCourseCard = ({ registration, onUnregister, onPayment }) => {
           )}
         </div>
 
-        <div className="pt-3 border-t border-gray-100 flex flex-wrap justify-end gap-2.5">
+        <div className="pt-3 border-t border-gray-100 flex flex-col gap-2 mt-auto">
           {status === "cancelled" || status === "cancelled_overdue" ? (
             <Button
               danger
+              block
               onClick={(e) => {
                 e.stopPropagation();
                 onUnregister(registrationId);
@@ -243,21 +233,22 @@ const RegisteredCourseCard = ({ registration, onUnregister, onPayment }) => {
               Xóa khỏi danh sách
             </Button>
           ) : !isPaid ? (
-            <>
+            <div className="flex gap-2">
               <Button
                 danger
+                className="flex-1"
                 onClick={(e) => {
                   e.stopPropagation();
                   onUnregister(registrationId);
                 }}
               >
-                Hủy đăng ký
+                Hủy
               </Button>
               <Button
                 type="primary"
                 icon={<DollarOutlined />}
                 disabled={isOverdue}
-                className={`font-semibold shadow-sm ${
+                className={`flex-1 font-semibold shadow-sm ${
                   isOverdue ? "bg-gray-400" : "bg-blue-600 hover:!bg-blue-500"
                 }`}
                 onClick={(e) => {
@@ -265,21 +256,17 @@ const RegisteredCourseCard = ({ registration, onUnregister, onPayment }) => {
                   if (!isOverdue) onPayment(registrationId, course.Tuition);
                 }}
               >
-                {isOverdue ? "Hết hạn thanh toán" : "Thanh toán ngay"}
-              </Button>
-            </>
-          ) : (
-            <div className="flex items-center justify-between w-full">
-              <span className="text-xs text-green-600 font-medium flex items-center gap-1">
-                <CheckCircleOutlined /> Đã thanh toán: {formatDate(paymentDate)}
-              </span>
-              <Button
-                onClick={handleNavigate}
-                className="border-blue-600 text-blue-600 hover:!bg-blue-50 font-medium"
-              >
-                Vào nhóm zalo
+                Thanh toán
               </Button>
             </div>
+          ) : (
+            <Button
+              block
+              onClick={handleNavigate}
+              className="border-blue-600 text-blue-600 hover:!bg-blue-50 font-medium"
+            >
+              Xem lại & đánh giá
+            </Button>
           )}
         </div>
       </div>

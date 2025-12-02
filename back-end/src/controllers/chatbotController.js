@@ -39,7 +39,7 @@ const handleAsk = async (req, res) => {
       {
         role: "system",
         content: `Bạn là trợ lý ảo của trung tâm DREAM. Hôm nay là ngày ${todayStr}. 
-          Bạn sẽ giúp tìm khóa học phù hợp khi người dùng yêu cầu, trả lời là "Dạ, hiện tại ở trung tâm DREAM..." hoặc tương tự. 
+          Bạn sẽ giúp tìm khóa học phù hợp khi người dùng yêu cầu. 
           - Lưu ý quan trọng: Dựa vào ngày bắt đầu của khóa học so với hôm nay (${todayStr}) để dùng thì cho đúng: 
           + Nếu ngày bắt đầu ở quá khứ: Dùng "đã bắt đầu", "đã kết thúc" hoặc "đang diễn ra". 
           + Nếu ngày bắt đầu ở tương lai: Dùng "sẽ khai giảng".
@@ -130,7 +130,9 @@ const handleAsk = async (req, res) => {
         id: c._id,
         name: `${c.language_id?.language} - ${c.languagelevel_id?.language_level}`,
         teacher: c.teacher_id?.full_name,
+        genderTeacher: c.teacher_id?.gender,
         price: c.discounted_price || c.Tuition,
+        number_of_periods: c.Number_of_periods,
         status:
           c.status === "ongoing"
             ? "Đang diễn ra"
@@ -139,6 +141,7 @@ const handleAsk = async (req, res) => {
             : "Sắp diễn ra",
 
         startDate: new Date(c.Start_Date).toLocaleDateString("vi-VN"),
+        end_date: new Date(c.end_date).toLocaleDateString("vi-VN"),
       }));
 
       // Nếu không tìm thấy khóa nào

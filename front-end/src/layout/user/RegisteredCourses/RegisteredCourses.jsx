@@ -74,9 +74,8 @@ function RegisteredCourses() {
     <div className="w-full min-h-screen bg-[#F2F4F7] py-6 pb-20">
       {contextHolder}
       <Spin spinning={spinning} fullscreen />
-
-      <div className="max-w-5xl mx-auto px-4 md:px-8">
-        <div className="flex items-center gap-4 mb-4 bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+      <div className="max-w-7xl mx-auto px-4 md:px-8">
+        <div className="flex items-center gap-4 mb-6 bg-white p-4 rounded-xl shadow-sm border border-gray-100">
           <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center text-blue-600">
             <BookOutlined className="text-2xl" />
           </div>
@@ -97,7 +96,7 @@ function RegisteredCourses() {
             <Spin size="large" />
           </div>
         ) : registrations.length > 0 ? (
-          <div className="flex flex-col gap-5">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
             {registrations.map((registration) => (
               <RegisteredCourseCard
                 key={registration._id}

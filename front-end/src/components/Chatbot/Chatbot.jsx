@@ -34,6 +34,15 @@ function Chatbot() {
     "Khi nào có lớp Tiếng Hàn mới?",
   ];
 
+  const setGender = (currentUser) => {
+    if (currentUser?.gender == "Nam") {
+      return "Anh";
+    } else if (currentUser?.gender == "Nữ") {
+      return "Nữ";
+    }
+    return "Anh/chị";
+  };
+
   useEffect(() => {
     if (messages.length === 0) {
       const welcomeMessage = {
@@ -41,7 +50,8 @@ function Chatbot() {
         type: "text",
         text: `Xin chào ${
           currentUser?.fullname || "anh/chị"
-        }, em là trợ lý ảo của DREAM. Anh/chị cần tìm hiểu thông tin gì nói cho em biết nhé?`,
+        }, em là trợ lý ảo của DREAM. ${setGender(currentUser)}
+         cần tìm hiểu thông tin gì nói cho em biết nhé?`,
       };
       setMessages([welcomeMessage]);
     }
@@ -178,7 +188,7 @@ function Chatbot() {
   return (
     <div
       className={`
-            z-[2000] flex flex-col items-end gap-4 
+            z-[2000] flex flex-col items-end gap-4 pointer-events-none
             ${
               isExpanded
                 ? "fixed inset-0 w-full h-full bg-black/60 backdrop-blur-sm justify-center items-center p-4"
@@ -189,7 +199,7 @@ function Chatbot() {
       {/* Cửa sổ Chat */}
       <div
         className={`
-                    bg-gray-50 shadow-2xl flex flex-col overflow-hidden transition-all duration-300
+                    bg-gray-50 shadow-2xl flex flex-col overflow-hidden transition-all duration-300 pointer-events-auto
                     ${
                       isExpanded
                         ? "w-full max-w-5xl h-full max-h-[90vh] rounded-xl"
@@ -414,7 +424,7 @@ function Chatbot() {
         <button
           className={`
                 w-[60px] h-[60px] rounded-full bg-gradient-to-br from-blue-600 to-blue-500 text-white border-none cursor-pointer flex items-center justify-center text-3xl shadow-[0_8px_30px_rgba(37,99,235,0.4)] 
-                hover:scale-110 transition-transform duration-300 p-0 overflow-hidden ring-4 ring-white mb-[50px]
+                hover:scale-110 transition-transform duration-300 p-0 overflow-hidden ring-4 ring-white mb-[50px] pointer-events-auto
                 ${isOpen ? "hidden" : "flex"}
             `}
           onClick={toggleChat}

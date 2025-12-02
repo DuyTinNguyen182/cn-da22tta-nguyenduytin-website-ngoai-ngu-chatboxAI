@@ -1,10 +1,9 @@
-import "./Login.css";
+import React, { useState } from "react";
 import { LockOutlined, UserOutlined } from "@ant-design/icons";
 import { Button, Checkbox, Form, Input, message, Spin } from "antd";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { useState } from "react";
 import { useAuth } from "../../../context/AuthContext";
-import apiClient from "../../../api/axiosConfig"; 
+import apiClient from "../../../api/axiosConfig";
 
 function Login() {
   const navigate = useNavigate();
@@ -42,12 +41,10 @@ function Login() {
 
       const userInfoRes = await apiClient.get("/user/info");
 
-      // Dispatch hành động để cập nhật trạng thái toàn cục
       dispatch({ type: "AUTH_SUCCESS", payload: userInfoRes.data });
 
       successMessage();
 
-      // Chuyển hướng
       setTimeout(() => {
         if (stateData?.action === "redirect") {
           navigate(stateData.url);
@@ -64,81 +61,105 @@ function Login() {
   };
 
   return (
-    <div className="Login">
+    <div className="flex items-center justify-center min-h-screen w-full bg-[#d5e5ff]">
       {contextHolder}
       <Spin spinning={spinning} fullscreen />
-      <Form
-        name="reflow_login"
-        className="login-form"
-        initialValues={{
-          remember: true,
-        }}
-        onFinish={onFinish}
-        style={{ width: 350 }}
-      >
-        <Form.Item>
-          <h1 style={{ textAlign: "center", fontSize: "20px" }}>ĐĂNG NHẬP</h1>
-        </Form.Item>
-        <Form.Item
-          name="username"
-          rules={[
-            {
-              required: true,
-              message: "Vui lòng nhập tên đăng nhập!",
-            },
-          ]}
-          initialValue={stateData?.username}
+
+      <div className="w-[400px] bg-white p-8 rounded-2xl shadow-xl border border-blue-100">
+        <Form
+          name="reflow_login"
+          className="login-form"
+          initialValues={{
+            remember: true,
+          }}
+          onFinish={onFinish}
+          layout="vertical"
         >
-          <Input
-            prefix={<UserOutlined className="site-form-item-icon" />}
-            placeholder="Tên đăng nhập"
-            size="large"
-            allowClear
-          />
-        </Form.Item>
-        <Form.Item
-          name="password"
-          rules={[
-            {
-              required: true,
-              message: "Vui lòng nhập mật khẩu!",
-            },
-          ]}
-          initialValue={stateData?.password}
-        >
-          <Input.Password
-            prefix={<LockOutlined className="site-form-item-icon" />}
-            type="password"
-            placeholder="Mật khẩu"
-            size="large"
-            allowClear
-          />
-        </Form.Item>
-        <Form.Item>
-          <Form.Item name="remember" valuePropName="checked" noStyle>
-            <Checkbox>Ghi nhớ đăng nhập</Checkbox>
+          <div className="text-center mb-6">
+            <h1 className="text-2xl font-extrabold text-blue-900 uppercase tracking-wide">
+              Đăng nhập
+            </h1>
+            <p className="text-gray-400 text-sm mt-1">
+              Chào mừng bạn quay trở lại!
+            </p>
+          </div>
+
+          <Form.Item
+            name="username"
+            rules={[
+              {
+                required: true,
+                message: "Vui lòng nhập tên đăng nhập!",
+              },
+            ]}
+            initialValue={stateData?.username}
+          >
+            <Input
+              prefix={<UserOutlined className="text-gray-400 text-lg mr-2" />}
+              placeholder="Tên đăng nhập"
+              size="large"
+              allowClear
+              className="py-2.5 rounded-lg"
+            />
           </Form.Item>
 
-          <Link className="login-form-forgot" to="/forgot-password">
-            Quên mật khẩu
-          </Link>
-        </Form.Item>
-
-        <Form.Item>
-          <Button
-            type="primary"
-            htmlType="submit"
-            className="login-form-button"
-            size="large"
-            style={{ width: "100%" }}
+          <Form.Item
+            name="password"
+            rules={[
+              {
+                required: true,
+                message: "Vui lòng nhập mật khẩu!",
+              },
+            ]}
+            initialValue={stateData?.password}
           >
-            Đăng nhập
-          </Button>
-        </Form.Item>
-        <Form.Item>
-          Chưa có tài khoản? <Link to="/register">Đăng ký!</Link>
-        </Form.Item>
-      </Form>
+            <Input.Password
+              prefix={<LockOutlined className="text-gray-400 text-lg mr-2" />}
+              type="password"
+              placeholder="Mật khẩu"
+              size="large"
+              allowClear
+              className="py-2.5 rounded-lg"
+            />
+          </Form.Item>
+
+          <Form.Item>
+            <div className="flex justify-between items-center">
+              <Form.Item name="remember" valuePropName="checked" noStyle>
+                <Checkbox className="text-gray-600">Ghi nhớ đăng nhập</Checkbox>
+              </Form.Item>
+
+              <Link
+                className="text-blue-600 hover:text-blue-800 font-medium text-sm transition-colors"
+                to="/forgot-password"
+              >
+                Quên mật khẩu?
+              </Link>
+            </div>
+          </Form.Item>
+
+          <Form.Item className="mb-4">
+            <Button
+              type="primary"
+              htmlType="submit"
+              className="w-full h-11 bg-blue-600 hover:!bg-blue-700 font-bold text-lg rounded-xl shadow-md shadow-blue-200 transition-all"
+              size="large"
+            >
+              Đăng nhập
+            </Button>
+          </Form.Item>
+
+          <div className="text-center text-gray-500">
+            Chưa có tài khoản?{" "}
+            <Link
+              to="/register"
+              className="text-blue-600 font-bold hover:underline"
+            >
+              Đăng ký ngay!
+            </Link>
+          </div>
+        </Form>
+      </div>
     </div>
   );
 }
