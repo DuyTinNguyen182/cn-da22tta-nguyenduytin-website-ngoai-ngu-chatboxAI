@@ -6,6 +6,7 @@ import Register from "./layout/user/Logup/Logup";
 import Login from "./layout/user/Login/Login";
 import ForgotPassword from "./layout/user/ForgotPassword/ForgotPassword";
 import ResetPassword from "./layout/user/ForgotPassword/ResetPassword";
+import PaymentResult from "./layout/user/PaymentResult/PaymentResult";
 import ScrollToTopButton from "./components/ScrollToTopButton";
 import ScrollToTop from "./components/ScrollToTop";
 
@@ -17,6 +18,7 @@ function App() {
       <Router>
         <ScrollToTop />
         <Routes>
+          <Route path="/payment-result" element={<PaymentResult />} />
           <Route path="/register" element={<Register />} />
           <Route path="/login" element={<Login />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />

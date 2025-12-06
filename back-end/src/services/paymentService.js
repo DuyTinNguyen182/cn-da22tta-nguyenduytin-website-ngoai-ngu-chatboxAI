@@ -77,6 +77,7 @@ async function handleVnpayIpn(vnp_Params) {
 
   if (vnp_Params["vnp_ResponseCode"] === "00") {
     registration.isPaid = true;
+    registration.paymentDate = new Date();
     await registration.save();
     return { RspCode: "00", Message: "Confirm Success" };
   } else {
