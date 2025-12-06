@@ -21,6 +21,8 @@ function UpdateLanguageLevel() {
   const [levelName, setLevelName] = useState("");
   const [languages, setLanguages] = useState([]);
 
+  const [allLevels, setAllLevels] = useState([]);
+
   const successMessage = (content) => messageApi.success(content);
   const errorMessage = (content) => messageApi.error(content);
 
@@ -28,12 +30,15 @@ function UpdateLanguageLevel() {
     const fetchData = async () => {
       setSpinning(true);
       try {
-        const [levelRes, langRes] = await Promise.all([
+        const [levelRes, langRes, allLevelsRes] = await Promise.all([
           apiClient.get(`/languagelevel/${id}`),
           apiClient.get(`/language`),
+          apiClient.get(`/languagelevel`),
         ]);
 
         setLanguages(langRes.data);
+        setAllLevels(allLevelsRes.data);
+
         form.setFieldsValue({
           language_level: levelRes.data.language_level,
           language_levelid: levelRes.data.language_levelid,
@@ -51,6 +56,22 @@ function UpdateLanguageLevel() {
   }, [id, form]);
 
   const onFinish = async (values) => {
+    const isDuplicateId = allLevels.some((level) => {
+      if (level._id === id) return false;
+      const currentLevelLangId = level.language_id?._id || level.language_id;
+
+      return (
+        level.language_levelid.trim().toLowerCase() ===
+          values.language_levelid.trim().toLowerCase() &&
+        currentLevelLangId === values.language_id
+      );
+    });
+
+    if (isDuplicateId) {
+      errorMessage("Mã trình độ này đã tồn tại trong ngôn ngữ đã chọn!");
+      return;
+    }
+
     setSpinning(true);
     try {
       await apiClient.put(`/languagelevel/${id}`, values);

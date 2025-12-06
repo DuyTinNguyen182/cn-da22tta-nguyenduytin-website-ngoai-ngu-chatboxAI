@@ -99,27 +99,20 @@ function LanguageLevelManager() {
   }, []);
 
   const onFinish = async (values) => {
-    const levelIdExists = levels.some(
-      (level) =>
+    const isDuplicateId = levels.some((level) => {
+      const currentLevelLangId = level.language_id?._id || level.language_id;
+
+      return (
         level.language_levelid.trim().toLowerCase() ===
-        values.language_levelid.trim().toLowerCase()
-    );
-    const levelNameExists = levels.some(
-      (level) =>
-        level.language_level.trim().toLowerCase() ===
-          values.language_level.trim().toLowerCase() &&
-        level.language_id?._id === values.language_id
-    );
+          values.language_levelid.trim().toLowerCase() &&
+        currentLevelLangId === values.language_id
+      );
+    });
 
-    if (levelIdExists) {
-      errorMessage("Mã trình độ này đã tồn tại!");
+    if (isDuplicateId) {
+      errorMessage("Mã trình độ này đã tồn tại trong ngôn ngữ đã chọn!");
       return;
     }
-    if (levelNameExists) {
-      errorMessage("Tên trình độ này đã tồn tại trong ngôn ngữ đã chọn!");
-      return;
-    }
-
     setSpinning(true);
     try {
       await apiClient.post(`/languagelevel/add`, values);
