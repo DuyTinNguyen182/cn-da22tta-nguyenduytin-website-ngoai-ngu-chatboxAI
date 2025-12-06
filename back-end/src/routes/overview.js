@@ -1,5 +1,8 @@
 const express = require("express");
-const { getStats, getRevenueStats, } = require("../controllers/overviewController");
+const {
+  getStats,
+  getRevenueStats,
+} = require("../controllers/overviewController");
 const { authenticate } = require("../middleware/authMiddleware");
 
 const router = express.Router();

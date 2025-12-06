@@ -78,8 +78,36 @@ const getOverviewStats = async (range) => {
   ];
   const topCourses = await RegistrationCourse.aggregate(topCoursesPipeline);
 
-  const revenueByLanguage = await RegistrationCourse.aggregate([
-    { $match: { isPaid: true } },
+  // const revenueByLanguage = await RegistrationCourse.aggregate([
+  //   { $match: { isPaid: true } },
+  //   {
+  //     $lookup: {
+  //       from: "courses",
+  //       localField: "course_id",
+  //       foreignField: "_id",
+  //       as: "course",
+  //     },
+  //   },
+  //   { $unwind: "$course" },
+  //   {
+  //     $lookup: {
+  //       from: "languages",
+  //       localField: "course.language_id",
+  //       foreignField: "_id",
+  //       as: "lang",
+  //     },
+  //   },
+  //   { $unwind: "$lang" },
+  //   {
+  //     $group: {
+  //       _id: "$lang.language",
+  //       value: { $sum: "$course.Tuition" },
+  //     },
+  //   },
+  //   { $project: { name: "$_id", value: 1, _id: 0 } },
+  // ]);
+  const revenueDetailed = await RegistrationCourse.aggregate([
+    { $match: { isPaid: true } }, // Tính trên toàn bộ lịch sử để vẽ biểu đồ cơ cấu
     {
       $lookup: {
         from: "courses",
@@ -89,6 +117,7 @@ const getOverviewStats = async (range) => {
       },
     },
     { $unwind: "$course" },
+    // Lookup Ngôn ngữ
     {
       $lookup: {
         from: "languages",
@@ -98,13 +127,33 @@ const getOverviewStats = async (range) => {
       },
     },
     { $unwind: "$lang" },
+    // Lookup Trình độ (Lưu ý: Collection trong MongoDB thường là số nhiều 'language_levels')
+    {
+      $lookup: {
+        from: "language_levels",
+        localField: "course.languagelevel_id",
+        foreignField: "_id",
+        as: "lvl",
+      },
+    },
+    { $unwind: "$lvl" },
     {
       $group: {
-        _id: "$lang.language",
+        // Gom nhóm theo cặp (Ngôn ngữ - Trình độ)
+        _id: { lang: "$lang.language", lvl: "$lvl.language_level" },
         value: { $sum: "$course.Tuition" },
       },
     },
-    { $project: { name: "$_id", value: 1, _id: 0 } },
+    {
+      $project: {
+        // Nối chuỗi tạo thành tên hiển thị: "Tiếng Anh - A1"
+        name: { $concat: ["$_id.lang", " - ", "$_id.lvl"] },
+        value: 1,
+        _id: 0,
+      },
+    },
+    { $sort: { value: -1 } }, // Sắp xếp doanh thu từ cao xuống thấp
+    { $limit: 5 },
   ]);
 
   const topTeachers = await RegistrationCourse.aggregate([
@@ -147,7 +196,8 @@ const getOverviewStats = async (range) => {
     registrations: registrationsInRange,
     revenue: revenueInRange,
     newStudents: newStudentsInRange,
-    revenueByLanguage,
+    // revenueByLanguage,
+    revenueDetailed,
     topTeachers,
   };
 };

@@ -23,6 +23,7 @@ import {
   FileTextOutlined,
   LikeOutlined,
   ExclamationCircleOutlined,
+  UserOutlined,
 } from "@ant-design/icons";
 import YouTube from "react-youtube";
 import apiClient from "../../../api/axiosConfig";
@@ -453,6 +454,11 @@ function CourseDetailPage() {
                 icon={<ClockCircleOutlined />}
                 label="Thời lượng"
                 value={`${course.Number_of_periods} tiết`}
+              />
+              <InfoItem
+                icon={<UserOutlined />}
+                label="Học viên tối thiểu:"
+                value={15}
               />
 
               <Button

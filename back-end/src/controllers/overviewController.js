@@ -1,4 +1,7 @@
-const { getOverviewStats, getRevenueOverTime, } = require("../services/overviewService");
+const {
+  getOverviewStats,
+  getRevenueOverTime,
+} = require("../services/overviewService");
 
 const getStats = async (req, res) => {
   try {
