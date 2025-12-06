@@ -1,4 +1,13 @@
-import { Form, Input, Button, Breadcrumb, Flex, Spin, message } from "antd";
+import {
+  Form,
+  Input,
+  Button,
+  Breadcrumb,
+  Flex,
+  Spin,
+  message,
+  Select,
+} from "antd";
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import apiClient from "../../../api/axiosConfig";
@@ -10,27 +19,35 @@ function UpdateLanguageLevel() {
   const [spinning, setSpinning] = useState(true);
   const [messageApi, contextHolder] = message.useMessage();
   const [levelName, setLevelName] = useState("");
+  const [languages, setLanguages] = useState([]);
 
   const successMessage = (content) => messageApi.success(content);
   const errorMessage = (content) => messageApi.error(content);
 
   useEffect(() => {
-    const fetchLevelData = async () => {
+    const fetchData = async () => {
       setSpinning(true);
       try {
-        const res = await apiClient.get(`/languagelevel/${id}`);
+        const [levelRes, langRes] = await Promise.all([
+          apiClient.get(`/languagelevel/${id}`),
+          apiClient.get(`/language`),
+        ]);
+
+        setLanguages(langRes.data);
         form.setFieldsValue({
-          language_level: res.data.language_level,
-          language_levelid: res.data.language_levelid,
+          language_level: levelRes.data.language_level,
+          language_levelid: levelRes.data.language_levelid,
+          language_id:
+            levelRes.data.language_id?._id || levelRes.data.language_id,
         });
-        setLevelName(res.data.language_level);
+        setLevelName(levelRes.data.language_level);
       } catch (error) {
         errorMessage("Không thể tải dữ liệu trình độ");
       } finally {
         setSpinning(false);
       }
     };
-    fetchLevelData();
+    fetchData();
   }, [id, form]);
 
   const onFinish = async (values) => {
@@ -65,6 +82,19 @@ function UpdateLanguageLevel() {
       >
         <Form.Item label="Mã trình độ (ID)" name="language_levelid">
           <Input disabled />
+        </Form.Item>
+        <Form.Item
+          label="Thuộc ngôn ngữ"
+          name="language_id"
+          rules={[{ required: true, message: "Vui lòng chọn ngôn ngữ!" }]}
+        >
+          <Select placeholder="Chọn ngôn ngữ">
+            {languages.map((lang) => (
+              <Select.Option key={lang._id} value={lang._id}>
+                {lang.language}
+              </Select.Option>
+            ))}
+          </Select>
         </Form.Item>
         <Form.Item
           label="Tên trình độ"

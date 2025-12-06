@@ -90,32 +90,31 @@ function UpdateCourse() {
   }, [id, form]);
 
   const onFinish = async (values) => {
-  setSpinning(true);
-  const formData = new FormData();
+    setSpinning(true);
+    const formData = new FormData();
 
-  for (const key in values) {
-    if (key !== "image") {
-      formData.append(key, values[key]);
+    for (const key in values) {
+      if (key !== "image") {
+        formData.append(key, values[key]);
+      }
     }
-  }
 
-  if (isImageChanged && fileList.length > 0 && fileList[0].originFileObj) {
-    formData.append("image", fileList[0].originFileObj);
-  }
+    if (isImageChanged && fileList.length > 0 && fileList[0].originFileObj) {
+      formData.append("image", fileList[0].originFileObj);
+    }
 
-  try {
-    await apiClient.put(`/course/${id}`, formData, {
-      headers: { "Content-Type": "multipart/form-data" },
-    });
-    successMessage("Cập nhật khóa học thành công");
-    setTimeout(() => navigate("/admin/courses"), 1000);
-  } catch (error) {
-    errorMessage(error.response?.data?.message || "Cập nhật thất bại");
-  } finally {
-    setSpinning(false);
-  }
-};
-
+    try {
+      await apiClient.put(`/course/${id}`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      successMessage("Cập nhật khóa học thành công");
+      setTimeout(() => navigate("/admin/courses"), 1000);
+    } catch (error) {
+      errorMessage(error.response?.data?.message || "Cập nhật thất bại");
+    } finally {
+      setSpinning(false);
+    }
+  };
 
   const handleFileChange = ({ fileList: newFileList }) => {
     setFileList(newFileList);
@@ -173,7 +172,13 @@ function UpdateCourse() {
           >
             <Select
               placeholder="Chọn ngôn ngữ"
-              onChange={setSelectedLanguageId}
+              onChange={(val) => {
+                setSelectedLanguageId(val);
+                form.setFieldsValue({
+                  languagelevel_id: null,
+                  teacher_id: null,
+                });
+              }}
             >
               {languages.map((lang) => (
                 <Select.Option key={lang._id} value={lang._id}>
@@ -188,12 +193,17 @@ function UpdateCourse() {
             rules={[{ required: true }]}
             style={{ flex: 1 }}
           >
-            <Select placeholder="Chọn trình độ">
-              {languageLevels.map((lv) => (
-                <Select.Option key={lv._id} value={lv._id}>
-                  {lv.language_level}
-                </Select.Option>
-              ))}
+            <Select placeholder="Chọn trình độ" disabled={!selectedLanguageId}>
+              {languageLevels
+                .filter((lv) => {
+                  const levelLangId = lv.language_id?._id || lv.language_id;
+                  return levelLangId === selectedLanguageId;
+                })
+                .map((lv) => (
+                  <Select.Option key={lv._id} value={lv._id}>
+                    {lv.language_level}
+                  </Select.Option>
+                ))}
             </Select>
           </Form.Item>
         </Flex>
@@ -270,18 +280,18 @@ function UpdateCourse() {
             />
           </Form.Item>
           <Form.Item
-              name="discount_percent"
-              label="% Giảm giá"
-              initialValue={0}
-              style={{ flex: 1 }}
-            >
-              <InputNumber
-                min={0}
-                max={100}
-                style={{ width: "100%" }}
-                addonAfter="%"
-              />
-            </Form.Item>
+            name="discount_percent"
+            label="% Giảm giá"
+            initialValue={0}
+            style={{ flex: 1 }}
+          >
+            <InputNumber
+              min={0}
+              max={100}
+              style={{ width: "100%" }}
+              addonAfter="%"
+            />
+          </Form.Item>
         </Flex>
         <Form.Item name="Description" label="Mô tả">
           <Input.TextArea rows={3} />

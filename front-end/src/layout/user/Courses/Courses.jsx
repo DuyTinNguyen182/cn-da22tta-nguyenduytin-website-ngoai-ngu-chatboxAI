@@ -246,11 +246,18 @@ function Courses() {
                     onChange={(value) => handleFilterChange("level", value)}
                     disabled={!filters.language}
                   >
-                    {languageLevels.map((level) => (
-                      <Option key={level._id} value={level._id}>
-                        {level.language_level}
-                      </Option>
-                    ))}
+                    {languageLevels
+                      .filter((level) => {
+                        if (!filters.language) return true;
+                        const levelLangId =
+                          level.language_id?._id || level.language_id;
+                        return levelLangId === filters.language;
+                      })
+                      .map((level) => (
+                        <Option key={level._id} value={level._id}>
+                          {level.language_level}
+                        </Option>
+                      ))}
                   </Select>
                   <Select
                     allowClear

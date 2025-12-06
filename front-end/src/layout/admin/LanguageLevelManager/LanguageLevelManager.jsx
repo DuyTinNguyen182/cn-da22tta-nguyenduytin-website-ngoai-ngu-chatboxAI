@@ -10,6 +10,7 @@ import {
   Spin,
   message,
   Result,
+  Select,
 } from "antd";
 import { Link } from "react-router-dom";
 import { PlusOutlined, EditOutlined } from "@ant-design/icons";
@@ -18,6 +19,7 @@ import apiClient from "../../../api/axiosConfig";
 
 function LanguageLevelManager() {
   const [levels, setLevels] = useState([]);
+  const [languages, setLanguages] = useState([]);
   const [open, setOpen] = useState(false);
   const [spinning, setSpinning] = useState(true);
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
@@ -49,6 +51,12 @@ function LanguageLevelManager() {
       dataIndex: "language_level",
     },
     {
+      title: "Thuộc ngôn ngữ",
+      dataIndex: ["language_id", "language"],
+      render: (text) =>
+        text || <span style={{ color: "orange" }}>Chưa cập nhật</span>,
+    },
+    {
       title: "Sửa",
       dataIndex: "_id",
       render: (_id) => (
@@ -63,17 +71,24 @@ function LanguageLevelManager() {
 
   const fetchData = async () => {
     try {
-      const response = await apiClient.get(`/languagelevel`);
-      const data = response.data.map((l) => ({
+      const [levelRes, langRes] = await Promise.all([
+        apiClient.get(`/languagelevel`),
+        apiClient.get(`/language`),
+      ]);
+
+      const data = levelRes.data.map((l) => ({
         key: l._id,
         _id: l._id,
         language_level: l.language_level,
         language_levelid: l.language_levelid,
+        language_id: l.language_id,
       }));
+
       setLevels(data);
       setFilteredLevels(data);
+      setLanguages(langRes.data);
     } catch (err) {
-      errorMessage("Không thể tải danh sách trình độ");
+      errorMessage("Không thể tải dữ liệu");
     } finally {
       setSpinning(false);
     }
@@ -92,7 +107,8 @@ function LanguageLevelManager() {
     const levelNameExists = levels.some(
       (level) =>
         level.language_level.trim().toLowerCase() ===
-        values.language_level.trim().toLowerCase()
+          values.language_level.trim().toLowerCase() &&
+        level.language_id?._id === values.language_id
     );
 
     if (levelIdExists) {
@@ -100,7 +116,7 @@ function LanguageLevelManager() {
       return;
     }
     if (levelNameExists) {
-      errorMessage("Tên trình độ này đã tồn tại!");
+      errorMessage("Tên trình độ này đã tồn tại trong ngôn ngữ đã chọn!");
       return;
     }
 
@@ -130,7 +146,7 @@ function LanguageLevelManager() {
     } catch (error) {
       if (error.response && error.response.status === 400) {
         const msg =
-        //   error.response.data.message ||
+          //   error.response.data.message ||
           "Không thể xóa. Có khóa học đang sử dụng trình độ này.";
         errorMessage(msg);
       } else {
@@ -233,8 +249,7 @@ function LanguageLevelManager() {
         centered
       >
         <p>
-          Bạn có chắc muốn xóa {selectedRowKeys.length} trình độ đã
-          chọn không?
+          Bạn có chắc muốn xóa {selectedRowKeys.length} trình độ đã chọn không?
         </p>
       </Modal>
 
@@ -263,6 +278,19 @@ function LanguageLevelManager() {
             ]}
           >
             <Input placeholder="Ví dụ: A1, B2, N5" allowClear />
+          </Form.Item>
+          <Form.Item
+            label="Thuộc ngôn ngữ"
+            name="language_id"
+            rules={[{ required: true, message: "Vui lòng chọn ngôn ngữ!" }]}
+          >
+            <Select placeholder="Chọn ngôn ngữ">
+              {languages.map((lang) => (
+                <Select.Option key={lang._id} value={lang._id}>
+                  {lang.language}
+                </Select.Option>
+              ))}
+            </Select>
           </Form.Item>
           <Form.Item
             label="Tên trình độ"

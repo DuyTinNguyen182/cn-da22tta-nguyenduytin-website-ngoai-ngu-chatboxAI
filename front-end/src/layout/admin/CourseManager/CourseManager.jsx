@@ -373,7 +373,13 @@ function CourseManager() {
             >
               <Select
                 placeholder="Chọn ngôn ngữ"
-                onChange={setSelectedLanguageId}
+                onChange={(value) => {
+                  setSelectedLanguageId(value);
+                  form.setFieldsValue({
+                    languagelevel_id: null,
+                    teacher_id: null,
+                  });
+                }}
               >
                 {languages.map((lang) => (
                   <Select.Option key={lang._id} value={lang._id}>
@@ -388,12 +394,21 @@ function CourseManager() {
               rules={[{ required: true }]}
               style={{ flex: 1 }}
             >
-              <Select placeholder="Chọn trình độ">
-                {languageLevels.map((level) => (
-                  <Select.Option key={level._id} value={level._id}>
-                    {level.language_level}
-                  </Select.Option>
-                ))}
+              <Select
+                placeholder="Chọn trình độ"
+                disabled={!selectedLanguageId}
+              >
+                {languageLevels
+                  .filter((level) => {
+                    const levelLangId =
+                      level.language_id?._id || level.language_id;
+                    return levelLangId === selectedLanguageId;
+                  })
+                  .map((level) => (
+                    <Select.Option key={level._id} value={level._id}>
+                      {level.language_level}
+                    </Select.Option>
+                  ))}
               </Select>
             </Form.Item>
           </Flex>

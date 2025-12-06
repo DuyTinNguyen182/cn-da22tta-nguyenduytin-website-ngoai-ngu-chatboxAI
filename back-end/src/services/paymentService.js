@@ -30,7 +30,7 @@ function createVnpayUrl(ipAddr, amount, registrationId) {
   vnp_Params["vnp_TxnRef"] = orderId;
   vnp_Params["vnp_OrderInfo"] = orderInfo;
   vnp_Params["vnp_OrderType"] = orderType;
-  vnp_Params["vnp_Amount"] = amount * 100; // VNPay tính bằng đơn vị đồng * 100
+  vnp_Params["vnp_Amount"] = Math.floor(amount * 100); // VNPay tính bằng đơn vị đồng * 100
   vnp_Params["vnp_ReturnUrl"] = returnUrl;
   vnp_Params["vnp_IpAddr"] = ipAddr;
   vnp_Params["vnp_CreateDate"] = createDate;
@@ -72,8 +72,8 @@ async function handleVnpayIpn(vnp_Params) {
   if (registration.isPaid) {
     return { RspCode: "02", Message: "Order already confirmed" };
   }
-  
-  const amountFromVnpay = Number(vnp_Params['vnp_Amount']) / 100;
+
+  const amountFromVnpay = Number(vnp_Params["vnp_Amount"]) / 100;
 
   if (vnp_Params["vnp_ResponseCode"] === "00") {
     registration.isPaid = true;
