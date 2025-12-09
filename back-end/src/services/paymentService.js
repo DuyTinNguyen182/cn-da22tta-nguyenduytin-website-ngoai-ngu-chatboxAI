@@ -58,7 +58,7 @@ async function sendInvoiceEmail(registration) {
 
     // Format các dữ liệu để hiển thị
     const amountFormatted = new Intl.NumberFormat("vi-VN").format(
-      registration.course_id.Tuition
+      registration.course_id.discounted_price
     );
     const paymentDateFormatted = moment(registration.paymentDate).format(
       "DD/MM/YYYY HH:mm:ss"
@@ -104,7 +104,7 @@ async function sendInvoiceEmail(registration) {
 async function createPaymentUrl(ipAddr, registrationId) {
   // Lấy thông tin từ Database
   const registration = await RegistrationCourse.findById(registrationId)
-    .populate("course_id", "courseid Tuition")
+    .populate("course_id", "courseid Tuition discount_percent")
     .populate("user_id", "userid fullname");
 
   if (!registration) {
@@ -116,7 +116,7 @@ async function createPaymentUrl(ipAddr, registrationId) {
   }
 
   // Chuẩn bị dữ liệu
-  const amount = registration.course_id.Tuition;
+  const amount = registration.course_id.discounted_price;
   const studentCode = registration.user_id?.userid || "";
   const studentName = removeVietnameseTones(
     registration.user_id?.fullname || ""
