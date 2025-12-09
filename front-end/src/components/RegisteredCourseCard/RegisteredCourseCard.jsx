@@ -6,12 +6,10 @@ import {
   UserOutlined,
   CalendarOutlined,
   DollarOutlined,
-  BarcodeOutlined,
-  ExclamationCircleOutlined,
   StopOutlined,
-  ScheduleOutlined,
   CloseCircleOutlined,
   FlagOutlined,
+  ExclamationCircleOutlined,
 } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import courseImagePlaceholder from "../../imgs/image.png";
@@ -23,18 +21,12 @@ const RegisteredCourseCard = ({ registration, onUnregister, onPayment }) => {
     course_id: course,
     isPaid,
     _id: registrationId,
-    enrollment_date,
-    paymentDate,
     status,
     class_session_id: session,
   } = registration;
 
   if (!course || !course.language_id || !course.languagelevel_id) {
-    return (
-      <div className="p-4 border border-dashed border-red-300 bg-red-50 text-red-500 rounded-lg text-center mb-4">
-        Dữ liệu khóa học không khả dụng.
-      </div>
-    );
+    return null;
   }
 
   const formatDate = (dateString) =>
@@ -51,27 +43,37 @@ const RegisteredCourseCard = ({ registration, onUnregister, onPayment }) => {
 
   const imageUrl = course.image || courseImagePlaceholder;
 
-  const renderClassStatus = () => {
+  // Badge trạng thái đơn giản
+  const renderStatusBadge = () => {
     if (status === "confirmed")
       return (
-        <Tag color="success" icon={<CheckCircleOutlined />}>
+        <Tag
+          color="success"
+          className="m-0 border-0 bg-green-100 text-green-700 font-medium"
+        >
           Đã mở lớp
         </Tag>
       );
     if (status === "cancelled")
       return (
-        <Tag color="error" icon={<StopOutlined />}>
-          Lớp đã hủy (Admin)
+        <Tag
+          color="error"
+          className="m-0 border-0 bg-red-100 text-red-700 font-medium"
+        >
+          Đã hủy
         </Tag>
       );
     if (status === "cancelled_overdue")
       return (
-        <Tag color="default" icon={<CloseCircleOutlined />}>
-          Tự động hủy
+        <Tag className="m-0 border-0 bg-gray-200 text-gray-600 font-medium">
+          Hủy tự động
         </Tag>
       );
     return (
-      <Tag color="processing" icon={<ClockCircleOutlined />}>
+      <Tag
+        color="processing"
+        className="m-0 border-0 bg-blue-100 text-blue-700 font-medium"
+      >
         Chờ xếp lớp
       </Tag>
     );
@@ -79,14 +81,13 @@ const RegisteredCourseCard = ({ registration, onUnregister, onPayment }) => {
 
   return (
     <div
-      className={`group flex flex-col bg-white rounded-2xl shadow-sm border overflow-hidden hover:shadow-xl transition-all duration-300 h-full ${
-        status === "cancelled_overdue"
-          ? "opacity-70 border-gray-200 bg-gray-50"
-          : "border-gray-200"
+      className={`group bg-white rounded-xl p-4 border border-gray-100 shadow-sm hover:shadow-md transition-all duration-300 flex flex-col md:flex-row gap-5 ${
+        status === "cancelled_overdue" ? "opacity-60 bg-gray-50" : ""
       }`}
     >
+      {/* 1. Phần Ảnh (Bên trái) */}
       <div
-        className="relative w-full h-48 shrink-0 cursor-pointer overflow-hidden bg-gray-100 border-b border-gray-100"
+        className="w-full md:w-64 h-48 md:h-auto shrink-0 rounded-lg overflow-hidden cursor-pointer relative bg-gray-100"
         onClick={handleNavigate}
       >
         <img
@@ -95,132 +96,106 @@ const RegisteredCourseCard = ({ registration, onUnregister, onPayment }) => {
           onError={(e) => {
             e.target.src = courseImagePlaceholder;
           }}
-          className={`w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 ${
-            status === "cancelled_overdue" ? "grayscale" : ""
-          }`}
+          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
         />
-        <div className="absolute top-3 left-3 z-10 flex gap-2">
+        {/* Nhãn thanh toán đè lên ảnh cho gọn */}
+        <div className="absolute top-2 left-2">
           {status !== "cancelled_overdue" &&
             (isPaid ? (
-              <Tag
-                color="#10b981"
-                icon={<CheckCircleOutlined />}
-                className="!border-0 !text-xs !font-bold shadow-sm"
-              >
-                Đã thanh toán
-              </Tag>
+              <span className="bg-emerald-500 text-white text-[10px] font-bold px-2 py-0.5 rounded shadow-sm">
+                ĐÃ THANH TOÁN
+              </span>
             ) : (
-              <Tag
-                color="#f59e0b"
-                icon={<ClockCircleOutlined />}
-                className="!border-0 !text-xs !font-bold shadow-sm"
-              >
-                Chờ thanh toán
-              </Tag>
+              <span className="bg-amber-400 text-white text-[10px] font-bold px-2 py-0.5 rounded shadow-sm">
+                CHỜ THANH TOÁN
+              </span>
             ))}
         </div>
       </div>
 
-      <div className="flex-1 flex flex-col p-5">
-        <div className="mb-4">
-          <div className="flex items-center justify-between mb-2">
-            {renderClassStatus()}
-            <div className="flex items-center gap-1 text-[15px] text-slate-500 bg-slate-100 px-2 py-0.5 rounded">
-              KH: {course.courseid}
-            </div>
-          </div>
+      {/* 2. Phần Thông tin chính (Ở giữa) */}
+      <div className="flex-1 flex flex-col">
+        <div className="flex justify-between items-start mb-2">
+          <span className="text-xs text-gray-400 font-mono uppercase bg-gray-50 px-2 py-0.5 rounded">
+            {course.courseid}
+          </span>
+          {renderStatusBadge()}
+        </div>
 
-          <h3
-            className="text-lg font-bold text-gray-800 group-hover:text-blue-700 transition-colors cursor-pointer leading-snug line-clamp-2 min-h-[48px]"
-            onClick={handleNavigate}
-          >
-            {course.language_id.language} -{" "}
-            {course.languagelevel_id.language_level}
-          </h3>
+        <h3
+          className="text-lg font-bold text-gray-800 hover:text-blue-600 cursor-pointer mb-3 transition-colors"
+          onClick={handleNavigate}
+        >
+          {course.language_id.language} -{" "}
+          {course.languagelevel_id.language_level}
+        </h3>
 
-          <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-xl font-bold text-red-600">
-              {course.discounted_price?.toLocaleString()}₫
+        {/* Grid thông tin nhỏ gọn */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-2 gap-x-4 text-sm text-gray-600 mb-4">
+          <div className="flex items-center gap-2">
+            <UserOutlined className="text-blue-500" />
+            <span className="truncate max-w-[150px]">
+              {course.teacher_id?.full_name ?? "Đang cập nhật"}
             </span>
-            {course.discount_percent > 0 && (
-              <span className="text-sm text-gray-400 line-through">
-                {course.Tuition?.toLocaleString()}₫
-              </span>
-            )}
+          </div>
+          <div className="flex items-center gap-2">
+            <CalendarOutlined className="text-blue-500" />
+            <span>KG: {formatDate(course.Start_Date)}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <FlagOutlined className="text-gray-400" />
+            <span>KT: {formatDate(course.end_date)}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <ClockCircleOutlined className="text-gray-400" />
+            <span className="truncate font-medium text-gray-700">
+              {session ? `${session.days} (${session.time})` : "Chưa có lịch"}
+            </span>
           </div>
         </div>
 
-        <div className="bg-gray-50/80 p-3 rounded-lg border border-gray-100 mb-4 flex-1">
-          <div className="flex flex-col gap-2 text-sm text-gray-600">
-            <div className="flex items-center gap-2">
-              <UserOutlined className="text-blue-500 shrink-0" />
-              <span className="truncate">
-                GV:{" "}
-                <strong>
-                  {course.teacher_id?.full_name ?? "Đang cập nhật"}
-                </strong>
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
-              <ScheduleOutlined className="text-blue-500 shrink-0" />
-              <span className="truncate line-clamp-1">
-                Lịch:{" "}
-                <strong>
-                  {session ? `${session.days} (${session.time})` : "Chưa xếp"}
-                </strong>
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
-              <CalendarOutlined className="text-blue-500 shrink-0" />
-              <span>
-                Khai giảng: <strong>{formatDate(course.Start_Date)}</strong>
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
-              <FlagOutlined className="text-red-500 shrink-0" />
-              <span>
-                Kết thúc: <strong>{formatDate(course.end_date)}</strong>
-              </span>
-            </div>
+        {/* Cảnh báo (nếu có) */}
+        {!isPaid && status === "pending" && !status.includes("cancelled") && (
+          <div
+            className={`mt-auto text-xs flex items-center gap-2 p-2 rounded ${
+              isOverdue
+                ? "bg-red-50 text-red-600"
+                : "bg-amber-50 text-amber-700"
+            }`}
+          >
+            <ExclamationCircleOutlined />
+            <span>
+              {isOverdue
+                ? "Đã quá hạn thanh toán. Vui lòng liên hệ trung tâm."
+                : `Vui lòng thanh toán trước ngày ${formatDate(
+                    paymentDeadline.toISOString()
+                  )}`}
+            </span>
           </div>
-        </div>
+        )}
+      </div>
 
-        <div className="mb-4">
-          {status === "cancelled" && (
-            <div className="p-2.5 bg-red-50 border border-red-200 rounded text-red-600 text-xs flex gap-2 items-start">
-              <StopOutlined className="mt-0.5" />
-              <span>Lớp đã hủy. Trung tâm sẽ hoàn tiền trong 02 ngày.</span>
+      {/* 3. Phần Hành động & Giá (Bên phải - tách biệt bằng border trên Desktop) */}
+      <div className="w-full md:w-48 md:border-l border-gray-100 md:pl-5 flex flex-col justify-center items-end md:items-end gap-1 pt-4 md:pt-0 border-t md:border-t-0">
+        {/* Giá tiền */}
+        <div className="text-right mb-4">
+          {course.discount_percent > 0 && (
+            <div className="text-xs text-gray-400 line-through">
+              {course.Tuition?.toLocaleString()}₫
             </div>
           )}
-
-          {status === "cancelled_overdue" && (
-            <div className="p-2.5 bg-gray-100 border border-gray-300 rounded text-gray-600 text-xs flex gap-2 items-start">
-              <CloseCircleOutlined className="mt-0.5" />
-              <span>Đã hủy tự động do quá hạn. Vui lòng đăng ký lại.</span>
-            </div>
-          )}
-
-          {!isPaid && status === "pending" && (
-            <div
-              className={`p-2.5 rounded text-xs flex gap-2 items-start border ${
-                isOverdue
-                  ? "bg-red-50 border-red-200 text-red-600"
-                  : "bg-amber-50 border-amber-200 text-amber-700"
-              }`}
-            >
-              <ExclamationCircleOutlined className="mt-0.5" />
-              <span>
-                {isOverdue
-                  ? "Đã quá hạn thanh toán."
-                  : `Vui lòng thanh toán trước ${formatDate(
-                      paymentDeadline.toISOString()
-                    )}.`}
-              </span>
-            </div>
+          <div className="text-xl font-bold text-red-600">
+            {course.discounted_price?.toLocaleString()}₫
+          </div>
+          {course.discount_percent > 0 && (
+            <span className="text-[10px] bg-red-100 text-red-600 px-1.5 rounded font-bold">
+              -{course.discount_percent}%
+            </span>
           )}
         </div>
 
-        <div className="pt-3 border-t border-gray-100 flex flex-col gap-2 mt-auto">
+        {/* Nút bấm */}
+        <div className="w-full flex flex-row md:flex-col gap-2">
           {status === "cancelled" || status === "cancelled_overdue" ? (
             <Button
               danger
@@ -230,27 +205,17 @@ const RegisteredCourseCard = ({ registration, onUnregister, onPayment }) => {
                 onUnregister(registrationId);
               }}
             >
-              Xóa khỏi danh sách
+              Xóa
             </Button>
           ) : !isPaid ? (
-            <div className="flex gap-2">
-              <Button
-                danger
-                className="flex-1"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onUnregister(registrationId);
-                }}
-              >
-                Hủy
-              </Button>
+            <>
               <Button
                 type="primary"
-                icon={<DollarOutlined />}
+                danger={isOverdue}
                 disabled={isOverdue}
-                className={`flex-1 font-semibold shadow-sm ${
-                  isOverdue ? "bg-gray-400" : "bg-blue-600 hover:!bg-blue-500"
-                }`}
+                className={`${!isOverdue ? "bg-blue-600" : ""} font-semibold`}
+                block
+                icon={<DollarOutlined />}
                 onClick={(e) => {
                   e.stopPropagation();
                   if (!isOverdue) onPayment(registrationId, course.Tuition);
@@ -258,14 +223,27 @@ const RegisteredCourseCard = ({ registration, onUnregister, onPayment }) => {
               >
                 Thanh toán
               </Button>
-            </div>
+              <Button
+                danger
+                type="text"
+                block
+                size="small"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onUnregister(registrationId);
+                }}
+              >
+                Hủy đăng ký
+              </Button>
+            </>
           ) : (
             <Button
               block
+              type="default"
+              className="text-blue-600 border-blue-200 bg-blue-50 hover:bg-blue-100"
               onClick={handleNavigate}
-              className="border-blue-600 text-blue-600 hover:!bg-blue-50 font-medium"
             >
-              Xem lại & đánh giá
+              Vào học
             </Button>
           )}
         </div>

@@ -25,7 +25,7 @@ function UserLayout() {
   return (
     <div className="flex flex-col min-h-screen w-full bg-[#F2F4F7]">
       <Header />
-      <main className="flex-1 w-full pt-[90px] pb-12">
+      <main className="flex-1 w-full pt-[70px] pb-12">
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/courses" element={<Courses />} />

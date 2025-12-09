@@ -1,10 +1,7 @@
 const crypto = require("crypto");
 const qs = require("qs");
 const moment = require("moment");
-const fs = require("fs");
-const path = require("path");
 const RegistrationCourse = require("../models/RegistrationCourse");
-const transporter = require("../config/mail"); // Import cấu hình mail
 
 // --- HELPER: Bỏ dấu tiếng Việt ---
 function removeVietnameseTones(str) {
@@ -41,63 +38,6 @@ function sortObject(obj) {
     sorted[str[key]] = encodeURIComponent(obj[str[key]]).replace(/%20/g, "+");
   }
   return sorted;
-}
-
-// --- SERVICE: Gửi Email Hóa Đơn ---
-async function sendInvoiceEmail(registration) {
-  try {
-    const templatePath = path.join(__dirname, "../templates/invoice.html");
-
-    // Kiểm tra file template có tồn tại không
-    if (!fs.existsSync(templatePath)) {
-      console.error("Không tìm thấy file template invoice.html");
-      return;
-    }
-
-    let html = fs.readFileSync(templatePath, "utf8");
-
-    // Format các dữ liệu để hiển thị
-    const amountFormatted = new Intl.NumberFormat("vi-VN").format(
-      registration.course_id.Tuition
-    );
-    const paymentDateFormatted = moment(registration.paymentDate).format(
-      "DD/MM/YYYY HH:mm:ss"
-    );
-
-    // Lấy thông tin lớp học an toàn
-    const classInfo = registration.class_session_id
-      ? `${registration.class_session_id.days} (${registration.class_session_id.time})`
-      : "Đang cập nhật";
-
-    // Lấy tên khóa học đầy đủ
-    const language = registration.course_id.language_id?.language || "";
-    const level = registration.course_id.languagelevel_id?.language_level || "";
-    const courseName = `${language} - ${level}`;
-
-    // Thay thế biến trong template
-    html = html
-      .replace("{{fullname}}", registration.user_id.fullname)
-      .replace("{{userid}}", registration.user_id.userid)
-      .replace("{{email}}", registration.user_id.email)
-      .replace("{{orderId}}", registration._id)
-      .replace("{{courseName}}", courseName)
-      .replace("{{classTime}}", classInfo)
-      .replace("{{paymentDate}}", paymentDateFormatted)
-      .replace("{{amount}}", amountFormatted);
-
-    // Gửi mail
-    await transporter.sendMail({
-      from: `"DREAM Education" <${process.env.GMAIL_USER}>`,
-      to: registration.user_id.email,
-      subject: "Hóa đơn thanh toán khóa học - Trung tâm ngoại ngữ DREAM",
-      html: html,
-    });
-
-    console.log(`Đã gửi hóa đơn cho email: ${registration.user_id.email}`);
-  } catch (error) {
-    console.error("Lỗi gửi email hóa đơn:", error);
-    // Không throw error để tránh làm ảnh hưởng luồng phản hồi IPN
-  }
 }
 
 // --- SERVICE CHÍNH: Tạo URL thanh toán ---
@@ -181,16 +121,7 @@ async function handleVnpayIpn(vnp_Params) {
     return { RspCode: "97", Message: "Invalid Signature" };
   }
 
-  // --- CẬP NHẬT: Populate đầy đủ thông tin để gửi mail ---
-  const registration = await RegistrationCourse.findById(registrationId)
-    .populate({
-      path: "course_id",
-      populate: [{ path: "language_id" }, { path: "languagelevel_id" }],
-    })
-    .populate("user_id")
-    .populate("class_session_id");
-  // ------------------------------------------------------
-
+  const registration = await RegistrationCourse.findById(registrationId);
   if (!registration) {
     return { RspCode: "01", Message: "Order not found" };
   }
@@ -201,13 +132,8 @@ async function handleVnpayIpn(vnp_Params) {
 
   if (vnp_Params["vnp_ResponseCode"] === "00") {
     registration.isPaid = true;
-    registration.paymentDate = new Date(); // Cập nhật ngày thanh toán
+    registration.paymentDate = new Date();
     await registration.save();
-
-    // --- GỌI HÀM GỬI EMAIL ---
-    sendInvoiceEmail(registration);
-    // -------------------------
-
     return { RspCode: "00", Message: "Confirm Success" };
   } else {
     return { RspCode: "99", Message: "Transaction failed" };

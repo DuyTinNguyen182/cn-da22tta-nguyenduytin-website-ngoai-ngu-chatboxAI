@@ -71,12 +71,14 @@ function RegisteredCourses() {
   }, [userId]);
 
   return (
-    <div className="w-full min-h-screen bg-[#F2F4F7] py-6 pb-20">
+    <div className="w-full min-h-screen bg-[#F8FAFC] py-8 pb-20 font-sans">
       {contextHolder}
       <Spin spinning={spinning} fullscreen />
-      <div className="max-w-7xl mx-auto px-4 md:px-8">
-        <div className="flex items-center gap-4 mb-6 bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-          <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center text-blue-600">
+
+      <div className="max-w-6xl mx-auto px-4 md:px-8">
+        {/* Header đơn giản hơn */}
+        <div className="flex items-center gap-4 mb-8">
+          <div className="w-12 h-12 bg-white rounded-xl shadow-sm border border-gray-100 flex items-center justify-center text-blue-600">
             <BookOutlined className="text-2xl" />
           </div>
           <div>
@@ -84,19 +86,21 @@ function RegisteredCourses() {
               Khóa học của tôi
             </h1>
             <p className="text-gray-500 text-sm">
-              Đã đăng ký{" "}
-              <strong className="text-600">{registrations.length}</strong> khóa
-              học
+              Bạn đang có{" "}
+              <strong className="text-blue-600">{registrations.length}</strong>{" "}
+              khóa học trong danh sách
             </p>
           </div>
         </div>
 
+        {/* Content Area */}
         {loading ? (
           <div className="flex justify-center py-20">
             <Spin size="large" />
           </div>
         ) : registrations.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+          // Thay Grid bằng Flex Column để hiển thị dạng list dọc
+          <div className="flex flex-col gap-5">
             {registrations.map((registration) => (
               <RegisteredCourseCard
                 key={registration._id}
@@ -108,20 +112,19 @@ function RegisteredCourses() {
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center bg-white rounded-2xl p-16 border border-dashed border-gray-300 shadow-sm text-center">
-            <div className="w-24 h-24 bg-gray-50 rounded-full flex items-center justify-center mb-6">
-              <AppstoreOutlined className="text-5xl text-gray-300" />
+            <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mb-4">
+              <AppstoreOutlined className="text-4xl text-gray-300" />
             </div>
             <h3 className="text-xl font-bold text-gray-800 mb-2">
-              Chưa có khóa học nào
+              Chưa đăng ký khóa học nào
             </h3>
-            <p className="text-gray-500 mb-8 max-w-md mx-auto">
-              Danh sách đăng ký đang trống. Hãy tìm kiếm khóa học phù hợp để
-              nâng cao trình độ ngay hôm nay!
+            <p className="text-gray-500 mb-6">
+              Hãy tìm kiếm khóa học phù hợp để bắt đầu ngay hôm nay!
             </p>
             <Button
               type="primary"
               size="large"
-              className="bg-blue-600 font-semibold px-10 h-12 rounded-xl shadow-lg shadow-blue-200 hover:scale-105 transition-transform"
+              className="bg-blue-600 shadow-md shadow-blue-200"
               onClick={() => navigate("/courses")}
             >
               Tìm khóa học
