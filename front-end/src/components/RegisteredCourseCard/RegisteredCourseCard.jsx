@@ -43,7 +43,6 @@ const RegisteredCourseCard = ({ registration, onUnregister, onPayment }) => {
 
   const imageUrl = course.image || courseImagePlaceholder;
 
-  // Badge trạng thái đơn giản
   const renderStatusBadge = () => {
     if (status === "confirmed")
       return (
@@ -66,7 +65,7 @@ const RegisteredCourseCard = ({ registration, onUnregister, onPayment }) => {
     if (status === "cancelled_overdue")
       return (
         <Tag className="m-0 border-0 bg-gray-200 text-gray-600 font-medium">
-          Hủy tự động
+          Hủy tự động (Quá hạn thanh toán)
         </Tag>
       );
     return (
@@ -85,7 +84,6 @@ const RegisteredCourseCard = ({ registration, onUnregister, onPayment }) => {
         status === "cancelled_overdue" ? "opacity-60 bg-gray-50" : ""
       }`}
     >
-      {/* 1. Phần Ảnh (Bên trái) */}
       <div
         className="w-full md:w-64 h-48 md:h-auto shrink-0 rounded-lg overflow-hidden cursor-pointer relative bg-gray-100"
         onClick={handleNavigate}
@@ -98,7 +96,6 @@ const RegisteredCourseCard = ({ registration, onUnregister, onPayment }) => {
           }}
           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
         />
-        {/* Nhãn thanh toán đè lên ảnh cho gọn */}
         <div className="absolute top-2 left-2">
           {status !== "cancelled_overdue" &&
             (isPaid ? (
@@ -113,10 +110,9 @@ const RegisteredCourseCard = ({ registration, onUnregister, onPayment }) => {
         </div>
       </div>
 
-      {/* 2. Phần Thông tin chính (Ở giữa) */}
       <div className="flex-1 flex flex-col">
         <div className="flex justify-between items-start mb-2">
-          <span className="text-xs text-gray-400 font-mono uppercase bg-gray-50 px-2 py-0.5 rounded">
+          <span className="text-xl text-gray-800 font-bold font-mono uppercase bg-gray-50 px-2 py-0.5 rounded">
             {course.courseid}
           </span>
           {renderStatusBadge()}
@@ -130,21 +126,20 @@ const RegisteredCourseCard = ({ registration, onUnregister, onPayment }) => {
           {course.languagelevel_id.language_level}
         </h3>
 
-        {/* Grid thông tin nhỏ gọn */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-2 gap-x-4 text-sm text-gray-600 mb-4">
           <div className="flex items-center gap-2">
             <UserOutlined className="text-blue-500" />
             <span className="truncate max-w-[150px]">
-              {course.teacher_id?.full_name ?? "Đang cập nhật"}
+              Giảng viên: {course.teacher_id?.full_name ?? "Đang cập nhật"}
             </span>
           </div>
           <div className="flex items-center gap-2">
             <CalendarOutlined className="text-blue-500" />
-            <span>KG: {formatDate(course.Start_Date)}</span>
+            <span>Khai giảng: {formatDate(course.Start_Date)}</span>
           </div>
           <div className="flex items-center gap-2">
             <FlagOutlined className="text-gray-400" />
-            <span>KT: {formatDate(course.end_date)}</span>
+            <span>Kết thúc: {formatDate(course.end_date)}</span>
           </div>
           <div className="flex items-center gap-2">
             <ClockCircleOutlined className="text-gray-400" />
@@ -153,31 +148,48 @@ const RegisteredCourseCard = ({ registration, onUnregister, onPayment }) => {
             </span>
           </div>
         </div>
+        <div className="mt-auto">
+          {status === "cancelled" && (
+            <div className="text-sm flex items-start gap-2 rounded bg-red-50 text-red-700">
+              <StopOutlined className="mt-0.5" />
+              <span className="font-medium">
+                Lớp học bị hủy. Trung tâm sẽ hoàn tiền học phí (nếu có) trong 02
+                ngày làm việc.
+              </span>
+            </div>
+          )}
 
-        {/* Cảnh báo (nếu có) */}
-        {!isPaid && status === "pending" && !status.includes("cancelled") && (
-          <div
-            className={`mt-auto text-xs flex items-center gap-2 p-2 rounded ${
-              isOverdue
-                ? "bg-red-50 text-red-600"
-                : "bg-amber-50 text-amber-700"
-            }`}
-          >
-            <ExclamationCircleOutlined />
-            <span>
-              {isOverdue
-                ? "Đã quá hạn thanh toán. Vui lòng liên hệ trung tâm."
-                : `Vui lòng thanh toán trước ngày ${formatDate(
-                    paymentDeadline.toISOString()
-                  )}`}
-            </span>
-          </div>
-        )}
+          {status === "cancelled_overdue" && (
+            <div className="text-sm flex items-start gap-2 rounded bg-gray-100 text-gray-600">
+              <CloseCircleOutlined className="mt-0.5" />
+              <span className="font-medium">
+                Lớp học đã bị hủy tự động do quá hạn thanh toán.
+              </span>
+            </div>
+          )}
+
+          {!isPaid && status === "pending" && !status.includes("cancelled") && (
+            <div
+              className={`text-sm flex items-start gap-2 rounded ${
+                isOverdue
+                  ? "bg-red-50 text-red-600"
+                  : "bg-amber-50 text-amber-700"
+              }`}
+            >
+              <ExclamationCircleOutlined />
+              <span className="font-medium">
+                {isOverdue
+                  ? "Đã quá hạn thanh toán. Vui lòng liên hệ trung tâm để được hỗ trợ."
+                  : `Vui lòng thanh toán trước ngày ${formatDate(
+                      paymentDeadline.toISOString()
+                    )}`}
+              </span>
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* 3. Phần Hành động & Giá (Bên phải - tách biệt bằng border trên Desktop) */}
       <div className="w-full md:w-48 md:border-l border-gray-100 md:pl-5 flex flex-col justify-center items-end md:items-end gap-1 pt-4 md:pt-0 border-t md:border-t-0">
-        {/* Giá tiền */}
         <div className="text-right mb-4">
           {course.discount_percent > 0 && (
             <div className="text-xs text-gray-400 line-through">
@@ -194,7 +206,6 @@ const RegisteredCourseCard = ({ registration, onUnregister, onPayment }) => {
           )}
         </div>
 
-        {/* Nút bấm */}
         <div className="w-full flex flex-row md:flex-col gap-2">
           {status === "cancelled" || status === "cancelled_overdue" ? (
             <Button
@@ -225,9 +236,10 @@ const RegisteredCourseCard = ({ registration, onUnregister, onPayment }) => {
               </Button>
               <Button
                 danger
-                type="text"
+                type="default"
                 block
                 size="small"
+                className="border-red-500"
                 onClick={(e) => {
                   e.stopPropagation();
                   onUnregister(registrationId);
@@ -243,7 +255,7 @@ const RegisteredCourseCard = ({ registration, onUnregister, onPayment }) => {
               className="text-blue-600 border-blue-200 bg-blue-50 hover:bg-blue-100"
               onClick={handleNavigate}
             >
-              Vào học
+              Xem lại & đánh giá
             </Button>
           )}
         </div>

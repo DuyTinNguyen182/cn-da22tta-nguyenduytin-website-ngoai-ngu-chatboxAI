@@ -69,7 +69,27 @@ function CourseManager() {
       dataIndex: "courseid",
       // sorter: (a, b) => a.courseid.localeCompare(b.courseid),
     },
-    { title: "Ngôn ngữ", dataIndex: ["language_id", "language"] },
+    // { title: "Ngôn ngữ", dataIndex: ["language_id", "language"] },
+    {
+      title: "Ngôn ngữ",
+      dataIndex: "language_id", // Sửa từ "language" thành "language_id" để khớp với dữ liệu
+      render: (langId) => {
+        const id = typeof langId === "object" ? langId?._id : langId;
+        const lang = languages.find((l) => l._id === id);
+        return lang ? lang.language : "--";
+      },
+      filters: languages.map((lang) => ({
+        text: lang.language,
+        value: lang._id,
+      })),
+      onFilter: (value, record) => {
+        if (!record.language_id) return false;
+        if (typeof record.language_id === "object") {
+          return record.language_id._id === value;
+        }
+        return record.language_id === value;
+      },
+    },
     { title: "Trình độ", dataIndex: ["languagelevel_id", "language_level"] },
     { title: "Giảng viên", dataIndex: ["teacher_id", "full_name"], width: 180 },
     {
@@ -125,7 +145,9 @@ function CourseManager() {
       dataIndex: "Description",
       render: (text) => (
         <Tooltip title={text}>
-          <div className="description-cell">{text}</div>
+          <div className="description-cell">
+            {text && text.length > 50 ? `${text.substring(0, 50)}...` : text}
+          </div>
         </Tooltip>
       ),
     },

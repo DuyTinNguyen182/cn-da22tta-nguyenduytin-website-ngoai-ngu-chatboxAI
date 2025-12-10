@@ -76,7 +76,6 @@ function RegisteredCourses() {
       <Spin spinning={spinning} fullscreen />
 
       <div className="max-w-6xl mx-auto px-4 md:px-8">
-        {/* Header đơn giản hơn */}
         <div className="flex items-center gap-4 mb-8">
           <div className="w-12 h-12 bg-white rounded-xl shadow-sm border border-gray-100 flex items-center justify-center text-blue-600">
             <BookOutlined className="text-2xl" />
@@ -93,13 +92,11 @@ function RegisteredCourses() {
           </div>
         </div>
 
-        {/* Content Area */}
         {loading ? (
           <div className="flex justify-center py-20">
             <Spin size="large" />
           </div>
         ) : registrations.length > 0 ? (
-          // Thay Grid bằng Flex Column để hiển thị dạng list dọc
           <div className="flex flex-col gap-5">
             {registrations.map((registration) => (
               <RegisteredCourseCard

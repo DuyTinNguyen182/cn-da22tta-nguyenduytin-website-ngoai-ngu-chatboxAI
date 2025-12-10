@@ -221,9 +221,10 @@ function AdminClassManager() {
     {
       title: "Mã HV",
       dataIndex: "userid",
+      width: 100,
     },
     {
-      title: "Email / SĐT",
+      title: "Email",
       render: (_, r) => (
         <div>
           <div>{r.email}</div>
@@ -234,12 +235,14 @@ function AdminClassManager() {
     {
       title: "Ngày ĐK",
       dataIndex: "registration_date",
+      width: 100,
       render: (date) => moment(date).format("DD/MM/YYYY"),
     },
     {
       title: "Học phí",
       dataIndex: "isPaid",
       align: "center",
+      width: 100,
       render: (isPaid) =>
         isPaid ? (
           <Tag color="green">Đã đóng</Tag>

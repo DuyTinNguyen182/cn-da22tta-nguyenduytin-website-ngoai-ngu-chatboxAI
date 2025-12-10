@@ -11,6 +11,7 @@ import {
   StarOutlined,
   PhoneOutlined,
   ClockCircleOutlined,
+  AuditOutlined,
 } from "@ant-design/icons";
 import { Flex, Layout, Menu, Spin, Result, Button } from "antd";
 import { Link, Route, Routes, useLocation, Navigate } from "react-router-dom";
@@ -85,7 +86,7 @@ const menuItems = [
   getItem(
     <Link to="classes">Quản lý lớp học</Link>,
     "classes",
-    <BookOutlined />
+    <AuditOutlined />
   ),
   getItem(
     <Link to="reviews">Quản lý đánh giá</Link>,
