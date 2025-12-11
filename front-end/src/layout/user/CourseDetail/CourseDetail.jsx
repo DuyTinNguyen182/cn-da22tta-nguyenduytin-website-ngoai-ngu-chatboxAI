@@ -150,15 +150,22 @@ function CourseDetailPage() {
 
     setRegistering(true);
     try {
-      await apiClient.post("/registration", {
+      // 1. Tạo đơn đăng ký trước (trạng thái pending)
+      const res = await apiClient.post("/registration", {
         user_id: userId,
         course_id: course._id,
         class_session_id: selectedSession,
       });
 
-      messageApi.success("Đăng ký thành công! Đang chuyển hướng...");
+      messageApi.success(
+        "Đã giữ chỗ thành công! Đang chuyển sang trang thanh toán..."
+      );
       setIsRegisterModalOpen(false);
-      setTimeout(() => navigate(`/my-courses/${userId}`), 1000);
+
+      const newRegistrationId = res.data.registration?._id;
+
+      // 3. Chuyển hướng sang trang Checkout với ID đơn đăng ký
+      setTimeout(() => navigate(`/checkout/${newRegistrationId}`), 1000);
     } catch (error) {
       const msg = error.response?.data?.message || "Đăng ký thất bại.";
       if (error.response?.data?.status === "already_registered") {
@@ -534,7 +541,7 @@ function CourseDetailPage() {
             disabled={!selectedSession}
             className="bg-blue-600"
           >
-            Xác nhận đăng ký
+            Tiếp tục thanh toán &rarr;
           </Button>,
         ]}
         centered

@@ -104,26 +104,33 @@ async function sendInvoiceEmail(registration) {
 async function createPaymentUrl(ipAddr, registrationId) {
   // Lấy thông tin từ Database
   const registration = await RegistrationCourse.findById(registrationId)
-    .populate("course_id", "courseid Tuition discount_percent")
+    .populate("course_id", "courseid Tuition discount_percent discounted_price") // Đảm bảo lấy discounted_price
     .populate("user_id", "userid fullname");
 
-  if (!registration) {
-    throw new Error("Không tìm thấy lượt đăng ký");
-  }
+  if (!registration) throw new Error("Không tìm thấy lượt đăng ký");
+  if (registration.isPaid) throw new Error("Đăng ký này đã được thanh toán");
 
-  if (registration.isPaid) {
-    throw new Error("Đăng ký này đã được thanh toán");
-  }
+  // --- LOGIC GIÁ MỚI ---
+  // Nếu đã có final_amount (do áp dụng mã giảm giá), thì dùng nó.
+  // Nếu không, dùng giá discounted_price của khóa học.
+  let amount = registration.final_amount;
 
-  // Chuẩn bị dữ liệu
-  const amount = registration.course_id.discounted_price;
+  if (amount === undefined || amount === null) {
+    amount = registration.course_id.discounted_price;
+  }
+  // ---------------------
+
+  // Validate amount > 0 (VNPay không nhận 0 đồng)
+  if (amount <= 0)
+    throw new Error(
+      "Số tiền thanh toán không hợp lệ (0 VND). Vui lòng liên hệ Admin."
+    );
+
   const studentCode = registration.user_id?.userid || "";
   const studentName = removeVietnameseTones(
     registration.user_id?.fullname || ""
   );
   const courseId = registration.course_id.courseid;
-
-  // Tạo nội dung: "HP [MaHV] [TenHV] [IDKhoahoc]"
   const orderInfo = `HP ${courseId} ${studentCode} ${studentName}`;
 
   // Cấu hình VNPay
@@ -202,7 +209,15 @@ async function handleVnpayIpn(vnp_Params) {
   if (vnp_Params["vnp_ResponseCode"] === "00") {
     registration.isPaid = true;
     registration.paymentDate = new Date(); // Cập nhật ngày thanh toán
+    registration.status = "confirmed";
     await registration.save();
+    // --- LOGIC MỚI: Tăng biến đếm sử dụng Coupon ---
+    if (registration.coupon_id) {
+      await Coupon.findByIdAndUpdate(registration.coupon_id, {
+        $inc: { usage_count: 1 },
+      });
+    }
+    // ----------------------------------------------
 
     // --- GỌI HÀM GỬI EMAIL ---
     sendInvoiceEmail(registration);

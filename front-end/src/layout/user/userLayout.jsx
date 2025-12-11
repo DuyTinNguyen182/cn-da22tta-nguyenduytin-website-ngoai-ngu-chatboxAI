@@ -10,6 +10,7 @@ import CourseDetail from "./CourseDetail/CourseDetail";
 import RegisteredCourses from "./RegisteredCourses/RegisteredCourses";
 import ContactPage from "./ContactPage/ContactPage";
 import UserAcc from "./UserAccount/UserAccount";
+import CheckoutPage from "./Checkout/CheckoutPage";
 
 function UserLayout() {
   const location = useLocation();
@@ -33,6 +34,7 @@ function UserLayout() {
           <Route path="/my-courses/:id" element={<RegisteredCourses />} />
           <Route path="/user/account/:id" element={<UserAcc />} />
           <Route path="/contact" element={<ContactPage />} />
+          <Route path="/checkout/:registrationId" element={<CheckoutPage />} />
         </Routes>
         <Chatbot />
       </main>

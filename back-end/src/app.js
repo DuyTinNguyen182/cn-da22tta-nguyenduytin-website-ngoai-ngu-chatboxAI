@@ -53,6 +53,7 @@ app.use("/api/registration", require("./routes/registration"));
 app.use("/api/overview", require("./routes/overview"));
 app.use("/api/upload", require("./routes/upload"));
 app.use("/api/payment", require("./routes/payment"));
+app.use("/api/coupon", require("./routes/coupon"));
 app.use("/api/chatbot", require("./routes/chatbot"));
 app.use("/api/review", require("./routes/review"));
 app.use("/api/contacts", require("./routes/contact"));

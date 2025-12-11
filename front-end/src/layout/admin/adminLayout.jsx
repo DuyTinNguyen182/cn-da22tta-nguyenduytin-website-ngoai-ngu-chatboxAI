@@ -12,6 +12,7 @@ import {
   PhoneOutlined,
   ClockCircleOutlined,
   AuditOutlined,
+  TagsOutlined,
 } from "@ant-design/icons";
 import { Flex, Layout, Menu, Spin, Result, Button } from "antd";
 import { Link, Route, Routes, useLocation, Navigate } from "react-router-dom";
@@ -35,6 +36,8 @@ import ReviewManager from "./ReviewManager/ReviewManager";
 import ContactManager from "./ContactManager/Contactmanager";
 import ClassSessionManager from "./ClassSessionManager/ClassSessionManager";
 import AdminClassManager from "./ClassManager/AdminClassManager";
+import CouponManager from "./CouponManager/CouponManager";
+import UpdateCoupon from "./CouponManager/UpdateCoupon";
 
 const { Sider } = Layout;
 
@@ -72,6 +75,11 @@ const menuItems = [
     <Link to="courses">Quản lý khóa học</Link>,
     "courses",
     <ReadOutlined />
+  ),
+  getItem(
+    <Link to="coupons">Quản lý mã giảm giá</Link>,
+    "coupons",
+    <TagsOutlined />
   ),
   getItem(
     <Link to="class-sessions">Quản lý buổi học</Link>,
@@ -186,6 +194,8 @@ const AdminLayout = () => {
           <Route path="contacts" element={<ContactManager />} />
           <Route path="class-sessions" element={<ClassSessionManager />} />
           <Route path="classes" element={<AdminClassManager />} />
+          <Route path="coupons" element={<CouponManager />} />
+          <Route path="coupons/update/:id" element={<UpdateCoupon />} />
         </Routes>
       </Layout>
     </Layout>
