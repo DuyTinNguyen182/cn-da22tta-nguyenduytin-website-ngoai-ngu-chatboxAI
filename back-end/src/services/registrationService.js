@@ -100,6 +100,20 @@ const getRegistrationById = async (id) => {
 };
 
 const cancelRegistration = async (id) => {
+  const registration = await RegistrationCourse.findById(id);
+
+  if (!registration) return false;
+  if (
+    registration.coupon_id &&
+    (registration.isPaid || registration.payment_method === "cash")
+  ) {
+    await Coupon.findByIdAndUpdate(registration.coupon_id, {
+      $inc: { usage_count: -1 },
+    });
+    console.log(
+      `Đã hoàn lại lượt dùng cho mã giảm giá: ${registration.coupon_id}`
+    );
+  }
   const deleted = await RegistrationCourse.findByIdAndDelete(id);
   return !!deleted;
 };
@@ -160,12 +174,6 @@ const deleteUnpaidRegistrations = async () => {
     );
 
     for (const reg of overdueRegistrations) {
-      if (reg.coupon_id) {
-        await Coupon.findByIdAndUpdate(reg.coupon_id, {
-          $inc: { usage_count: -1 },
-        });
-      }
-
       await RegistrationCourse.findByIdAndDelete(reg._id);
     }
 

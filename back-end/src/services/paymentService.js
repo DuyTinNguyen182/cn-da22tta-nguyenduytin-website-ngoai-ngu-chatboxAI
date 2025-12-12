@@ -5,6 +5,7 @@ const fs = require("fs");
 const path = require("path");
 const RegistrationCourse = require("../models/RegistrationCourse");
 const transporter = require("../config/mail");
+const Coupon = require("../models/Coupon");
 
 // --- HELPER: Bỏ dấu tiếng Việt ---
 function removeVietnameseTones(str) {
@@ -114,6 +115,12 @@ async function handleCashPayment(registrationId) {
   // Cập nhật phương thức thanh toán là cash
   registration.payment_method = "cash";
   await registration.save();
+
+  if (registration.coupon_id) {
+    await Coupon.findByIdAndUpdate(registration.coupon_id, {
+      $inc: { usage_count: 1 },
+    });
+  }
 
   return {
     success: true,
