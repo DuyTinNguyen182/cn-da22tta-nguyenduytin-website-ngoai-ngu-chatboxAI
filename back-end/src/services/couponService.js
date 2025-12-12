@@ -53,8 +53,8 @@ exports.getAvailableCoupons = async () => {
   const now = new Date();
   return await Coupon.find({
     isActive: true,
-    // start_date: { $lte: now }, // Đã bắt đầu
-    // expiration_date: { $gte: now }, // Chưa hết hạn
+    start_date: { $lte: now }, // Đã bắt đầu
+    expiration_date: { $gte: now }, // Chưa hết hạn
     // $expr: {
     //   $cond: {
     //     if: { $ifNull: ["$usage_limit", false] }, // Nếu có giới hạn

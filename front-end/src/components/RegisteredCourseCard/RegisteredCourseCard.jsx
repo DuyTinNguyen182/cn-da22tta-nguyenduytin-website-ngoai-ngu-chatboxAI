@@ -28,6 +28,10 @@ const RegisteredCourseCard = ({ registration, onUnregister }) => {
     coupon_id,
   } = registration;
 
+  if (!isPaid) {
+    return null;
+  }
+
   if (!course || !course.language_id || !course.languagelevel_id) {
     return null;
   }
@@ -68,9 +72,9 @@ const RegisteredCourseCard = ({ registration, onUnregister }) => {
   };
 
   return (
-    <div className="group bg-white rounded-xl p-4 border border-gray-100 shadow-sm hover:shadow-md transition-all duration-300 flex flex-col md:flex-row gap-5 relative overflow-hidden">
+    <div className="group bg-white rounded-xl p-4 border border-gray-100 shadow-sm hover:shadow-md transition-all duration-300 flex flex-col md:flex-row gap-5 relative overflow-hidden items-start">
       <div
-        className="w-full md:w-64 h-48 md:h-auto shrink-0 rounded-lg overflow-hidden cursor-pointer relative bg-gray-100"
+        className="w-full md:w-74 h-40 shrink-0 rounded-lg overflow-hidden cursor-pointer relative bg-gray-100"
         onClick={handleNavigate}
       >
         <img
@@ -82,19 +86,13 @@ const RegisteredCourseCard = ({ registration, onUnregister }) => {
           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
         />
         <div className="absolute top-2 left-2">
-          {isPaid ? (
-            <span className="bg-emerald-500 text-white text-[10px] font-bold px-2 py-0.5 rounded shadow-sm">
-              ĐÃ THANH TOÁN
-            </span>
-          ) : (
-            <span className="bg-amber-500 text-white text-[10px] font-bold px-2 py-0.5 rounded shadow-sm">
-              CHỜ THANH TOÁN
-            </span>
-          )}
+          <span className="bg-emerald-500 text-white text-[10px] font-bold px-2 py-0.5 rounded shadow-sm">
+            ĐÃ THANH TOÁN
+          </span>
         </div>
       </div>
 
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col w-full">
         <div className="flex justify-between items-start mb-2">
           <span className="text-xl text-gray-800 font-bold font-mono uppercase bg-gray-50 px-2 py-0.5 rounded">
             {course.courseid}
@@ -103,7 +101,7 @@ const RegisteredCourseCard = ({ registration, onUnregister }) => {
         </div>
 
         <h3
-          className="text-lg font-bold text-gray-800 hover:text-blue-600 cursor-pointer mb-3 transition-colors"
+          className="text-lg font-bold text-gray-800 hover:text-blue-600 cursor-pointer mb-3 transition-colors line-clamp-2"
           onClick={handleNavigate}
         >
           {course.language_id.language} -{" "}
@@ -146,17 +144,10 @@ const RegisteredCourseCard = ({ registration, onUnregister }) => {
               </span>
             </div>
           )}
-
-          {!isPaid && payment_method === "cash" && status !== "cancelled" && (
-            <div className="text-sm flex items-start gap-2 rounded bg-orange-50 text-orange-700 p-2 border border-orange-100">
-              <InfoCircleOutlined className="mt-0.5" />
-              <span>Vui lòng đến trung tâm hoàn tất học phí để giữ chỗ.</span>
-            </div>
-          )}
         </div>
       </div>
 
-      <div className="w-full md:w-48 md:border-l border-gray-100 md:pl-5 flex flex-col justify-center items-end md:items-end gap-1 pt-4 md:pt-0 border-t md:border-t-0">
+      <div className="w-full md:w-48 md:border-l border-gray-100 md:pl-5 flex flex-col justify-center items-end md:items-end gap-1 pt-4 md:pt-0 border-t md:border-t-0 self-center">
         <div className="text-right mb-4">
           {hasDiscount && (
             <div className="text-xs text-gray-400 line-through">

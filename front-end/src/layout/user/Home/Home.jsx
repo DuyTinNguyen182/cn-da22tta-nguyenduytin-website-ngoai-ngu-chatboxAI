@@ -205,7 +205,7 @@ function Home() {
           </div>
         </aside>
 
-        <div className="flex-1 flex flex-col gap-16 w-full">
+        <div className="flex-1 flex flex-col gap-10 w-full">
           <section
             id="featured"
             ref={sectionRefs.featured}

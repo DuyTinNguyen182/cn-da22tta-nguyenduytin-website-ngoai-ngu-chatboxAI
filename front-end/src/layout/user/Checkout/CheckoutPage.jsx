@@ -543,7 +543,7 @@ function CheckoutPage() {
                           </div>
                         </Radio>
                       </div>
-                      <div
+                      {/* <div
                         className={`p-4 border rounded-lg cursor-pointer transition-all ${
                           paymentMethod === "cash"
                             ? "border-blue-500 bg-blue-50"
@@ -558,7 +558,7 @@ function CheckoutPage() {
                             <ShopOutlined className="ml-auto text-lg text-gray-500" />
                           </div>
                         </Radio>
-                      </div>
+                      </div> */}
                     </Space>
                   </Radio.Group>
                 </div>
