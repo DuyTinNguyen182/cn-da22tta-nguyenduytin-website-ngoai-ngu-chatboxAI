@@ -1,22 +1,29 @@
-// src/services/uploadService.js
 const cloudinary = require("../config/cloudinary");
+const streamifier = require("streamifier");
 
-const uploadImageToCloudinary = async (fileBuffer, mimetype, folderName = "uploads") => {
-  try {
-    if (!fileBuffer || !mimetype) {
-      throw new Error("File buffer and mimetype are required.");
-    }
-
-    const fileStr = `data:${mimetype};base64,${fileBuffer.toString("base64")}`;
-    const result = await cloudinary.uploader.upload(fileStr, {
-      folder: folderName,
-      resource_type: "image",
-    });
-    return result.secure_url;
-  } catch (error) {
-    console.error("Error uploading image to Cloudinary in service:", error);
-    throw new Error("Failed to upload image to Cloudinary.");
-  }
+/**
+ * Upload file Buffer lên Cloudinary sử dụng Stream
+ * @param {Buffer} fileBuffer
+ * @param {String} folderName
+ * @returns {Promise<String>}
+ */
+const uploadImageToCloudinary = (fileBuffer, folderName = "uploads") => {
+  return new Promise((resolve, reject) => {
+    const uploadStream = cloudinary.uploader.upload_stream(
+      {
+        folder: folderName,
+        resource_type: "auto",
+      },
+      (error, result) => {
+        if (error) {
+          console.error("Cloudinary Upload Error:", error);
+          return reject(error);
+        }
+        resolve(result.secure_url);
+      }
+    );
+    streamifier.createReadStream(fileBuffer).pipe(uploadStream);
+  });
 };
 
 module.exports = {

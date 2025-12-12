@@ -1,4 +1,3 @@
-// src/controllers/uploadController.js
 const uploadService = require("../services/uploadService");
 
 const uploadImage = (fieldName, folderName) => async (req, res, next) => {
@@ -9,36 +8,35 @@ const uploadImage = (fieldName, folderName) => async (req, res, next) => {
 
     const imageUrl = await uploadService.uploadImageToCloudinary(
       req.file.buffer,
-      req.file.mimetype,
       folderName
     );
 
     req.body[fieldName] = imageUrl;
 
     next();
-
   } catch (error) {
-    console.error(`Error in uploadImage middleware for ${fieldName}:`, error.message);
-    res.status(500).json({ success: false, message: error.message || `Failed to upload ${fieldName}.` });
+    console.error(`Lỗi upload ảnh ${fieldName}:`, error.message);
+    res.status(500).json({ success: false, message: "Lỗi khi upload ảnh." });
   }
 };
 
 const uploadAvatar = async (req, res) => {
   try {
     if (!req.file) {
-      return res.status(400).json({ success: false, message: "No file uploaded." });
+      return res
+        .status(400)
+        .json({ success: false, message: "Chưa chọn file." });
     }
 
     const imageUrl = await uploadService.uploadImageToCloudinary(
       req.file.buffer,
-      req.file.mimetype,
-      "avatars" // Tên folder cụ thể cho avatar
+      "avatars"
     );
 
-    res.status(200).json({ success: true, url: imageUrl, message: "Avatar uploaded successfully." });
+    res.status(200).json({ success: true, url: imageUrl });
   } catch (error) {
-    console.error("Error in uploadAvatar controller:", error.message);
-    res.status(500).json({ success: false, message: error.message || "Failed to upload avatar." });
+    console.error("Lỗi upload avatar:", error.message);
+    res.status(500).json({ success: false, message: "Lỗi server." });
   }
 };
 

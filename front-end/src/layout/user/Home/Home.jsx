@@ -1,7 +1,5 @@
 import { Link, useNavigate } from "react-router-dom";
-import banner from "../../../imgs/banner.png";
-import banner2 from "../../../imgs/banner2.png";
-import banner3 from "../../../imgs/banner3.png";
+import bannerFallback from "../../../imgs/banner.png";
 import { Spin, Carousel, message } from "antd";
 import { useEffect, useState, useRef } from "react";
 import apiClient from "../../../api/axiosConfig";
@@ -18,6 +16,7 @@ function Home() {
   });
   const [spinning, setSpinning] = useState(true);
   const [activeSection, setActiveSection] = useState("featured");
+  const [slides, setSlides] = useState([]);
 
   const sectionRefs = {
     featured: useRef(null),
@@ -32,12 +31,14 @@ function Home() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [courseRes, statsRes] = await Promise.all([
+        const [courseRes, statsRes, slideRes] = await Promise.all([
           apiClient.get("/course"),
           apiClient.get("/overview/stats"),
+          apiClient.get("/slideshow/active"),
         ]);
         setAllCourses(courseRes.data);
         setStats(statsRes.data);
+        setSlides(slideRes.data);
       } catch (error) {
         messageApi.error("Không thể tải dữ liệu trang chủ!");
       } finally {
@@ -105,18 +106,28 @@ function Home() {
       <div className="w-full max-w-7xl mx-auto pt-6 px-4 md:px-6">
         <div className="rounded-2xl overflow-hidden shadow-lg">
           <Carousel autoplay autoplaySpeed={3000} effect="fade">
-            {[banner, banner2, banner3].map((img, i) => (
-              <div
-                key={i}
-                className="w-full h-[200px] md:h-[350px] lg:h-[300px]"
-              >
+            {slides.length > 0 ? (
+              slides.map((slide) => (
+                <div
+                  key={slide._id}
+                  className="w-full h-[200px] md:h-[350px] lg:h-[300px]"
+                >
+                  <img
+                    src={slide.image}
+                    alt={slide.title || "Banner"}
+                    className="w-full h-full object-cover object-center"
+                  />
+                </div>
+              ))
+            ) : (
+              <div className="w-full h-[200px] md:h-[350px] lg:h-[300px]">
                 <img
-                  src={img}
-                  alt="Banner"
+                  src={bannerFallback}
+                  alt="Default Banner"
                   className="w-full h-full object-cover object-center"
                 />
               </div>
-            ))}
+            )}
           </Carousel>
         </div>
       </div>

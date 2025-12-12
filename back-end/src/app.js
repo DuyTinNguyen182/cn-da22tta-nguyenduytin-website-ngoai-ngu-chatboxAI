@@ -60,6 +60,7 @@ app.use("/api/review", require("./routes/review"));
 app.use("/api/contacts", require("./routes/contact"));
 app.use("/api/class-sessions", require("./routes/classSession"));
 app.use("/api/admin/classes", require("./routes/adminClass"));
+app.use("/api/slideshow", require("./routes/slideshow"));
 
 const PORT = process.env.PORT || 3005;
 app.listen(PORT, () => {
