@@ -13,4 +13,10 @@ router.post(
 // Lắng nghe IPN từ VNPay (không cần xác thực)
 router.get("/vnpay_ipn", paymentController.vnpayIpn);
 
+router.post(
+  "/complete_cash",
+  authMiddleware.authenticate,
+  paymentController.completeCashPayment
+);
+
 module.exports = router;

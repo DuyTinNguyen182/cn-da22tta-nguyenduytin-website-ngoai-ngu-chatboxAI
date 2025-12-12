@@ -9,7 +9,6 @@ import {
   Spin,
   Row,
   Col,
-  Statistic,
   Tag,
   List,
   Typography,
@@ -24,8 +23,9 @@ import {
   PercentageOutlined,
   ArrowLeftOutlined,
   CheckCircleOutlined,
+  ShopOutlined,
 } from "@ant-design/icons";
-import apiClient from "../../../api/axiosConfig"; // Đường dẫn tuỳ cấu trúc của bạn
+import apiClient from "../../../api/axiosConfig";
 import moment from "moment";
 
 const { Title, Text } = Typography;
@@ -33,18 +33,17 @@ const { Title, Text } = Typography;
 function CheckoutPage() {
   const { registrationId } = useParams();
   const navigate = useNavigate();
+
+  const [messageApi, contextHolder] = message.useMessage();
+
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState("vnpay");
 
-  // Dữ liệu đơn hàng
   const [registration, setRegistration] = useState(null);
-
-  // Dữ liệu mã giảm giá
   const [couponCode, setCouponCode] = useState("");
   const [availableCoupons, setAvailableCoupons] = useState([]);
-  const [appliedCoupon, setAppliedCoupon] = useState(null); // Lưu thông tin mã đã áp dụng
-
-  // Giá trị tiền
+  const [appliedCoupon, setAppliedCoupon] = useState(null);
   const [originalPrice, setOriginalPrice] = useState(0);
   const [finalPrice, setFinalPrice] = useState(0);
   const [discountAmount, setDiscountAmount] = useState(0);
@@ -56,38 +55,32 @@ function CheckoutPage() {
   const fetchCheckoutData = async () => {
     try {
       setLoading(true);
-      // 1. Lấy thông tin đơn đăng ký
       const regRes = await apiClient.get(`/registration/${registrationId}`);
       const regData = regRes.data;
 
       if (regData.isPaid) {
-        message.warning("Đơn này đã thanh toán!");
+        messageApi.warning("Đơn này đã thanh toán!");
         navigate(`/my-courses/${regData.user_id._id}`);
         return;
       }
 
       setRegistration(regData);
-
-      // Tính toán giá khởi điểm (ưu tiên giá khuyến mãi của khóa học)
       const price =
         regData.course_id.discounted_price || regData.course_id.Tuition;
       setOriginalPrice(price);
 
-      // Nếu đơn hàng đã có áp dụng mã trước đó (trong DB)
       if (regData.coupon_id) {
         setDiscountAmount(regData.discount_amount);
         setFinalPrice(regData.final_amount);
-        // Có thể fetch thêm info coupon nếu cần hiển thị code
       } else {
         setFinalPrice(price);
       }
 
-      // 2. Lấy danh sách mã giảm giá khả dụng cho User chọn
       const couponRes = await apiClient.get("/coupon/available");
       setAvailableCoupons(couponRes.data);
     } catch (error) {
       console.error(error);
-      message.error("Không thể tải thông tin đơn hàng.");
+      messageApi.error("Không thể tải thông tin đơn hàng.");
       navigate("/");
     } finally {
       setLoading(false);
@@ -96,25 +89,21 @@ function CheckoutPage() {
 
   const handleApplyCoupon = async (codeToApply = couponCode) => {
     if (!codeToApply) {
-      message.error("Vui lòng nhập mã giảm giá");
+      messageApi.error("Vui lòng nhập mã giảm giá");
       return;
     }
-
     setProcessing(true);
     try {
       const res = await apiClient.post("/coupon/apply", {
         registrationId,
         couponCode: codeToApply,
       });
-
-      // Cập nhật state từ phản hồi Backend
       setDiscountAmount(res.data.discountAmount);
       setFinalPrice(res.data.finalAmount);
-      setAppliedCoupon(res.data.couponCode); // Lưu mã để hiển thị
-
-      message.success("Áp dụng mã giảm giá thành công!");
+      setAppliedCoupon(res.data.couponCode);
+      messageApi.success("Áp dụng mã giảm giá thành công!");
     } catch (error) {
-      message.error(
+      messageApi.error(
         error.response?.data?.message || "Mã giảm giá không hợp lệ"
       );
     } finally {
@@ -122,25 +111,37 @@ function CheckoutPage() {
     }
   };
 
-  const handlePayment = async () => {
+  const handleSubmitOrder = async () => {
     setProcessing(true);
     try {
-      // Gọi API tạo URL thanh toán
-      const res = await apiClient.post("/payment/create_payment_url", {
-        registrationId,
-      });
-
-      // Chuyển hướng sang VNPay
-      if (res.data.url) {
-        window.location.href = res.data.url;
+      if (paymentMethod === "vnpay") {
+        const res = await apiClient.post("/payment/create_payment_url", {
+          registrationId,
+        });
+        if (res.data.url) {
+          window.location.href = res.data.url;
+        } else {
+          messageApi.error("Không nhận được link thanh toán.");
+        }
       } else {
-        message.error("Không nhận được link thanh toán.");
+        await apiClient.post("/payment/complete_cash", {
+          registrationId,
+        });
+
+        messageApi.success({
+          content:
+            "Giữ chỗ thành công! Vui lòng đến trung tâm để hoàn tất học phí.",
+          duration: 2,
+        });
+
+        setTimeout(
+          () => navigate(`/my-courses/${registration?.user_id?._id}`),
+          1500
+        );
       }
     } catch (error) {
-      message.error(
-        "Lỗi khi tạo cổng thanh toán: " +
-          (error.response?.data?.message || "Lỗi server")
-      );
+      messageApi.error(error.response?.data?.message || "Có lỗi xảy ra");
+    } finally {
       setProcessing(false);
     }
   };
@@ -154,6 +155,9 @@ function CheckoutPage() {
 
   return (
     <div className="bg-[#f0f2f5] min-h-screen py-10 px-4">
+      {/* [SỬA ĐỔI 2] Thêm contextHolder vào JSX để render thông báo */}
+      {contextHolder}
+
       <div className="max-w-6xl mx-auto">
         <Button
           icon={<ArrowLeftOutlined />}
@@ -163,9 +167,7 @@ function CheckoutPage() {
           Quay lại
         </Button>
         <Row gutter={[24, 24]}>
-          {/* CỘT TRÁI: THÔNG TIN CHI TIẾT */}
           <Col xs={24} lg={14}>
-            {/* Thông tin khóa học */}
             <Card
               title={
                 <>
@@ -197,7 +199,6 @@ function CheckoutPage() {
               </div>
             </Card>
 
-            {/* Thông tin lịch học */}
             <Card
               title={
                 <>
@@ -217,7 +218,6 @@ function CheckoutPage() {
               </div>
             </Card>
 
-            {/* Thông tin học viên */}
             <Card
               title={
                 <>
@@ -246,7 +246,6 @@ function CheckoutPage() {
             </Card>
           </Col>
 
-          {/* CỘT PHẢI: THANH TOÁN & COUPON */}
           <Col xs={24} lg={10}>
             <Card className="shadow-md rounded-xl border-t-4 border-blue-600">
               <Title level={3} className="text-center">
@@ -254,7 +253,6 @@ function CheckoutPage() {
               </Title>
               <Divider />
 
-              {/* Phần nhập Coupon */}
               <div className="mb-6">
                 <Text strong>
                   <PercentageOutlined /> Mã giảm giá
@@ -279,7 +277,6 @@ function CheckoutPage() {
                   </Button>
                 </div>
 
-                {/* Danh sách coupon gợi ý */}
                 {availableCoupons.length > 0 && !appliedCoupon && (
                   <div className="mt-3">
                     <Text type="secondary" style={{ fontSize: 12 }}>
@@ -291,11 +288,7 @@ function CheckoutPage() {
                           key={coupon._id}
                           color="cyan"
                           className="cursor-pointer hover:scale-105 transition-all"
-                          onClick={() => {
-                            setCouponCode(coupon.code);
-                            // Tự động áp dụng luôn nếu muốn UX nhanh hơn
-                            // handleApplyCoupon(coupon.code);
-                          }}
+                          onClick={() => setCouponCode(coupon.code)}
                         >
                           {coupon.code} (-
                           {coupon.discount_type === "percent"
@@ -307,7 +300,6 @@ function CheckoutPage() {
                     </div>
                   </div>
                 )}
-
                 {appliedCoupon && (
                   <div className="mt-2 p-2 bg-green-50 border border-green-200 rounded text-green-700 flex justify-between items-center">
                     <span>
@@ -333,7 +325,62 @@ function CheckoutPage() {
 
               <Divider />
 
-              {/* Chi tiết thanh toán */}
+              <div className="mb-6">
+                <Title level={5}>Chọn phương thức thanh toán</Title>
+                <Radio.Group
+                  onChange={(e) => setPaymentMethod(e.target.value)}
+                  value={paymentMethod}
+                  className="w-full"
+                >
+                  <Space direction="vertical" className="w-full">
+                    <div
+                      className={`p-4 border rounded-lg cursor-pointer transition-all ${
+                        paymentMethod === "vnpay"
+                          ? "border-blue-500 bg-blue-50"
+                          : "border-gray-200"
+                      }`}
+                    >
+                      <Radio value="vnpay" className="w-full">
+                        <div className="flex items-center gap-3">
+                          <img
+                            src="https://vnpay.vn/s1/statics.vnpay.vn/2023/6/0oxhzjmxbksr1686814746087.png"
+                            alt="VNPay"
+                            className="h-6 w-auto object-contain"
+                          />
+                          <span className="font-medium">
+                            Ví VNPAY / Thẻ ATM
+                          </span>
+                        </div>
+                      </Radio>
+                    </div>
+
+                    <div
+                      className={`p-4 border rounded-lg cursor-pointer transition-all ${
+                        paymentMethod === "cash"
+                          ? "border-blue-500 bg-blue-50"
+                          : "border-gray-200"
+                      }`}
+                    >
+                      <Radio value="cash" className="w-full">
+                        <div className="flex items-center gap-3">
+                          <ShopOutlined className="text-2xl text-green-600" />
+                          <div>
+                            <div className="font-medium text-green-700">
+                              Thanh toán tại trung tâm
+                            </div>
+                            <div className="text-xs text-gray-500">
+                              Đến trực tiếp trung tâm để đóng học phí
+                            </div>
+                          </div>
+                        </div>
+                      </Radio>
+                    </div>
+                  </Space>
+                </Radio.Group>
+              </div>
+
+              <Divider />
+
               <div className="space-y-3">
                 <div className="flex justify-between text-gray-600">
                   <span>Giá gốc khóa học:</span>
@@ -341,7 +388,7 @@ function CheckoutPage() {
                 </div>
                 {course?.discount_percent > 0 && (
                   <div className="flex justify-between text-green-600">
-                    <span>Giảm giá khóa học ({course.discount_percent}%):</span>
+                    <span>Giảm giá ({course.discount_percent}%):</span>
                     <span>
                       -
                       {(
@@ -353,7 +400,7 @@ function CheckoutPage() {
                 )}
                 {discountAmount > 0 && (
                   <div className="flex justify-between text-blue-600 font-medium">
-                    <span>Mã giảm giá ({appliedCoupon}):</span>
+                    <span>Mã giảm giá:</span>
                     <span>-{discountAmount.toLocaleString()} ₫</span>
                   </div>
                 )}
@@ -372,18 +419,30 @@ function CheckoutPage() {
                 type="primary"
                 size="large"
                 block
-                className="mt-8 h-12 text-lg font-bold bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 border-0 shadow-lg"
-                icon={<SafetyCertificateOutlined />}
-                onClick={handlePayment}
+                className={`mt-6 h-12 text-lg font-bold shadow-lg border-0 ${
+                  paymentMethod === "vnpay"
+                    ? "bg-gradient-to-r from-blue-600 to-blue-500"
+                    : "bg-green-600 hover:bg-green-500"
+                }`}
+                icon={
+                  paymentMethod === "vnpay" ? (
+                    <SafetyCertificateOutlined />
+                  ) : (
+                    <ShopOutlined />
+                  )
+                }
+                onClick={handleSubmitOrder}
                 loading={processing}
               >
-                THANH TOÁN QUA VNPAY
+                {paymentMethod === "vnpay"
+                  ? "THANH TOÁN QUA VNPAY"
+                  : "HOÀN TẤT ĐĂNG KÝ"}
               </Button>
 
               <div className="text-center mt-3 text-gray-400 text-xs">
-                Bảo mật thanh toán chuẩn quốc tế.
-                <br />
-                Hệ thống sẽ chuyển hướng bạn sang cổng VNPay.
+                {paymentMethod === "vnpay"
+                  ? "Hệ thống sẽ chuyển hướng bạn sang cổng VNPay."
+                  : "Vui lòng hoàn tất học phí trong vòng 48h để đảm bảo chỗ học."}
               </div>
             </Card>
           </Col>

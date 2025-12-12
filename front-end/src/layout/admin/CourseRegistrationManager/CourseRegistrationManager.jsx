@@ -19,6 +19,9 @@ import {
   PlusOutlined,
   EditOutlined,
   DollarCircleOutlined,
+  ShopOutlined,
+  CreditCardOutlined,
+  TagOutlined,
 } from "@ant-design/icons";
 import { useAuth } from "../../../context/AuthContext";
 import apiClient from "../../../api/axiosConfig";
@@ -33,9 +36,11 @@ function CourseRegistrationManager() {
   const [registrations, setRegistrations] = useState([]);
   const [filteredRegistrations, setFilteredRegistrations] = useState([]);
 
+  // Data cho Modal
   const [coursesForModal, setCoursesForModal] = useState([]);
   const [usersForModal, setUsersForModal] = useState([]);
   const [sessionsForModal, setSessionsForModal] = useState([]);
+  const [couponsForModal, setCouponsForModal] = useState([]);
 
   const [spinning, setSpinning] = useState(true);
   const [messageApi, contextHolder] = message.useMessage();
@@ -58,6 +63,12 @@ function CourseRegistrationManager() {
   };
 
   const showConfirmPayment = (record) => {
+    const isCash = record.payment_method === "cash";
+    const displayPrice =
+      record.final_amount ??
+      record.course_id?.discounted_price ??
+      record.course_id?.Tuition;
+
     modal.confirm({
       title: "Xác nhận thanh toán",
       icon: <DollarCircleOutlined style={{ color: "#52c41a" }} />,
@@ -66,7 +77,31 @@ function CourseRegistrationManager() {
           <p>
             Xác nhận học viên <b>{record.user_id?.fullname}</b> đã đóng học phí?
           </p>
-          <p>Khóa học: {record.course_id?.courseid}</p>
+          <div
+            style={{
+              background: "#f5f5f5",
+              padding: "10px",
+              borderRadius: "5px",
+              marginTop: "10px",
+            }}
+          >
+            <p style={{ margin: 0 }}>
+              Khóa học: <b>{record.course_id?.courseid}</b>
+            </p>
+            <p style={{ margin: 0 }}>
+              Hình thức đăng ký:{" "}
+              <b>{isCash ? "Tại trung tâm (Tiền mặt)" : "VNPay"}</b>
+            </p>
+            {record.coupon_id && (
+              <p style={{ margin: 0 }}>
+                Mã giảm giá:{" "}
+                <Tag color="cyan">{record.coupon_id.code || "Có áp dụng"}</Tag>
+              </p>
+            )}
+            <p style={{ margin: 0, color: "#d4380d" }}>
+              Số tiền thực thu: <b>{displayPrice?.toLocaleString()} đ</b>
+            </p>
+          </div>
         </div>
       ),
       okText: "Xác nhận đã thu tiền",
@@ -90,29 +125,11 @@ function CourseRegistrationManager() {
   };
 
   const columns = [
-    { title: "Mã KH", dataIndex: ["course_id", "courseid"], width: 100 },
-    // { title: "Ngôn ngữ", dataIndex: ["course_id", "language_id", "language"] },
+    { title: "Mã KH", dataIndex: ["course_id", "courseid"], width: 90 },
     {
       title: "Tên khóa học",
       render: (_, record) =>
         `${record.course_id?.language_id?.language} - ${record.course_id?.languagelevel_id?.language_level}`,
-    },
-    {
-      title: "Lịch học",
-      width: 180,
-      render: (_, record) =>
-        record.class_session_id ? (
-          <div>
-            <div style={{ fontWeight: 500 }}>
-              {record.class_session_id.days}
-            </div>
-            <div style={{ color: "#666", fontSize: 12 }}>
-              {record.class_session_id.time}
-            </div>
-          </div>
-        ) : (
-          <span style={{ color: "#ccc" }}>Chưa xếp lịch</span>
-        ),
     },
     {
       title: "Học viên",
@@ -126,17 +143,72 @@ function CourseRegistrationManager() {
       ),
     },
     {
-      title: "Ngày đăng ký",
+      title: "Ngày ĐK",
       dataIndex: "enrollment_date",
-      width: 120,
+      width: 110,
       render: (date) => moment(date).format("DD/MM/YYYY"),
       sorter: (a, b) =>
         new Date(a.enrollment_date) - new Date(b.enrollment_date),
+      defaultSortOrder: "descend",
     },
     {
-      title: "Trạng thái lớp",
-      dataIndex: "status",
+      title: "Thành tiền",
+      dataIndex: "final_amount",
       width: 130,
+      align: "right",
+      render: (amount, record) => {
+        const final =
+          amount ??
+          record.course_id?.discounted_price ??
+          record.course_id?.Tuition;
+        return (
+          <div>
+            <span style={{ fontWeight: "bold", color: "#d4380d" }}>
+              {final?.toLocaleString()}
+            </span>
+            {record.coupon_id && (
+              <div style={{ fontSize: 10 }}>
+                <Tag
+                  color="cyan"
+                  style={{ marginRight: 0, transform: "scale(0.8)" }}
+                >
+                  <TagOutlined /> Voucher
+                </Tag>
+              </div>
+            )}
+          </div>
+        );
+      },
+    },
+    {
+      title: "PTTT",
+      dataIndex: "payment_method",
+      width: 110,
+      align: "center",
+      render: (method) => {
+        if (method === "cash") {
+          return (
+            <Tag color="orange" icon={<ShopOutlined />}>
+              Tiền mặt
+            </Tag>
+          );
+        }
+        return (
+          <Tag color="blue" icon={<CreditCardOutlined />}>
+            VNPay
+          </Tag>
+        );
+      },
+      filters: [
+        { text: "Tiền mặt (Tại quầy)", value: "cash" },
+        { text: "VNPay (Online)", value: "vnpay" },
+      ],
+      onFilter: (value, record) => record.payment_method === value,
+    },
+    {
+      title: "Trạng thái",
+      dataIndex: "status",
+      width: 120,
       align: "center",
       render: (status) => getClassStatusTag(status),
       filters: [
@@ -149,7 +221,7 @@ function CourseRegistrationManager() {
     {
       title: "Thanh toán",
       key: "payment",
-      width: 160,
+      width: 150,
       align: "center",
       render: (_, record) => {
         if (record.isPaid) {
@@ -197,7 +269,10 @@ function CourseRegistrationManager() {
     setSpinning(true);
     try {
       const regRes = await apiClient.get("/registration");
-      const registrationsWithKey = regRes.data.map((reg) => ({
+      const sortedData = regRes.data.sort(
+        (a, b) => new Date(b.enrollment_date) - new Date(a.enrollment_date)
+      );
+      const registrationsWithKey = sortedData.map((reg) => ({
         ...reg,
         key: reg._id,
       }));
@@ -213,15 +288,17 @@ function CourseRegistrationManager() {
   const fetchModalData = async () => {
     try {
       setSpinning(true);
-      const [courseRes, userRes, sessionRes] = await Promise.all([
+      const [courseRes, userRes, sessionRes, couponRes] = await Promise.all([
         apiClient.get("/course"),
         apiClient.get("/user"),
         apiClient.get("/class-sessions"),
+        apiClient.get("/coupon/available"),
       ]);
 
       setCoursesForModal(courseRes.data);
       setUsersForModal(userRes.data);
       setSessionsForModal(sessionRes.data);
+      setCouponsForModal(couponRes.data);
     } catch (error) {
       errorMessage("Không thể tải dữ liệu cho form");
     } finally {
@@ -254,6 +331,7 @@ function CourseRegistrationManager() {
     setSpinning(true);
     try {
       await apiClient.post(`/registration`, values);
+
       successMessage("Tạo đăng ký thành công!");
       setOpen(false);
       form.resetFields();
@@ -317,6 +395,8 @@ function CourseRegistrationManager() {
           onClick={() => {
             setOpen(true);
             fetchModalData();
+            form.resetFields();
+            form.setFieldsValue({ payment_method: "cash" });
           }}
         >
           Thêm đăng ký
@@ -392,14 +472,20 @@ function CourseRegistrationManager() {
           không?
         </p>
       </Modal>
+
       <Modal
         open={open}
-        title="Thêm đăng ký mới"
+        title="Thêm đăng ký mới (Tại quầy)"
         onCancel={() => setOpen(false)}
         footer={null}
         centered
       >
-        <Form form={form} layout="vertical" onFinish={onFinish}>
+        <Form
+          form={form}
+          layout="vertical"
+          onFinish={onFinish}
+          initialValues={{ payment_method: "cash" }}
+        >
           <Form.Item
             name="user_id"
             label="Học viên"
@@ -435,7 +521,9 @@ function CourseRegistrationManager() {
               }
               options={coursesForModal.map((c) => ({
                 value: c._id,
-                label: `${c.courseid} - ${c.language_id?.language} - ${c.languagelevel_id?.language_level}`,
+                label: `${c.courseid} - ${c.language_id?.language} - ${
+                  c.languagelevel_id?.language_level
+                } (${c.discounted_price?.toLocaleString()}đ)`,
               }))}
             />
           </Form.Item>
@@ -450,6 +538,27 @@ function CourseRegistrationManager() {
               options={sessionsForModal.map((s) => ({
                 value: s._id,
                 label: `${s.days} - ${s.time}`,
+              }))}
+            />
+          </Form.Item>
+
+          <Form.Item name="payment_method" label="Phương thức thanh toán">
+            <Select
+              disabled
+              options={[{ value: "cash", label: "Tiền mặt (Tại quầy)" }]}
+            />
+          </Form.Item>
+          <Form.Item name="coupon_id" label="Mã giảm giá (Nếu có)">
+            <Select
+              allowClear
+              placeholder="Chọn mã giảm giá"
+              options={couponsForModal.map((cp) => ({
+                value: cp._id,
+                label: `${cp.code} - Giảm ${
+                  cp.discount_type === "percent"
+                    ? cp.discount_value + "%"
+                    : cp.discount_value.toLocaleString() + "đ"
+                }`,
               }))}
             />
           </Form.Item>

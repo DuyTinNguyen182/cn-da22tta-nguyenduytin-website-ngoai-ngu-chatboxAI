@@ -4,7 +4,7 @@ const moment = require("moment");
 const fs = require("fs");
 const path = require("path");
 const RegistrationCourse = require("../models/RegistrationCourse");
-const transporter = require("../config/mail"); // Import cấu hình mail
+const transporter = require("../config/mail");
 
 // --- HELPER: Bỏ dấu tiếng Việt ---
 function removeVietnameseTones(str) {
@@ -48,7 +48,6 @@ async function sendInvoiceEmail(registration) {
   try {
     const templatePath = path.join(__dirname, "../templates/invoice.html");
 
-    // Kiểm tra file template có tồn tại không
     if (!fs.existsSync(templatePath)) {
       console.error("Không tìm thấy file template invoice.html");
       return;
@@ -64,7 +63,7 @@ async function sendInvoiceEmail(registration) {
       "DD/MM/YYYY HH:mm:ss"
     );
 
-    // Lấy thông tin lớp học an toàn
+    // Lấy thông tin lớp học
     const classInfo = registration.class_session_id
       ? `${registration.class_session_id.days} (${registration.class_session_id.time})`
       : "Đang cập nhật";
@@ -96,8 +95,30 @@ async function sendInvoiceEmail(registration) {
     console.log(`Đã gửi hóa đơn cho email: ${registration.user_id.email}`);
   } catch (error) {
     console.error("Lỗi gửi email hóa đơn:", error);
-    // Không throw error để tránh làm ảnh hưởng luồng phản hồi IPN
   }
+}
+
+async function handleCashPayment(registrationId) {
+  const registration = await RegistrationCourse.findById(registrationId)
+    .populate("user_id", "email fullname")
+    .populate("course_id", "courseid");
+
+  if (!registration) {
+    throw new Error("Không tìm thấy đơn đăng ký");
+  }
+
+  if (registration.isPaid) {
+    throw new Error("Đơn này đã được thanh toán trước đó.");
+  }
+
+  // Cập nhật phương thức thanh toán là cash
+  registration.payment_method = "cash";
+  await registration.save();
+
+  return {
+    success: true,
+    message: "Đã xác nhận phương thức thanh toán tại trung tâm.",
+  };
 }
 
 // --- SERVICE CHÍNH: Tạo URL thanh toán ---
@@ -110,17 +131,12 @@ async function createPaymentUrl(ipAddr, registrationId) {
   if (!registration) throw new Error("Không tìm thấy lượt đăng ký");
   if (registration.isPaid) throw new Error("Đăng ký này đã được thanh toán");
 
-  // --- LOGIC GIÁ MỚI ---
-  // Nếu đã có final_amount (do áp dụng mã giảm giá), thì dùng nó.
-  // Nếu không, dùng giá discounted_price của khóa học.
   let amount = registration.final_amount;
 
   if (amount === undefined || amount === null) {
     amount = registration.course_id.discounted_price;
   }
-  // ---------------------
 
-  // Validate amount > 0 (VNPay không nhận 0 đồng)
   if (amount <= 0)
     throw new Error(
       "Số tiền thanh toán không hợp lệ (0 VND). Vui lòng liên hệ Admin."
@@ -188,7 +204,6 @@ async function handleVnpayIpn(vnp_Params) {
     return { RspCode: "97", Message: "Invalid Signature" };
   }
 
-  // --- CẬP NHẬT: Populate đầy đủ thông tin để gửi mail ---
   const registration = await RegistrationCourse.findById(registrationId)
     .populate({
       path: "course_id",
@@ -196,7 +211,6 @@ async function handleVnpayIpn(vnp_Params) {
     })
     .populate("user_id")
     .populate("class_session_id");
-  // ------------------------------------------------------
 
   if (!registration) {
     return { RspCode: "01", Message: "Order not found" };
@@ -211,13 +225,11 @@ async function handleVnpayIpn(vnp_Params) {
     registration.paymentDate = new Date(); // Cập nhật ngày thanh toán
     registration.status = "confirmed";
     await registration.save();
-    // --- LOGIC MỚI: Tăng biến đếm sử dụng Coupon ---
     if (registration.coupon_id) {
       await Coupon.findByIdAndUpdate(registration.coupon_id, {
         $inc: { usage_count: 1 },
       });
     }
-    // ----------------------------------------------
 
     // --- GỌI HÀM GỬI EMAIL ---
     sendInvoiceEmail(registration);
@@ -229,4 +241,4 @@ async function handleVnpayIpn(vnp_Params) {
   }
 }
 
-module.exports = { createPaymentUrl, handleVnpayIpn };
+module.exports = { createPaymentUrl, handleVnpayIpn, handleCashPayment };

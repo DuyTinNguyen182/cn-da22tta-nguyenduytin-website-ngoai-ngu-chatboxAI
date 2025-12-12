@@ -5,41 +5,23 @@ const registrationService = require("../services/registrationService");
 const isValidObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
 
 // Đăng ký khóa học
-// const registerCourse = async (req, res) => {
-//   try {
-//     const { user_id, course_id } = req.body;
-//     if (!user_id || !course_id)
-//       return res.status(400).json({ message: "Thiếu user_id hoặc course_id" });
-
-//     const result = await registrationService.registerCourse(user_id, course_id);
-
-//     if (result.status === "already_registered") {
-//       return res.status(400).json({ message: "Đã đăng ký khóa học này rồi" });
-//     }
-
-//     res.status(201).json({
-//       message: "Đăng ký khóa học thành công",
-//       registration: result.registration,
-//     });
-//   } catch (err) {
-//     console.error("registerCourse error:", err);
-//     res.status(500).json({ message: "Lỗi server", error: err.message });
-//   }
-// };
 const registerCourse = async (req, res) => {
   try {
-    const { user_id, course_id, class_session_id } = req.body;
+    const { user_id, course_id, class_session_id, payment_method, coupon_id } =
+      req.body;
 
     if (!user_id || !course_id || !class_session_id)
       return res
         .status(400)
         .json({ message: "Thiếu thông tin (User, Khóa học hoặc Buổi học)" });
 
-    const result = await registrationService.registerCourse(
+    const result = await registrationService.registerCourse({
       user_id,
       course_id,
-      class_session_id
-    );
+      class_session_id,
+      payment_method,
+      coupon_id,
+    });
 
     if (result.status === "already_registered") {
       return res.status(400).json({ message: "Đã đăng ký khóa học này rồi" });
@@ -131,6 +113,7 @@ const cancelRegistration = async (req, res) => {
     res.status(500).json({ message: "Lỗi server", error: err.message });
   }
 };
+
 const deleteMultipleRegistrations = async (req, res) => {
   try {
     const { registrationIds } = req.body;
@@ -175,7 +158,7 @@ const updateRegistration = async (req, res) => {
 const processUserPayment = async (req, res) => {
   try {
     const registrationId = req.params.id;
-    const userId = req.user.id; // Lấy từ middleware
+    const userId = req.user.id;
 
     if (!isValidObjectId(registrationId)) {
       return res.status(400).json({ message: "ID đăng ký không hợp lệ" });
@@ -187,12 +170,10 @@ const processUserPayment = async (req, res) => {
     );
 
     if (!updated) {
-      return res
-        .status(404)
-        .json({
-          message:
-            "Không tìm thấy lượt đăng ký hoặc bạn không có quyền thực hiện.",
-        });
+      return res.status(404).json({
+        message:
+          "Không tìm thấy lượt đăng ký hoặc bạn không có quyền thực hiện.",
+      });
     }
     res
       .status(200)
@@ -209,7 +190,6 @@ const confirmPaymentByAdmin = async (req, res) => {
     if (!isValidObjectId(id)) {
       return res.status(400).json({ message: "ID không hợp lệ" });
     }
-    // Đối với admin, không cần userId để xác thực quyền sở hữu
     const updated = await registrationService.updatePaymentStatus(
       id,
       null,
@@ -219,12 +199,10 @@ const confirmPaymentByAdmin = async (req, res) => {
     if (!updated) {
       return res.status(404).json({ message: "Không tìm thấy đăng ký" });
     }
-    res
-      .status(200)
-      .json({
-        message: "Xác nhận thanh toán thành công",
-        registration: updated,
-      });
+    res.status(200).json({
+      message: "Xác nhận thanh toán thành công",
+      registration: updated,
+    });
   } catch (err) {
     res.status(500).json({ message: "Lỗi server", error: err.message });
   }

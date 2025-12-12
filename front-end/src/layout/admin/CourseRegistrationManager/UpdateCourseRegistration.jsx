@@ -7,10 +7,19 @@ import {
   Spin,
   message,
   Input,
+  Tag,
+  Descriptions,
+  Divider,
 } from "antd";
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import apiClient from "../../../api/axiosConfig";
+import {
+  ShopOutlined,
+  CreditCardOutlined,
+  TagOutlined,
+  DollarOutlined,
+} from "@ant-design/icons";
 
 function UpdateCourseRegistration() {
   const { registrationId } = useParams();
@@ -50,18 +59,26 @@ function UpdateCourseRegistration() {
         setCourses(courseListRes.data);
         setSessions(sessionRes.data);
 
-        const registrationData = regRes.data;
+        const reg = regRes.data;
 
-        if (registrationData?.user_id && registrationData?.course_id) {
-          setStudentName(registrationData.user_id.fullname);
+        if (reg?.user_id && reg?.course_id) {
+          setStudentName(reg.user_id.fullname);
+
+          const originalPrice =
+            reg.course_id.discounted_price || reg.course_id.Tuition;
+          const finalPrice = reg.final_amount ?? originalPrice;
 
           setInitialData({
-            userid: registrationData.user_id.userid,
-            name: registrationData.user_id.fullname,
-            course_id: registrationData.course_id._id,
-            class_session_id:
-              registrationData.class_session_id?._id ||
-              registrationData.class_session_id,
+            userid: reg.user_id.userid,
+            name: reg.user_id.fullname,
+            course_id: reg.course_id._id,
+            class_session_id: reg.class_session_id?._id || reg.class_session_id,
+            payment_method: reg.payment_method || "vnpay",
+            isPaid: reg.isPaid,
+            coupon_code: reg.coupon_id?.code,
+            discount_amount: reg.discount_amount || 0,
+            original_price: originalPrice,
+            final_price: finalPrice,
           });
         } else {
           errorMessage("Dữ liệu đăng ký trả về không hợp lệ");
@@ -110,60 +127,130 @@ function UpdateCourseRegistration() {
       />
 
       {initialData ? (
-        <Form
-          form={form}
-          layout="vertical"
-          onFinish={onFinish}
-          initialValues={initialData}
-          style={{ maxWidth: 500, margin: "0 auto", width: "100%" }}
-        >
-          <Form.Item label="Mã học viên" name="userid">
-            <Input disabled />
-          </Form.Item>
-          <Form.Item label="Tên học viên" name="name">
-            <Input disabled />
-          </Form.Item>
-
-          <Form.Item
-            label="Thay đổi khóa học"
-            name="course_id"
-            rules={[{ required: true, message: "Vui lòng chọn khóa học" }]}
+        <div style={{ maxWidth: 700, margin: "0 auto", width: "100%" }}>
+          <Descriptions
+            title="Thông tin chi tiết đơn hàng"
+            bordered
+            column={{ xxl: 2, xl: 2, lg: 2, md: 1, sm: 1, xs: 1 }}
+            size="small"
+            style={{ marginBottom: 20, backgroundColor: "white" }}
           >
-            <Select
-              showSearch
-              placeholder="Chọn khóa học"
-              filterOption={(input, option) =>
-                (option?.label ?? "")
-                  .toLowerCase()
-                  .includes(input.toLowerCase())
-              }
-              options={courses.map((course) => ({
-                value: course._id,
-                label: `${course.courseid} - ${course.language_id?.language} - ${course.languagelevel_id?.language_level}`,
-              }))}
-            />
-          </Form.Item>
+            <Descriptions.Item label="Trạng thái thanh toán">
+              {initialData.isPaid ? (
+                <Tag color="green">Đã thanh toán</Tag>
+              ) : (
+                <Tag color="red">Chưa thanh toán</Tag>
+              )}
+            </Descriptions.Item>
+            <Descriptions.Item label="Phương thức thanh toán">
+              {initialData.payment_method === "cash" ? (
+                <Tag color="orange" icon={<ShopOutlined />}>
+                  Tiền mặt tại trung tâm
+                </Tag>
+              ) : (
+                <Tag color="blue" icon={<CreditCardOutlined />}>
+                  VNPay (Online)
+                </Tag>
+              )}
+            </Descriptions.Item>
+            <Descriptions.Item label="Giá gốc khóa học">
+              {initialData.original_price?.toLocaleString()} đ
+            </Descriptions.Item>
+            <Descriptions.Item label="Mã giảm giá">
+              {initialData.coupon_code ? (
+                <Tag color="cyan" icon={<TagOutlined />}>
+                  {initialData.coupon_code}
+                </Tag>
+              ) : (
+                <span style={{ color: "#999" }}>Không sử dụng</span>
+              )}
+            </Descriptions.Item>
 
-          <Form.Item
-            label="Thay đổi lịch học"
-            name="class_session_id"
-            rules={[{ required: true, message: "Vui lòng chọn lịch học" }]}
+            {/* Hàng 3: Số tiền giảm & Thành tiền */}
+            <Descriptions.Item label="Số tiền được giảm">
+              <span style={{ color: "green" }}>
+                -{initialData.discount_amount?.toLocaleString()} đ
+              </span>
+            </Descriptions.Item>
+            <Descriptions.Item label="Thành tiền (Thực thu)">
+              <span
+                style={{ color: "#d4380d", fontWeight: "bold", fontSize: 15 }}
+              >
+                {initialData.final_price?.toLocaleString()} đ
+              </span>
+            </Descriptions.Item>
+          </Descriptions>
+
+          <Divider orientation="left">Thông tin khóa học & Lịch học</Divider>
+
+          {/* FORM CẬP NHẬT */}
+          <Form
+            form={form}
+            layout="vertical"
+            onFinish={onFinish}
+            initialValues={initialData}
+            style={{
+              backgroundColor: "white",
+              padding: 24,
+              borderRadius: 8,
+              border: "1px solid #f0f0f0",
+            }}
           >
-            <Select
-              placeholder="Chọn ca học / buổi học"
-              options={sessions.map((s) => ({
-                value: s._id,
-                label: `${s.days} - ${s.time}`,
-              }))}
-            />
-          </Form.Item>
+            <Flex gap={16}>
+              <Form.Item label="Mã học viên" name="userid" style={{ flex: 1 }}>
+                <Input disabled />
+              </Form.Item>
+              <Form.Item label="Tên học viên" name="name" style={{ flex: 1 }}>
+                <Input disabled />
+              </Form.Item>
+            </Flex>
 
-          <Form.Item>
-            <Button type="primary" htmlType="submit" block size="large">
-              Lưu thay đổi
-            </Button>
-          </Form.Item>
-        </Form>
+            <Form.Item
+              label="Thay đổi khóa học"
+              name="course_id"
+              rules={[{ required: true, message: "Vui lòng chọn khóa học" }]}
+              help="Lưu ý: Thay đổi khóa học có thể làm sai lệch số tiền đã tính toán trước đó."
+            >
+              <Select
+                showSearch
+                placeholder="Chọn khóa học"
+                filterOption={(input, option) =>
+                  (option?.label ?? "")
+                    .toLowerCase()
+                    .includes(input.toLowerCase())
+                }
+                options={courses.map((course) => ({
+                  value: course._id,
+                  label: `${course.courseid} - ${
+                    course.language_id?.language
+                  } - ${
+                    course.languagelevel_id?.language_level
+                  } (${course.discounted_price?.toLocaleString()}đ)`,
+                }))}
+              />
+            </Form.Item>
+
+            <Form.Item
+              label="Thay đổi lịch học"
+              name="class_session_id"
+              rules={[{ required: true, message: "Vui lòng chọn lịch học" }]}
+            >
+              <Select
+                placeholder="Chọn ca học / buổi học"
+                options={sessions.map((s) => ({
+                  value: s._id,
+                  label: `${s.days} - ${s.time}`,
+                }))}
+              />
+            </Form.Item>
+
+            <Form.Item style={{ marginTop: 20 }}>
+              <Button type="primary" htmlType="submit" block size="large">
+                Lưu thay đổi
+              </Button>
+            </Form.Item>
+          </Form>
+        </div>
       ) : (
         <div>Không thể tải dữ liệu đăng ký để chỉnh sửa.</div>
       )}

@@ -8,12 +8,13 @@ const session = require("express-session");
 const cron = require("node-cron");
 const registrationService = require("./services/registrationService");
 
-cron.schedule("0 0 * * *", async () => {
-  console.log("--- Bắt đầu quét các đơn đăng ký quá hạn ---");
+cron.schedule("*/15 * * * *", async () => {
+  console.log("--- Bắt đầu quét đơn chưa thanh toán ---");
   try {
-    await registrationService.scanAndCancelOverdue();
+    // Gọi hàm xóa đơn quá hạn
+    await registrationService.deleteUnpaidRegistrations();
   } catch (error) {
-    console.error("Lỗi khi chạy cron job:", error);
+    console.error("Lỗi Cron Job:", error);
   }
 });
 

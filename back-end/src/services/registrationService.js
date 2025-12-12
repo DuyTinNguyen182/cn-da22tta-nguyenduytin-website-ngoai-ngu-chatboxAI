@@ -1,4 +1,6 @@
 const RegistrationCourse = require("../models/RegistrationCourse");
+const Coupon = require("../models/Coupon");
+const Course = require("../models/Course");
 
 const coursePopulate = {
   path: "course_id",
@@ -14,18 +16,56 @@ const coursePopulate = {
   ],
 };
 
-const registerCourse = async (userId, courseId, classSessionId) => {
+const registerCourse = async (data) => {
+  const { user_id, course_id, class_session_id, payment_method, coupon_id } =
+    data;
+
   const existing = await RegistrationCourse.findOne({
-    user_id: userId,
-    course_id: courseId,
+    user_id: user_id,
+    course_id: course_id,
   });
   if (existing) return { status: "already_registered" };
 
+  const course = await Course.findById(course_id);
+  if (!course) throw new Error("Khóa học không tồn tại");
+
+  const originalPrice = course.discounted_price || course.Tuition;
+  let finalAmount = originalPrice;
+  let discountAmount = 0;
+  let appliedCouponId = null;
+
+  if (coupon_id) {
+    const coupon = await Coupon.findById(coupon_id);
+    if (coupon) {
+      if (coupon.discount_type === "percent") {
+        discountAmount = (originalPrice * coupon.discount_value) / 100;
+        if (
+          coupon.max_discount_amount &&
+          discountAmount > coupon.max_discount_amount
+        ) {
+          discountAmount = coupon.max_discount_amount;
+        }
+      } else {
+        discountAmount = coupon.discount_value;
+      }
+      if (discountAmount > originalPrice) discountAmount = originalPrice;
+
+      finalAmount = originalPrice - discountAmount;
+      appliedCouponId = coupon._id;
+    }
+  }
+
   const registration = new RegistrationCourse({
-    user_id: userId,
-    course_id: courseId,
-    class_session_id: classSessionId,
+    user_id: user_id,
+    course_id: course_id,
+    class_session_id: class_session_id,
+    payment_method: payment_method || "vnpay",
+
+    coupon_id: appliedCouponId,
+    discount_amount: discountAmount,
+    final_amount: finalAmount,
   });
+
   await registration.save();
 
   return { status: "success", registration };
@@ -103,38 +143,33 @@ const updatePaymentStatus = async (registrationId, userId, isAdmin = false) => {
   return updatedRegistration;
 };
 
-const scanAndCancelOverdue = async () => {
-  const now = new Date();
+const deleteUnpaidRegistrations = async () => {
+  // Lấy thời gian 15 phút trước
+  const timeLimit = new Date(Date.now() - 15 * 60 * 1000);
 
-  // Chỉ tìm những đơn chưa thanh toán và trạng thái đang KHÔNG PHẢI là đã hủy
-  const unpaidRegistrations = await RegistrationCourse.find({
+  // Tìm các đơn: Chưa thanh toán AND Tạo trước timeLimit AND là VNPay
+  const overdueRegistrations = await RegistrationCourse.find({
     isPaid: false,
-    status: { $ne: "cancelled_overdue" }, // Tránh update lại những cái đã hủy rồi
-  }).populate("course_id");
-
-  const idsToUpdate = [];
-
-  unpaidRegistrations.forEach((reg) => {
-    if (reg.course_id && reg.course_id.Start_Date) {
-      const startDate = new Date(reg.course_id.Start_Date);
-      const deadline = new Date(startDate);
-      deadline.setDate(startDate.getDate() - 2); // Hạn chót là trước 2 ngày
-
-      // Nếu hiện tại đã vượt quá hạn chót -> Đưa vào danh sách cần hủy
-      if (now > deadline) {
-        idsToUpdate.push(reg._id);
-      }
-    }
+    createdAt: { $lt: timeLimit },
+    payment_method: "vnpay",
   });
 
-  if (idsToUpdate.length > 0) {
-    await RegistrationCourse.updateMany(
-      { _id: { $in: idsToUpdate } },
-      { status: "cancelled_overdue" } // Đặt trạng thái riêng
-    );
+  if (overdueRegistrations.length > 0) {
     console.log(
-      `[Auto-Cancel] Đã chuyển trạng thái ${idsToUpdate.length} đăng ký sang 'cancelled_overdue'.`
+      `Tìm thấy ${overdueRegistrations.length} đơn quá hạn. Đang xóa...`
     );
+
+    for (const reg of overdueRegistrations) {
+      if (reg.coupon_id) {
+        await Coupon.findByIdAndUpdate(reg.coupon_id, {
+          $inc: { usage_count: -1 },
+        });
+      }
+
+      await RegistrationCourse.findByIdAndDelete(reg._id);
+    }
+
+    console.log("Đã dọn dẹp xong.");
   }
 };
 
@@ -148,5 +183,5 @@ module.exports = {
   deleteManyRegistrations,
   updateRegistration,
   updatePaymentStatus,
-  scanAndCancelOverdue,
+  deleteUnpaidRegistrations,
 };

@@ -34,3 +34,13 @@ exports.vnpayIpn = async (req, res) => {
     res.status(200).json({ RspCode: "99", Message: "Unknown error" });
   }
 };
+exports.completeCashPayment = async (req, res) => {
+  try {
+    const { registrationId } = req.body;
+    const result = await paymentService.handleCashPayment(registrationId);
+    res.status(200).json(result);
+  } catch (error) {
+    console.error("Lỗi xác nhận tiền mặt:", error);
+    res.status(400).json({ message: error.message || "Lỗi server" });
+  }
+};
