@@ -119,13 +119,36 @@ const resetPassword = async (req, res) => {
     res.json({ message: "Đổi mật khẩu thành công!" });
   } catch (err) {
     if (err.name === "TokenExpiredError") {
-      return res
-        .status(400)
-        .json({
-          message: "Token đã hết hạn, vui lòng gửi lại yêu cầu quên mật khẩu.",
-        });
+      return res.status(400).json({
+        message: "Token đã hết hạn, vui lòng gửi lại yêu cầu quên mật khẩu.",
+      });
     }
     res.status(400).json({ message: "Token không hợp lệ hoặc lỗi khác!" });
+  }
+};
+
+const loginGoogle = async (req, res) => {
+  const { credential } = req.body;
+
+  try {
+    const result = await authService.loginWithGoogle(credential);
+
+    if (!result.success) {
+      return res.status(400).json({ message: result.message });
+    }
+
+    const user = result.user;
+    const token = jwt.sign(
+      { user: { id: user._id, username: user.username, role: user.role } },
+      jwtSecret,
+      { expiresIn: "6h" }
+    );
+
+    res.cookie("token", token, { httpOnly: true });
+    res.json({ token, message: "Đăng nhập Google thành công" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Internal Server Error" });
   }
 };
 
@@ -135,4 +158,5 @@ module.exports = {
   logout,
   forgotPassword,
   resetPassword,
+  loginGoogle,
 };

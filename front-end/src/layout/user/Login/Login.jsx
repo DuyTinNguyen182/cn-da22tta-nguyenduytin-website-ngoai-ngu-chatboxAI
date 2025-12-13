@@ -4,6 +4,7 @@ import { Button, Checkbox, Form, Input, message, Spin } from "antd";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../../context/AuthContext";
 import apiClient from "../../../api/axiosConfig";
+import { GoogleLogin } from "@react-oauth/google";
 
 function Login() {
   const navigate = useNavigate();
@@ -54,6 +55,32 @@ function Login() {
       }, 500);
     } catch (error) {
       console.error("Lỗi khi đăng nhập:", error);
+      errorMessage();
+    } finally {
+      setSpinning(false);
+    }
+  };
+
+  const handleGoogleSuccess = async (credentialResponse) => {
+    setSpinning(true);
+    try {
+      const res = await apiClient.post("/auth/google-login", {
+        credential: credentialResponse.credential,
+      });
+      const userInfoRes = await apiClient.get("/user/info");
+      dispatch({ type: "AUTH_SUCCESS", payload: userInfoRes.data });
+
+      successMessage();
+
+      setTimeout(() => {
+        if (stateData?.action === "redirect") {
+          navigate(stateData.url);
+        } else {
+          navigate("/");
+        }
+      }, 500);
+    } catch (error) {
+      console.error("Lỗi đăng nhập Google:", error);
       errorMessage();
     } finally {
       setSpinning(false);
@@ -148,6 +175,23 @@ function Login() {
               Đăng nhập
             </Button>
           </Form.Item>
+          <div className="my-4 flex flex-col items-center">
+            <div className="relative w-full text-center border-b border-gray-200 mb-4 leading-[0.1em]">
+              <span className="bg-white px-2 text-gray-400 text-xs">HOẶC</span>
+            </div>
+
+            <GoogleLogin
+              onSuccess={handleGoogleSuccess}
+              onError={() => {
+                console.log("Login Failed");
+                errorMessage();
+              }}
+              useOneTap
+              shape="pill"
+              text="signin_with"
+              width="340"
+            />
+          </div>
 
           <div className="text-center text-gray-500">
             Chưa có tài khoản?{" "}

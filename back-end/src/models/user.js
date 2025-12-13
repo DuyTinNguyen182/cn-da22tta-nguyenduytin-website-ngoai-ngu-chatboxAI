@@ -1,25 +1,23 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
-// Tham số thứ nhất: Định nghĩa các trường
-const userSchema = new mongoose.Schema({
-  userid: { type: String, required: true},
-  username: { type: String, required: true, unique: true },
-  password: { type: String, required: true },
-  role: { type: String, enum: ['Student', 'Admin'] },
-  fullname: { type: String },
-  gender: { type: String , default: null},
-  genderEdited: { type: Boolean, default: false },
-  address: { type: String },
-  email: { type: String },
-  avatar: { type: String, default: "" },
-  avatarPublicId: {
-    type: String,
-    default: null,
+const userSchema = new mongoose.Schema(
+  {
+    userid: { type: String, required: true },
+    username: { type: String, unique: true },
+    password: { type: String },
+    googleId: { type: String },
+    authType: { type: String, enum: ["local", "google"], default: "local" },
+    role: { type: String, enum: ["Student", "Admin"], default: "Student" },
+    fullname: { type: String },
+    gender: { type: String, default: null },
+    genderEdited: { type: Boolean, default: false },
+    address: { type: String },
+    email: { type: String },
+    avatar: { type: String, default: "" },
+    avatarPublicId: { type: String, default: null },
   },
-}, 
-{ 
-  timestamps: true 
-});
+  { timestamps: true }
+);
 
-const User = mongoose.model('User', userSchema);
+const User = mongoose.model("User", userSchema);
 module.exports = User;

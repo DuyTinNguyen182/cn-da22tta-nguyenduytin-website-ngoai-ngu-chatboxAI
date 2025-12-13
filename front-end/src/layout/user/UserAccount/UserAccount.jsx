@@ -133,12 +133,12 @@ function UserAcc() {
   };
 
   return (
-    <div className="w-full min-h-screen bg-[#F2F4F7] py-0 px-4 flex justify-center items-start">
+    <div className="w-full min-h-screen bg-[#F2F4F7] py-0 px-4 flex justify-center items-start mt-4 mb-4">
       {contextHolder}
       <Spin spinning={spinning} fullscreen />
 
       <div className="bg-white p-8 md:p-10 rounded-2xl shadow-sm border border-gray-100 w-full max-w-lg mt-0">
-        <div className="text-center mb-8">
+        <div className="text-center mb-4">
           <h1 className="text-2xl font-bold text-gray-800">Hồ sơ cá nhân</h1>
           <p className="text-gray-500 text-sm mt-1">
             Quản lý thông tin tài khoản
@@ -152,7 +152,7 @@ function UserAcc() {
           onFinish={onFinish}
           className="flex flex-col gap-2"
         >
-          <div className="flex justify-center mb-6">
+          <div className="flex justify-center mb-3">
             <Form.Item name="avatar" valuePropName="fileList" noStyle>
               <div className="flex flex-col items-center gap-3">
                 <ImgCrop
