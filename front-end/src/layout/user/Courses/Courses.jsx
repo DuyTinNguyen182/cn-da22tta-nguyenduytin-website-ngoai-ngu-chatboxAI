@@ -22,6 +22,7 @@ import {
   CheckCircleOutlined,
   CloseCircleOutlined,
 } from "@ant-design/icons";
+import { useSearchParams } from "react-router-dom";
 import { useAuth } from "../../../context/AuthContext";
 import apiClient from "../../../api/axiosConfig";
 import CourseCard from "../../../components/CourseCard/CourseCard";
@@ -34,17 +35,22 @@ function Courses() {
   const [languageLevels, setLanguageLevels] = useState([]);
   const [spinning, setSpinning] = useState(true);
 
-  // State tìm kiếm & gợi ý
-  const [keyword, setKeyword] = useState("");
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const [keyword, setKeyword] = useState(searchParams.get("keyword") || "");
   const [options, setOptions] = useState([]);
+  const [tempPriceRange, setTempPriceRange] = useState([0, 10000000]);
 
   const [filters, setFilters] = useState({
-    language: null,
-    level: null,
-    status: null,
-    priceRange: [0, 10000000],
+    language: searchParams.get("language") || null,
+    level: searchParams.get("level") || null,
+    status: searchParams.get("status") || null,
+    priceRange: [
+      Number(searchParams.get("minPrice")) || 0,
+      Number(searchParams.get("maxPrice")) || 10000000,
+    ],
   });
-  const [sortBy, setSortBy] = useState("views");
+  const [sortBy, setSortBy] = useState(searchParams.get("sort") || "views");
   const [visibleCount, setVisibleCount] = useState(12);
 
   const { state } = useAuth();
@@ -69,6 +75,27 @@ function Courses() {
     };
     fetchData();
   }, []);
+
+  useEffect(() => {
+    const params = {};
+
+    if (keyword) params.keyword = keyword;
+    if (sortBy !== "views") params.sort = sortBy;
+
+    if (filters.language) params.language = filters.language;
+    if (filters.level) params.level = filters.level;
+    if (filters.status) params.status = filters.status;
+
+    if (filters.priceRange[0] !== 0) params.minPrice = filters.priceRange[0];
+    if (filters.priceRange[1] !== 10000000)
+      params.maxPrice = filters.priceRange[1];
+
+    setSearchParams(params);
+  }, [filters, keyword, sortBy, setSearchParams]);
+
+  useEffect(() => {
+    setTempPriceRange(filters.priceRange);
+  }, [filters.priceRange]);
 
   const handleFilterChange = (key, value) => {
     setFilters((prev) => ({ ...prev, [key]: value }));
@@ -158,6 +185,7 @@ function Courses() {
     });
     setKeyword("");
     setSortBy("views");
+    setSearchParams({});
   };
 
   if (spinning)
@@ -283,7 +311,8 @@ function Courses() {
                   min={0}
                   max={10000000}
                   step={100000}
-                  defaultValue={[0, 10000000]}
+                  value={tempPriceRange}
+                  onChange={(value) => setTempPriceRange(value)}
                   onAfterChange={(value) =>
                     handleFilterChange("priceRange", value)
                   }

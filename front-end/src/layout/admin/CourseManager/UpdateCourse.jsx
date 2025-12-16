@@ -125,6 +125,12 @@ function UpdateCourse() {
     }
   };
 
+  const customRequest = ({ file, onSuccess }) => {
+    setTimeout(() => {
+      onSuccess("ok");
+    }, 0);
+  };
+
   return (
     <Flex vertical gap={20}>
       {contextHolder}
@@ -150,6 +156,7 @@ function UpdateCourse() {
               fileList={fileList}
               onChange={handleFileChange}
               maxCount={1}
+              customRequest={customRequest}
             >
               {fileList.length < 1 && (
                 <div>

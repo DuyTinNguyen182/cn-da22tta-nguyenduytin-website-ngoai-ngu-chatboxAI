@@ -43,7 +43,7 @@ function ContactPage() {
     <div className="w-full min-h-screen bg-[#F8F9FA] pb-20">
       {contextHolder}
 
-      <div className="bg-gradient-to-r from-slate-900 to-slate-800 text-white py-16 md:py-20 text-center px-4">
+      <div className="bg-gradient-to-r from-blue-900 to-indigo-700 text-white py-16 md:py-20 text-center px-4">
         <h1 className="text-3xl md:text-5xl font-bold mb-4">
           Liên hệ với DREAM
         </h1>
@@ -58,8 +58,8 @@ function ContactPage() {
           <ContactCard
             icon={<EnvironmentOutlined />}
             title="Địa chỉ"
-            content="Số 123, Phường Hòa Thuận, Tỉnh Vĩnh Long"
-            link="#"
+            content="Số 23/18, Xã Nhị Long, Tỉnh Vĩnh Long"
+            link="https://maps.app.goo.gl/mPTJYbMGvpWx8cii8"
             color="text-red-500"
           />
           <ContactCard
@@ -74,7 +74,7 @@ function ContactPage() {
             icon={<MailOutlined />}
             title="Email"
             content="dream@gmail.com"
-            link="mailto:dream@gmail.com"
+            link="mailto:duytinnguyen84@gmail.com"
             color="text-blue-500"
           />
           <ContactCard
@@ -277,22 +277,22 @@ function ContactPage() {
                   icon={<FacebookFilled />}
                   label="Facebook"
                   color="bg-[#1877F2]"
-                  link="#"
+                  link="https://www.facebook.com/profile.php?id=61564511007288"
                 />
                 <SocialButton
                   icon={<YoutubeOutlined />}
                   label="YouTube"
                   color="bg-[#FF0000]"
-                  link="#"
+                  link="https://www.youtube.com/@DuyT%C3%ADnNguy%E1%BB%85n-m5l"
                 />
                 <SocialButton
                   icon={<InstagramOutlined />}
                   label="Instagram"
                   color="bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500"
-                  link="#"
+                  link="https://www.instagram.com/duytinnguyen84/"
                 />
                 <a
-                  href="#"
+                  href="https://zalo.me/0794325729"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center justify-center gap-2 h-12 rounded-lg text-white font-medium bg-[#0068FF] hover:opacity-90 transition shadow-md hover:-translate-y-1"
@@ -307,13 +307,18 @@ function ContactPage() {
               </div>
             </div>
 
-            <div className="bg-white p-2 rounded-2xl shadow-sm border border-gray-100 h-64 relative overflow-hidden group cursor-pointer">
-              <div className="absolute inset-0 bg-gray-200 flex items-center justify-center group-hover:bg-gray-300 transition">
-                <div className="text-center text-gray-500">
-                  <EnvironmentOutlined className="text-4xl mb-2" />
-                  <p>Xem bản đồ chi tiết</p>
-                </div>
-              </div>
+            <div className="bg-white p-2 rounded-2xl shadow-sm border border-gray-100 h-64 relative overflow-hidden">
+              <iframe
+                src="https://www.google.com/maps/embed?pb=!1m17!1m12!1m3!1d3734.785814992433!2d106.264533!3d10.000388!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m2!1m1!2zMTDCsDAwJzAxLjQiTiAxMDbCsDE1JzUyLjMiRQ!5e1!3m2!1svi!2s!4v1765848809819!5m2!1svi!2s"
+                width="100%"
+                height="100%"
+                style={{ border: 0 }}
+                allowFullScreen=""
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+                className="rounded-xl w-full h-full object-cover"
+                title="Bản đồ DREAM"
+              ></iframe>
             </div>
           </div>
         </div>

@@ -132,6 +132,12 @@ function UserAcc() {
     }
   };
 
+  const customRequest = ({ file, onSuccess }) => {
+    setTimeout(() => {
+      onSuccess("ok");
+    }, 0);
+  };
+
   return (
     <div className="w-full min-h-screen bg-[#F2F4F7] py-0 px-4 flex justify-center items-start mt-4 mb-4">
       {contextHolder}
@@ -167,6 +173,7 @@ function UserAcc() {
                     fileList={fileList}
                     onChange={handleFileChange}
                     maxCount={1}
+                    customRequest={customRequest}
                     className="cursor-pointer hover:opacity-80 transition-opacity"
                   >
                     {fileList.length < 1 && (
