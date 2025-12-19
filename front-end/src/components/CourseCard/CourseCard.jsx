@@ -57,6 +57,10 @@ const CourseCard = ({ course }) => {
             src={image || courseImagePlaceholder}
             alt={`${languageName} - ${levelName}`}
             className="absolute top-0 left-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+            onError={(e) => {
+              e.target.onerror = null;
+              e.target.src = courseImagePlaceholder;
+            }}
           />
 
           {renderStatusBadge()}

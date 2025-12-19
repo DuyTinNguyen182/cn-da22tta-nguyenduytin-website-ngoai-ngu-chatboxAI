@@ -24,6 +24,7 @@ import { useAuth } from "../../../context/AuthContext";
 import apiClient from "../../../api/axiosConfig";
 import moment from "moment";
 import ImgCrop from "antd-img-crop";
+import courseImagePlaceholder from "../../../imgs/image.png";
 
 function CourseManager() {
   const [open, setOpen] = useState(false);
@@ -62,7 +63,9 @@ function CourseManager() {
     {
       title: "Ảnh",
       dataIndex: "image",
-      render: (url) => <Image src={url} width={60} />,
+      render: (url) => (
+        <Image src={url} width={60} fallback={courseImagePlaceholder} />
+      ),
     },
     {
       title: "Mã khóa học",
@@ -72,7 +75,7 @@ function CourseManager() {
     // { title: "Ngôn ngữ", dataIndex: ["language_id", "language"] },
     {
       title: "Ngôn ngữ",
-      dataIndex: "language_id", // Sửa từ "language" thành "language_id" để khớp với dữ liệu
+      dataIndex: "language_id",
       render: (langId) => {
         const id = typeof langId === "object" ? langId?._id : langId;
         const lang = languages.find((l) => l._id === id);

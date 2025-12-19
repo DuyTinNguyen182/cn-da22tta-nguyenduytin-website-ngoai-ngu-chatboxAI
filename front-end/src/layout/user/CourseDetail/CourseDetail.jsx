@@ -272,6 +272,10 @@ function CourseDetailPage() {
               src={course.image || courseImagePlaceholder}
               alt={languageName}
               className="w-[340px] h-[220px] object-cover rounded-xl shadow-2xl border-4 border-slate-700/50 group-hover:brightness-75 transition-all"
+              onError={(e) => {
+                e.target.onerror = null;
+                e.target.src = courseImagePlaceholder;
+              }}
             />
             <div className="absolute top-4 left-4">
               {getStatusTag(course.status)}

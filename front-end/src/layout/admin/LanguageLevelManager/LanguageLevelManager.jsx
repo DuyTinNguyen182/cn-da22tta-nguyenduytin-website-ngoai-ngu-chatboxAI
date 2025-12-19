@@ -52,9 +52,23 @@ function LanguageLevelManager() {
     },
     {
       title: "Thuộc ngôn ngữ",
-      dataIndex: ["language_id", "language"],
-      render: (text) =>
-        text || <span style={{ color: "orange" }}>Chưa cập nhật</span>,
+      dataIndex: "language_id",
+      render: (langId) => {
+        const id = typeof langId === "object" ? langId?._id : langId;
+        const lang = languages.find((l) => l._id === id);
+        return lang ? lang.language : "--";
+      },
+      filters: languages.map((lang) => ({
+        text: lang.language,
+        value: lang._id,
+      })),
+      onFilter: (value, record) => {
+        if (!record.language_id) return false;
+        if (typeof record.language_id === "object") {
+          return record.language_id._id === value;
+        }
+        return record.language_id === value;
+      },
     },
     {
       title: "Sửa",
