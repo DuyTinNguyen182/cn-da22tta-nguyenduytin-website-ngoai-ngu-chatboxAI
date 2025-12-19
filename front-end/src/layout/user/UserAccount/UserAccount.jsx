@@ -139,7 +139,7 @@ function UserAcc() {
   };
 
   return (
-    <div className="w-full min-h-screen bg-[#F2F4F7] py-0 px-4 flex justify-center items-start mt-4 mb-4">
+    <div className="w-full min-h-screen bg-[#F2F4F7] px-4 flex justify-center items-start mt-4 pt-12 md:pt-0 md:pb-5">
       {contextHolder}
       <Spin spinning={spinning} fullscreen />
 

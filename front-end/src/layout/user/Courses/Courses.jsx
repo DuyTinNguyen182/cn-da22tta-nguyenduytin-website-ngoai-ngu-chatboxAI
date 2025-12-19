@@ -194,7 +194,7 @@ function Courses() {
     );
 
   return (
-    <div className="w-full min-h-screen bg-[#F2F4F7] pb-20">
+    <div className="w-full min-h-screen bg-[#F2F4F7] pt-12 md:pt-0 md:pb-20">
       {contextHolder}
 
       <div className="bg-gradient-to-r from-blue-900 to-indigo-700 pt-10 pb-14 px-4 text-center shadow-lg relative overflow-hidden">

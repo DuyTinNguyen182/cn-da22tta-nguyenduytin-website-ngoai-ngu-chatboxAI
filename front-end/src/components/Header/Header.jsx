@@ -138,12 +138,12 @@ function Header() {
                       className="w-12 h-12 rounded-full object-cover"
                     />
                     <div className="flex flex-col">
-                      <span className="font-bold text-gray-800 text-lg truncate max-w-[160px]">
+                      <span className="font-bold text-gray-800 text-base truncate max-w-[160px]">
                         {currentUser.fullname}
                       </span>
                       {currentUser.role === "Student" && (
-                        <span className="text-xs text-gray-500">
-                          ID: {currentUser.userid}
+                        <span className="text-lg text-gray-900">
+                          MSHV: {currentUser.userid}
                         </span>
                       )}
                       <span

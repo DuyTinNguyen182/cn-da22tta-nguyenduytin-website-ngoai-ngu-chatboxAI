@@ -40,10 +40,10 @@ function ContactPage() {
   };
 
   return (
-    <div className="w-full min-h-screen bg-[#F8F9FA] pb-20">
+    <div className="w-full min-h-screen bg-[#F8F9FA] pt-12 md:pt-0 md:pb-20">
       {contextHolder}
 
-      <div className="bg-gradient-to-r from-blue-900 to-indigo-700 text-white py-16 md:py-20 text-center px-4">
+      <div className="bg-gradient-to-r from-blue-900 to-indigo-700 text-white py-16 md:pt-10 text-center px-4">
         <h1 className="text-3xl md:text-5xl font-bold mb-4">
           Liên hệ với DREAM
         </h1>
@@ -53,7 +53,7 @@ function ContactPage() {
         </p>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 md:px-8 -mt-10 relative z-10">
+      <div className="max-w-7xl mx-auto px-4 md:px-8 -mt-5 relative z-10">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
           <ContactCard
             icon={<EnvironmentOutlined />}

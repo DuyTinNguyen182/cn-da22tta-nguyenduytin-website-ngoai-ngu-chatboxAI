@@ -71,7 +71,7 @@ function RegisteredCourses() {
   }, [userId]);
 
   return (
-    <div className="w-full min-h-screen bg-[#F8FAFC] py-8 pb-20 font-sans">
+    <div className="w-full min-h-screen bg-[#F8FAFC] py-8 pt-20 md:pt-5 md:pb-20 font-sans">
       {contextHolder}
       <Spin spinning={spinning} fullscreen />
 

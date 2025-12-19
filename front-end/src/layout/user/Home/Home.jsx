@@ -99,7 +99,7 @@ function Home() {
   );
 
   return (
-    <div className="w-full min-h-screen bg-gray-50/50 pb-20">
+    <div className="w-full min-h-screen bg-gray-50/50 pt-12 md:pt-0 md:pb-20">
       {contextHolder}
       <Spin spinning={spinning} fullscreen />
 
@@ -110,7 +110,7 @@ function Home() {
               slides.map((slide) => (
                 <div
                   key={slide._id}
-                  className="w-full h-[200px] md:h-[350px] lg:h-[300px]"
+                  className="w-full h-[130px] md:h-[350px] lg:h-[300px]"
                 >
                   <img
                     src={slide.image}
