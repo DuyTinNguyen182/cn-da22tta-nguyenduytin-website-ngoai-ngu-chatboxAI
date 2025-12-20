@@ -172,7 +172,7 @@ const AdminLayout = () => {
         />
       </Sider>
       <Layout
-        style={{ padding: "20px 30px", height: "100vh", overflowY: "auto" }}
+        style={{ padding: "5px 30px", height: "100vh", overflowY: "auto" }}
       >
         <Routes>
           <Route index element={<Navigate to="overview" replace />} />
