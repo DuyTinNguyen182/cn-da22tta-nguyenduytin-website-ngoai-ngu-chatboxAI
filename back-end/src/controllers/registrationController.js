@@ -208,6 +208,54 @@ const confirmPaymentByAdmin = async (req, res) => {
   }
 };
 
+const exportExcel = async (req, res) => {
+  try {
+    const { courseId } = req.params;
+    const { sessionId } = req.query;
+
+    if (!isValidObjectId(courseId)) {
+      return res.status(400).json({ message: "courseId không hợp lệ" });
+    }
+
+    // Kiểm tra sessionId hợp lệ trước khi truyền vào service
+    const validSessionId = isValidObjectId(sessionId) ? sessionId : null;
+
+    // Gọi Service để tạo workbook
+    const { workbook, courseCode } =
+      await registrationService.generateCourseStudentExcel(
+        courseId,
+        validSessionId
+      );
+
+    // Thiết lập Header cho Response
+    res.setHeader(
+      "Content-Type",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    );
+    // Xử lý tên file
+    const safeFileName = `Danh_Sach_HV_${courseCode}`.replace(
+      /[^a-zA-Z0-9-_]/g,
+      "_"
+    );
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename=${safeFileName}.xlsx`
+    );
+
+    // Ghi dữ liệu ra Response và kết thúc
+    await workbook.xlsx.write(res);
+    res.end();
+  } catch (err) {
+    console.error("exportExcel error:", err);
+    // Chỉ trả về JSON lỗi nếu Header chưa được gửi
+    if (!res.headersSent) {
+      res
+        .status(500)
+        .json({ message: "Lỗi khi xuất file Excel", error: err.message });
+    }
+  }
+};
+
 module.exports = {
   registerCourse,
   getCoursesByUser,
@@ -219,4 +267,5 @@ module.exports = {
   updateRegistration,
   processUserPayment,
   confirmPaymentByAdmin,
+  exportExcel,
 };

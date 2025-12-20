@@ -22,6 +22,7 @@ import {
   ClockCircleOutlined,
   EyeOutlined,
   UserOutlined,
+  FileExcelOutlined,
 } from "@ant-design/icons";
 import { Link } from "react-router-dom";
 import { useAuth } from "../../../context/AuthContext";
@@ -86,6 +87,40 @@ function AdminClassManager() {
     setIsModalOpen(true);
   };
 
+  const handleExportExcel = async (record) => {
+    try {
+      messageApi.open({
+        type: "loading",
+        content: "Đang tạo file báo cáo...",
+        duration: 0,
+        key: "exporting",
+      });
+      const response = await apiClient.get(
+        `/registration/export/${record.course_id}`,
+        {
+          params: { sessionId: record.class_session_id },
+          responseType: "blob",
+        }
+      );
+
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement("a");
+      link.href = url;
+
+      link.setAttribute("download", `BaoCao_${record.course_name}.xlsx`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+
+      messageApi.destroy("exporting");
+      messageApi.success("Xuất báo cáo thành công!");
+    } catch (err) {
+      messageApi.destroy("exporting");
+      console.error(err);
+      messageApi.error("Lỗi khi xuất file Excel.");
+    }
+  };
+
   const columns = [
     {
       title: "Khóa học",
@@ -103,6 +138,7 @@ function AdminClassManager() {
       title: "Ngày BĐ",
       dataIndex: "Start_Date",
       render: (date) => (date ? moment(date).format("DD/MM/YYYY") : "-"),
+      sorter: (a, b) => new Date(a.Start_Date) - new Date(b.Start_Date),
     },
     {
       title: "Lịch học",
@@ -169,6 +205,14 @@ function AdminClassManager() {
             onClick={() => handleViewStudents(record)}
           >
             Xem DS
+          </Button>
+          <Button
+            icon={<FileExcelOutlined />}
+            style={{ color: "#217346", borderColor: "#217346" }} // Màu xanh Excel
+            onClick={() => handleExportExcel(record)}
+            title="Xuất danh sách Excel"
+          >
+            Excel
           </Button>
           {record.status === "pending" ? (
             <>

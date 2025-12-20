@@ -272,7 +272,7 @@ const Overview = () => {
               colorClass="bg-emerald-50 text-emerald-600"
             />
             <CompactStatCard
-              title="Đơn hàng"
+              title="ĐK KH mới"
               value={stats.registrations?.value}
               growth={stats.registrations?.growth}
               icon={<ProfileOutlined />}
@@ -392,7 +392,7 @@ const Overview = () => {
               </div>
             </div>
             <div className="grid grid-cols-12 gap-2 h-[45vh] shrink-0 pb-1">
-              <div className="col-span-4 bg-white p-3 rounded-xl border shadow-sm flex flex-col">
+              <div className="col-span-4 bg-white p-3 rounded-xl shadow-sm flex flex-col">
                 <h3 className="text-xs font-bold text-gray-700 mb-1 flex items-center uppercase tracking-wide">
                   <TeamOutlined className="mr-1 text-indigo-500" /> Top Giáo
                   Viên
@@ -428,7 +428,7 @@ const Overview = () => {
               </div>
               <div className="col-span-4 bg-white p-3 rounded-xl border border-teal-50 shadow-sm flex flex-col">
                 <h3 className="text-xs font-bold text-teal-700 mb-1 flex items-center uppercase tracking-wide">
-                  <TrophyOutlined className="mr-1" /> Khóa Học Hot
+                  <TrophyOutlined className="mr-1" /> Ngôn ngữ + Trình độ Hot
                 </h3>
                 <div className="flex-1 min-h-0">
                   <ResponsiveContainer width="100%" height="100%">
@@ -461,7 +461,8 @@ const Overview = () => {
               </div>
               <div className="col-span-4 bg-white p-3 rounded-xl border border-red-50 shadow-sm flex flex-col">
                 <h3 className="text-xs font-bold text-red-600 mb-2 flex items-center uppercase tracking-wide">
-                  <ArrowDownOutlined className="mr-1" /> Cần Cải Thiện
+                  <ArrowDownOutlined className="mr-1" /> Khóa học không có học
+                  viên
                 </h3>
                 <div className="flex-1 overflow-y-auto pr-1 custom-scrollbar">
                   {stats.unpopularCourses &&

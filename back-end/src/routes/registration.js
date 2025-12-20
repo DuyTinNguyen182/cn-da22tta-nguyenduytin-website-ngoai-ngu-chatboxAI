@@ -1,13 +1,21 @@
 const express = require("express");
 const router = express.Router();
 const registrationController = require("../controllers/registrationController");
-const authMiddleware = require('../middleware/authMiddleware');
+const authMiddleware = require("../middleware/authMiddleware");
 
 // Lấy tất cả đăng ký
 router.get("/", registrationController.getAllRegistrations);
 
 // Đăng ký khóa học
 router.post("/", registrationController.registerCourse);
+
+// Export
+router.get(
+  "/export/:courseId",
+  authMiddleware.authenticate,
+  authMiddleware.isAdmin,
+  registrationController.exportExcel
+);
 
 // Lấy danh sách khóa học của một user
 router.get("/user/:userId", registrationController.getCoursesByUser);
@@ -17,7 +25,12 @@ router.get("/course/:courseId", registrationController.getUsersByCourse);
 
 router.get("/:id", registrationController.getRegistrationById);
 
-router.delete('/multiple', authMiddleware.authenticate, authMiddleware.isAdmin, registrationController.deleteMultipleRegistrations);
+router.delete(
+  "/multiple",
+  authMiddleware.authenticate,
+  authMiddleware.isAdmin,
+  registrationController.deleteMultipleRegistrations
+);
 
 // Hủy đăng ký theo id đăng ký
 router.delete("/:id", registrationController.cancelRegistration);
@@ -35,9 +48,9 @@ router.patch(
 // Route cho admin xác nhận đã thanh toán
 router.patch(
   "/:id/confirm-payment",
-  authMiddleware.authenticate, authMiddleware.isAdmin,
+  authMiddleware.authenticate,
+  authMiddleware.isAdmin,
   registrationController.confirmPaymentByAdmin
 );
 
 module.exports = router;
-

@@ -1,6 +1,9 @@
 const RegistrationCourse = require("../models/RegistrationCourse");
 const Coupon = require("../models/Coupon");
 const Course = require("../models/Course");
+const excelJS = require("exceljs");
+
+const { fillCourseStudentSheet } = require("../templates/courseReportTemplate");
 
 const coursePopulate = {
   path: "course_id",
@@ -181,6 +184,38 @@ const deleteUnpaidRegistrations = async () => {
   }
 };
 
+const generateCourseStudentExcel = async (courseId, classSessionId) => {
+  const course = await Course.findById(courseId)
+    .populate("language_id")
+    .populate("languagelevel_id")
+    .populate("teacher_id");
+
+  if (!course) throw new Error("Không tìm thấy khóa học");
+
+  let query = { course_id: courseId };
+
+  if (
+    classSessionId &&
+    classSessionId !== "null" &&
+    classSessionId !== "undefined"
+  ) {
+    query.class_session_id = classSessionId;
+  }
+
+  const registrations = await RegistrationCourse.find(query)
+    .populate("user_id")
+    .populate("class_session_id");
+
+  const workbook = new excelJS.Workbook();
+
+  fillCourseStudentSheet(workbook, course, registrations);
+
+  return {
+    workbook,
+    courseCode: course.courseid || course.course_name || "Khoa_Hoc",
+  };
+};
+
 module.exports = {
   registerCourse,
   getCoursesByUser,
@@ -192,4 +227,5 @@ module.exports = {
   updateRegistration,
   updatePaymentStatus,
   deleteUnpaidRegistrations,
+  generateCourseStudentExcel,
 };
