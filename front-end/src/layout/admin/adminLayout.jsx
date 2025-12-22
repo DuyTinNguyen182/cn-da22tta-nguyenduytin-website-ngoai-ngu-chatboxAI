@@ -14,11 +14,29 @@ import {
   AuditOutlined,
   TagsOutlined,
   PictureOutlined,
+  LogoutOutlined,
 } from "@ant-design/icons";
-import { Flex, Layout, Menu, Spin, Result, Button } from "antd";
-import { Link, Route, Routes, useLocation, Navigate } from "react-router-dom";
+import {
+  Flex,
+  Layout,
+  Menu,
+  Spin,
+  Result,
+  Button,
+  Avatar,
+  Typography,
+} from "antd";
+import {
+  Link,
+  Route,
+  Routes,
+  useLocation,
+  Navigate,
+  useNavigate,
+} from "react-router-dom";
 
 import { useAuth } from "../../context/AuthContext";
+import apiClient from "../../api/axiosConfig";
 
 import Overview from "./Overview/Overview";
 import UserManager from "./UserManager/UserManager";
@@ -43,6 +61,7 @@ import SlideshowManager from "./SlideshowManager/SlideshowManager";
 import UpdateSlideshow from "./SlideshowManager/UpdateSlideshow";
 
 const { Sider } = Layout;
+const { Text } = Typography;
 
 function getItem(label, key, icon, children) {
   return { key, icon, children, label };
@@ -118,13 +137,24 @@ const menuItems = [
 
 const AdminLayout = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const [collapsed, setCollapsed] = useState(false);
 
-  const { state } = useAuth();
+  const { state, dispatch } = useAuth();
   const { currentUser, loading } = state;
 
   const pathSnippets = location.pathname.split("/").filter((i) => i);
   const activeTab = pathSnippets.length > 1 ? pathSnippets[1] : "overview";
+
+  const handleLogout = async () => {
+    try {
+      await apiClient.get(`/auth/logout`);
+      dispatch({ type: "AUTH_FAILURE" });
+      navigate("/");
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
   if (loading) {
     return <Spin fullscreen tip="Đang kiểm tra quyền truy cập..." />;
@@ -153,24 +183,123 @@ const AdminLayout = () => {
         onCollapse={setCollapsed}
         width={260}
       >
-        <Flex
-          className="admin-logo"
-          style={{ color: "white", padding: "20px", height: "64px" }}
-          align="center"
-          justify={!collapsed ? "space-between" : "center"}
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            height: "100%",
+            paddingBottom: "50px",
+          }}
         >
-          {!collapsed && <h2>DREAM ADMIN</h2>}
-          <Link to="/" target="_blank" title="Xem trang người dùng">
-            <ExportOutlined style={{ color: "white", fontSize: "16px" }} />
-          </Link>
-        </Flex>
-        <Menu
-          theme="dark"
-          selectedKeys={[activeTab]}
-          mode="inline"
-          items={menuItems}
-        />
+          <Flex
+            className="admin-user-info"
+            align="center"
+            justify={collapsed ? "center" : "flex-start"}
+            style={{
+              padding: "20px",
+              borderBottom: "1px solid rgba(255, 255, 255, 0.1)",
+              marginBottom: "10px",
+              transition: "all 0.2s",
+            }}
+          >
+            <div style={{ position: "relative", flexShrink: 0 }}>
+              <Avatar
+                size={collapsed ? 40 : 44}
+                src={currentUser.avatar}
+                icon={<UserOutlined />}
+                style={{ border: "2px solid #1890ff" }}
+              />
+
+              <Link to="/" target="_blank" title="Xem trang người dùng">
+                <ExportOutlined
+                  style={{
+                    position: "absolute",
+                    bottom: -2,
+                    right: -4,
+                    backgroundColor: "#1890ff",
+                    color: "white",
+                    padding: "4px",
+                    borderRadius: "50%",
+                    fontSize: "10px",
+                    border: "2px solid #001529",
+                    cursor: "pointer",
+                  }}
+                />
+              </Link>
+            </div>
+
+            {!collapsed && (
+              <div
+                style={{
+                  marginLeft: "12px",
+                  display: "flex",
+                  flexDirection: "column",
+                  justifyContent: "center",
+                  overflow: "hidden",
+                }}
+              >
+                <div
+                  style={{
+                    color: "white",
+                    fontWeight: "600",
+                    fontSize: "14px",
+                    lineHeight: "1.2",
+                    marginBottom: "4px",
+                    whiteSpace: "nowrap",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    maxWidth: "160px",
+                  }}
+                >
+                  {currentUser.fullname}
+                </div>
+                <div
+                  style={{
+                    fontSize: "11px",
+                    color: "rgba(255,255,255,0.6)",
+                    lineHeight: "1",
+                  }}
+                >
+                  {currentUser.role}
+                </div>
+              </div>
+            )}
+          </Flex>
+
+          <Menu
+            theme="dark"
+            selectedKeys={[activeTab]}
+            mode="inline"
+            items={menuItems}
+            style={{ flex: 1, overflowY: "auto", overflowX: "hidden" }}
+          />
+
+          <div
+            style={{
+              padding: "10px 16px",
+              borderTop: "1px solid rgba(255, 255, 255, 0.1)",
+            }}
+          >
+            <Button
+              type="text"
+              danger
+              block
+              icon={<LogoutOutlined />}
+              onClick={handleLogout}
+              style={{
+                textAlign: collapsed ? "center" : "left",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: collapsed ? "center" : "flex-start",
+                color: "#ff4d4f",
+              }}
+            >
+              {!collapsed && "Đăng xuất"}
+            </Button>
+          </div>
+        </div>
       </Sider>
+
       <Layout
         style={{ padding: "5px 30px", height: "100vh", overflowY: "auto" }}
       >

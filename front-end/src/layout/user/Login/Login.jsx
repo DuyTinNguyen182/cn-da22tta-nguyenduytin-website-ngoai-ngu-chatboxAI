@@ -40,14 +40,21 @@ function Login() {
         password: values.password,
       });
 
+      // Lấy thông tin user ngay sau khi login thành công
       const userInfoRes = await apiClient.get("/user/info");
+      const user = userInfoRes.data;
 
-      dispatch({ type: "AUTH_SUCCESS", payload: userInfoRes.data });
+      dispatch({ type: "AUTH_SUCCESS", payload: user });
 
       successMessage();
 
       setTimeout(() => {
-        if (stateData?.action === "redirect") {
+        // Kiểm tra quyền Admin trước
+        if (user.role === "Admin") {
+          navigate("/admin/overview");
+        }
+        // Sau đó mới kiểm tra đến các điều kiện redirect khác
+        else if (stateData?.action === "redirect") {
           navigate(stateData.url);
         } else {
           navigate("/");
@@ -67,13 +74,19 @@ function Login() {
       const res = await apiClient.post("/auth/google-login", {
         credential: credentialResponse.credential,
       });
+
       const userInfoRes = await apiClient.get("/user/info");
-      dispatch({ type: "AUTH_SUCCESS", payload: userInfoRes.data });
+      const user = userInfoRes.data;
+
+      dispatch({ type: "AUTH_SUCCESS", payload: user });
 
       successMessage();
 
       setTimeout(() => {
-        if (stateData?.action === "redirect") {
+        // Logic tương tự cho Google Login: Ưu tiên Admin vào trang quản trị
+        if (user.role === "Admin") {
+          navigate("/admin/overview");
+        } else if (stateData?.action === "redirect") {
           navigate(stateData.url);
         } else {
           navigate("/");
