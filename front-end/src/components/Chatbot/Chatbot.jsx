@@ -25,6 +25,14 @@ function Chatbot() {
   const chatBodyRef = useRef(null);
   const navigate = useNavigate();
 
+  const [sessionId] = useState(() => {
+    return (
+      "session-" +
+      Math.random().toString(36).substring(2, 15) +
+      Date.now().toString(36)
+    );
+  });
+
   const { state } = useAuth();
   const { currentUser } = state;
 
@@ -74,6 +82,7 @@ function Chatbot() {
     try {
       const response = await apiClient.post("/chatbot/ask", {
         message: textToSend,
+        sessionId: sessionId,
       });
       const botMessage = {
         sender: "bot",

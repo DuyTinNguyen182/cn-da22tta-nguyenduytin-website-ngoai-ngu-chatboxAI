@@ -2,11 +2,16 @@ const chatbotService = require("../services/chatbotService");
 
 const handleAsk = async (req, res) => {
   try {
-    const { message } = req.body;
+    // --- Lấy sessionId ---
+    const { message, sessionId } = req.body;
+
     if (!message) return res.status(400).json({ error: "Message is required" });
 
-    // Gọi Service xử lý logic
-    const result = await chatbotService.processUserMessage(message);
+    // --- Truyền sessionId vào service ---
+    const result = await chatbotService.processUserMessage(
+      message,
+      sessionId || "guest"
+    );
 
     // Trả kết quả về client
     res.json(result);

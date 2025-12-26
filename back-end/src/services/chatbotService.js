@@ -5,6 +5,27 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
+// --- THÊM ĐOẠN NÀY: KHỞI TẠO BỘ NHỚ TẠM ---
+const chatSessions = new Map(); // Lưu trữ: sessionId -> [messages]
+
+// Hàm dọn dẹp bộ nhớ định kỳ (tránh tràn RAM)
+setInterval(() => {
+  chatSessions.clear();
+  console.log("--- Đã reset bộ nhớ chat tạm thời ---");
+}, 24 * 60 * 60 * 1000); // 24h dọn 1 lần
+
+// Hàm cập nhật lịch sử chat (Chỉ giữ 6 tin gần nhất = 3 cặp hỏi đáp)
+const updateHistory = (sessionId, userMsg, assistantMsg) => {
+  let currentHistory = chatSessions.get(sessionId) || [];
+  currentHistory.push({ role: "user", content: userMsg });
+  currentHistory.push({ role: "assistant", content: assistantMsg });
+
+  if (currentHistory.length > 6) {
+    currentHistory = currentHistory.slice(-6);
+  }
+  chatSessions.set(sessionId, currentHistory);
+};
+
 // --- DỮ LIỆU THAM CHIẾU ---
 // Menu để AI biết trung tâm có gì mà map dữ liệu
 const REFERENCE_DATA = `
@@ -45,8 +66,12 @@ const tools = [
   },
 ];
 
-const processUserMessage = async (message) => {
+const processUserMessage = async (message, sessionId) => {
   const todayStr = new Date().toLocaleDateString("vi-VN");
+
+  // --- THÊM ĐOẠN NÀY: Lấy lịch sử cũ ---
+  // Nếu không có sessionId (trường hợp lỗi), dùng mảng rỗng
+  const history = sessionId ? chatSessions.get(sessionId) || [] : [];
 
   // --- SYSTEM PROMPT ---
   const conversation = [
@@ -86,6 +111,7 @@ const processUserMessage = async (message) => {
       ### LUÔN XƯNG EM, GỌI KHÁCH LÀ anh/chị.
       `,
     },
+    ...history,
     { role: "user", content: message },
   ];
 
@@ -229,6 +255,12 @@ const processUserMessage = async (message) => {
       temperature: 0.7,
     });
 
+    // --- CẬP NHẬT LỊCH SỬ CHAT ---
+    const finalReply = secondRunner.choices[0].message.content;
+
+    // >>> THÊM DÒNG NÀY: Lưu lại cặp hội thoại này vào bộ nhớ <<<
+    if (sessionId) updateHistory(sessionId, message, finalReply);
+
     return {
       type: "course_list",
       reply: secondRunner.choices[0].message.content,
@@ -237,6 +269,8 @@ const processUserMessage = async (message) => {
   }
 
   // --- Chat bình thường (Không gọi tool) ---
+  // Lưu lại cặp hội thoại này vào bộ nhớ
+  if (sessionId) updateHistory(sessionId, message, response.content);
   return {
     type: "text",
     reply: response.content,
