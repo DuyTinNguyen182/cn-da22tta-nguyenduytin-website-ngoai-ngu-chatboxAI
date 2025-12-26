@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   PieChartOutlined,
   UserOutlined,
@@ -15,6 +15,8 @@ import {
   TagsOutlined,
   PictureOutlined,
   LogoutOutlined,
+  DownOutlined,
+  CaretDownOutlined,
 } from "@ant-design/icons";
 import {
   Flex,
@@ -24,7 +26,8 @@ import {
   Result,
   Button,
   Avatar,
-  Typography,
+  Dropdown, // Import thêm Dropdown
+  theme,
 } from "antd";
 import {
   Link,
@@ -38,6 +41,7 @@ import {
 import { useAuth } from "../../context/AuthContext";
 import apiClient from "../../api/axiosConfig";
 
+// Import các component con (Giữ nguyên như cũ)
 import Overview from "./Overview/Overview";
 import UserManager from "./UserManager/UserManager";
 import UpdateUser from "./UserManager/UpdateUser";
@@ -61,12 +65,12 @@ import SlideshowManager from "./SlideshowManager/SlideshowManager";
 import UpdateSlideshow from "./SlideshowManager/UpdateSlideshow";
 
 const { Sider } = Layout;
-const { Text } = Typography;
 
 function getItem(label, key, icon, children) {
   return { key, icon, children, label };
 }
 
+// Menu chính của Sidebar (Bỏ nút đăng xuất ở đây)
 const menuItems = [
   getItem(
     <Link to="overview">Tổng quan</Link>,
@@ -139,6 +143,7 @@ const AdminLayout = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [collapsed, setCollapsed] = useState(false);
+  const { token } = theme.useToken(); // Lấy màu từ theme để style đẹp hơn
 
   const { state, dispatch } = useAuth();
   const { currentUser, loading } = state;
@@ -155,6 +160,29 @@ const AdminLayout = () => {
       console.log(error);
     }
   };
+
+  // Cấu hình menu cho Dropdown (Popup)
+  const userDropdownItems = [
+    {
+      key: "home",
+      label: (
+        <Link to="/" target="_blank">
+          Xem trang người dùng
+        </Link>
+      ),
+      icon: <ExportOutlined />,
+    },
+    {
+      type: "divider",
+    },
+    {
+      key: "logout",
+      label: "Đăng xuất",
+      icon: <LogoutOutlined />,
+      danger: true,
+      onClick: handleLogout,
+    },
+  ];
 
   if (loading) {
     return <Spin fullscreen tip="Đang kiểm tra quyền truy cập..." />;
@@ -176,132 +204,118 @@ const AdminLayout = () => {
   }
 
   return (
-    <Layout style={{ minHeight: "100vh" }}>
+    // FIX SCROLLBAR: Đặt cố định chiều cao 100vh và ẩn thanh cuộn thừa
+    <Layout style={{ height: "100vh", overflow: "hidden" }}>
       <Sider
         collapsible
         collapsed={collapsed}
         onCollapse={setCollapsed}
         width={260}
+        style={{
+          overflowY: "auto", // Cho phép menu cuộn nếu quá dài
+          height: "100vh", // Full chiều cao
+          scrollbarWidth: "thin", // (Tùy chọn) Thanh cuộn mỏng cho đẹp trên Firefox
+        }}
       >
         <div
           style={{
             display: "flex",
             flexDirection: "column",
-            height: "100%",
-            paddingBottom: "50px",
+            minHeight: "100%",
           }}
         >
-          <Flex
-            className="admin-user-info"
-            align="center"
-            justify={collapsed ? "center" : "flex-start"}
-            style={{
-              padding: "20px",
-              borderBottom: "1px solid rgba(255, 255, 255, 0.1)",
-              marginBottom: "10px",
-              transition: "all 0.2s",
-            }}
-          >
-            <div style={{ position: "relative", flexShrink: 0 }}>
-              <Avatar
-                size={collapsed ? 40 : 44}
-                src={currentUser.avatar}
-                icon={<UserOutlined />}
-                style={{ border: "2px solid #1890ff" }}
-              />
-
-              <Link to="/" target="_blank" title="Xem trang người dùng">
-                <ExportOutlined
-                  style={{
-                    position: "absolute",
-                    bottom: -2,
-                    right: -4,
-                    backgroundColor: "#1890ff",
-                    color: "white",
-                    padding: "4px",
-                    borderRadius: "50%",
-                    fontSize: "10px",
-                    border: "2px solid #001529",
-                    cursor: "pointer",
-                  }}
-                />
-              </Link>
-            </div>
-
-            {!collapsed && (
-              <div
+          {/* PHẦN USER INFO + DROPDOWN */}
+          <div style={{ padding: "20px 15px 10px 15px" }}>
+            <Dropdown
+              menu={{ items: userDropdownItems }}
+              trigger={["click"]}
+              placement="bottomRight"
+              arrow
+            >
+              <Flex
+                align="center"
+                justify={collapsed ? "center" : "flex-start"}
                 style={{
-                  marginLeft: "12px",
-                  display: "flex",
-                  flexDirection: "column",
-                  justifyContent: "center",
-                  overflow: "hidden",
+                  padding: "10px",
+                  backgroundColor: "rgba(255, 255, 255, 0.1)",
+                  borderRadius: "8px",
+                  cursor: "pointer",
+                  transition: "all 0.3s",
+                  border: "1px solid rgba(255, 255, 255, 0.05)",
                 }}
+                className="user-profile-trigger" // Class để hover effect nếu muốn
               >
-                <div
-                  style={{
-                    color: "white",
-                    fontWeight: "600",
-                    fontSize: "14px",
-                    lineHeight: "1.2",
-                    marginBottom: "4px",
-                    whiteSpace: "nowrap",
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                    maxWidth: "160px",
-                  }}
-                >
-                  {currentUser.fullname}
-                </div>
-                <div
-                  style={{
-                    fontSize: "11px",
-                    color: "rgba(255,255,255,0.6)",
-                    lineHeight: "1",
-                  }}
-                >
-                  {currentUser.role}
-                </div>
-              </div>
-            )}
-          </Flex>
+                <Avatar
+                  size={collapsed ? 36 : 40}
+                  src={currentUser.avatar}
+                  icon={<UserOutlined />}
+                  style={{ border: "2px solid #1890ff", flexShrink: 0 }}
+                />
 
+                {!collapsed && (
+                  <div style={{ marginLeft: 12, overflow: "hidden", flex: 1 }}>
+                    <div
+                      style={{
+                        color: "white",
+                        fontWeight: 600,
+                        fontSize: "14px",
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                      }}
+                    >
+                      {currentUser.fullname}
+                    </div>
+                    <Flex justify="space-between" align="center">
+                      <span
+                        style={{
+                          fontSize: "11px",
+                          color: "rgba(255,255,255,0.6)",
+                        }}
+                      >
+                        {currentUser.role}
+                      </span>
+                      <CaretDownOutlined
+                        style={{
+                          fontSize: "10px",
+                          color: "rgba(255,255,255,0.4)",
+                        }}
+                      />
+                    </Flex>
+                  </div>
+                )}
+              </Flex>
+            </Dropdown>
+          </div>
+
+          <div style={{ padding: "0 15px", marginBottom: "10px" }}>
+            <div
+              style={{
+                height: "1px",
+                backgroundColor: "rgba(255, 255, 255, 0.1)",
+              }}
+            ></div>
+          </div>
+
+          {/* MENU CHÍNH */}
           <Menu
             theme="dark"
             selectedKeys={[activeTab]}
             mode="inline"
             items={menuItems}
-            style={{ flex: 1, overflowY: "auto", overflowX: "hidden" }}
+            style={{ borderRight: 0 }}
           />
-
-          <div
-            style={{
-              padding: "10px 16px",
-              borderTop: "1px solid rgba(255, 255, 255, 0.1)",
-            }}
-          >
-            <Button
-              type="text"
-              danger
-              block
-              icon={<LogoutOutlined />}
-              onClick={handleLogout}
-              style={{
-                textAlign: collapsed ? "center" : "left",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: collapsed ? "center" : "flex-start",
-                color: "#ff4d4f",
-              }}
-            >
-              {!collapsed && "Đăng xuất"}
-            </Button>
-          </div>
         </div>
       </Sider>
 
+      {/* FIX SCROLLBAR: Layout nội dung chiếm phần còn lại */}
       <Layout
-        style={{ padding: "5px 30px", height: "100vh", overflowY: "auto" }}
+        style={{
+          height: "100%",
+          overflowY: "auto", // Chỉ hiện thanh cuộn ở đây
+          padding: "5px 30px",
+          backgroundColor: "#f0f2f5", // Màu nền chuẩn Antd
+        }}
       >
         <Routes>
           <Route index element={<Navigate to="overview" replace />} />

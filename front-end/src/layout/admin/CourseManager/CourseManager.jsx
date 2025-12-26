@@ -46,6 +46,29 @@ function CourseManager() {
   const successMessage = (content) => messageApi.success(content);
   const errorMessage = (content) => messageApi.error(content);
 
+  const [filteredInfo, setFilteredInfo] = useState({});
+
+  const handleChange = (pagination, filters, sorter) => {
+    setFilteredInfo(filters);
+  };
+
+  const selectedLanguageIds = filteredInfo.language_id || [];
+  const levelFilters = languageLevels
+    .filter((level) => {
+      if (selectedLanguageIds.length === 0) return false;
+
+      const levelLangId =
+        typeof level.language_id === "object"
+          ? level.language_id?._id
+          : level.language_id;
+
+      return selectedLanguageIds.includes(levelLangId);
+    })
+    .map((level) => ({
+      text: level.language_level,
+      value: level._id,
+    }));
+
   const getStatusTag = (status) => {
     switch (status) {
       case "upcoming":
@@ -76,6 +99,7 @@ function CourseManager() {
     {
       title: "Ngôn ngữ",
       dataIndex: "language_id",
+      key: "language_id",
       render: (langId) => {
         const id = typeof langId === "object" ? langId?._id : langId;
         const lang = languages.find((l) => l._id === id);
@@ -85,6 +109,7 @@ function CourseManager() {
         text: lang.language,
         value: lang._id,
       })),
+      filteredValue: filteredInfo.language_id || null,
       onFilter: (value, record) => {
         if (!record.language_id) return false;
         if (typeof record.language_id === "object") {
@@ -93,7 +118,21 @@ function CourseManager() {
         return record.language_id === value;
       },
     },
-    { title: "Trình độ", dataIndex: ["languagelevel_id", "language_level"] },
+    {
+      title: "Trình độ",
+      dataIndex: ["languagelevel_id", "language_level"],
+      key: "languagelevel_id",
+      filters: levelFilters,
+      filteredValue: filteredInfo.languagelevel_id || null,
+
+      onFilter: (value, record) => {
+        const levelId =
+          typeof record.languagelevel_id === "object"
+            ? record.languagelevel_id?._id
+            : record.languagelevel_id;
+        return levelId === value;
+      },
+    },
     { title: "Giảng viên", dataIndex: ["teacher_id", "full_name"], width: 180 },
     {
       title: "Ngày BĐ",
@@ -333,6 +372,7 @@ function CourseManager() {
         dataSource={filteredCourses}
         bordered
         scroll={{ x: 1500 }}
+        onChange={handleChange}
       />
 
       <Modal

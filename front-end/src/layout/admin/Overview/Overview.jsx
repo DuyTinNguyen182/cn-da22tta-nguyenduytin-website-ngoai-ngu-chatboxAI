@@ -181,7 +181,7 @@ const Overview = () => {
       color = "bg-blue-50 text-blue-500";
     }
     return (
-      <span className={`px-1.5 py-0.5 rounded text-[8px] font-bold ${color}`}>
+      <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${color}`}>
         {text}
       </span>
     );
@@ -394,7 +394,7 @@ const Overview = () => {
             <div className="grid grid-cols-12 gap-2 h-[45vh] shrink-0 pb-1">
               <div className="col-span-4 bg-white p-3 rounded-xl shadow-sm flex flex-col">
                 <h3 className="text-xs font-bold text-gray-700 mb-1 flex items-center uppercase tracking-wide">
-                  <TeamOutlined className="mr-1 text-indigo-500" /> Top Giáo
+                  <TeamOutlined className="mr-1 text-indigo-500" /> Top Giảng
                   Viên
                 </h3>
                 <div className="flex-1 min-h-0">
@@ -474,7 +474,7 @@ const Overview = () => {
                           className="flex flex-col p-1.5 bg-gray-50 rounded border border-gray-100 hover:border-red-200 transition-colors"
                         >
                           <div className="flex justify-between items-start mb-0.5">
-                            <span className="text-[10px] font-mono text-gray-400 bg-white px-1 border rounded">
+                            <span className="text-[10px] font-mono text-gray-800 bg-white px-1 border rounded">
                               {course.courseid}
                             </span>
                             {renderStatusTag(course.status)}

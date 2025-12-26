@@ -5,7 +5,7 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-// --- THÊM ĐOẠN NÀY: KHỞI TẠO BỘ NHỚ TẠM ---
+// --- KHỞI TẠO BỘ NHỚ TẠM ---
 const chatSessions = new Map(); // Lưu trữ: sessionId -> [messages]
 
 // Hàm dọn dẹp bộ nhớ định kỳ (tránh tràn RAM)
@@ -27,7 +27,7 @@ const updateHistory = (sessionId, userMsg, assistantMsg) => {
 };
 
 // --- DỮ LIỆU THAM CHIẾU ---
-// Menu để AI biết trung tâm có gì mà map dữ liệu
+// Menu khóa học và quy tắc xử lý
 const REFERENCE_DATA = `
 DANH MỤC KHÓA HỌC HIỆN CÓ TẠI TRUNG TÂM DREAM:
 1. Tiếng Anh: Hệ CEFR (A1, A2, B1, B2, C1, C2).
@@ -69,8 +69,8 @@ const tools = [
 const processUserMessage = async (message, sessionId) => {
   const todayStr = new Date().toLocaleDateString("vi-VN");
 
-  // --- THÊM ĐOẠN NÀY: Lấy lịch sử cũ ---
-  // Nếu không có sessionId (trường hợp lỗi), dùng mảng rỗng
+  // --- Lấy lịch sử cũ ---
+  // Nếu không có sessionId, dùng mảng rỗng
   const history = sessionId ? chatSessions.get(sessionId) || [] : [];
 
   // --- SYSTEM PROMPT ---
@@ -183,7 +183,7 @@ const processUserMessage = async (message, sessionId) => {
       });
     }
 
-    // 3. Sắp xếp kết quả
+    // BƯỚC 3. Sắp xếp kết quả
     if (isUpcoming) {
       filtered = filtered.filter((c) => new Date(c.Start_Date) >= today);
     }
@@ -198,7 +198,7 @@ const processUserMessage = async (message, sessionId) => {
 
     filtered = filtered.slice(0, 4);
 
-    // 4. Chuẩn bị dữ liệu hiển thị
+    // BƯỚC 4. Chuẩn bị dữ liệu hiển thị
     const courseDataForAI = filtered.map((c) => {
       const teacherName = c.teacher_id?.full_name || "Đang cập nhật";
       const gender = c.teacher_id?.gender;
@@ -235,7 +235,7 @@ const processUserMessage = async (message, sessionId) => {
       ),
     });
 
-    // *** MAGIC STEP: Ép AI giải thích logic suy luận ***
+    // MAGIC STEP: Ép AI giải thích logic suy luận
     // Lúc này đã có kết quả mới cho phép AI giải thích
     conversation.push({
       role: "system",
@@ -258,7 +258,7 @@ const processUserMessage = async (message, sessionId) => {
     // --- CẬP NHẬT LỊCH SỬ CHAT ---
     const finalReply = secondRunner.choices[0].message.content;
 
-    // >>> THÊM DÒNG NÀY: Lưu lại cặp hội thoại này vào bộ nhớ <<<
+    // Lưu lại cặp hội thoại này vào bộ nhớ
     if (sessionId) updateHistory(sessionId, message, finalReply);
 
     return {
