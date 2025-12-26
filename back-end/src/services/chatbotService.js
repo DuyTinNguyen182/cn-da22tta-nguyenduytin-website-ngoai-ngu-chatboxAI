@@ -5,6 +5,23 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
+// --- DỮ LIỆU THAM CHIẾU ---
+// Menu để AI biết trung tâm có gì mà map dữ liệu
+const REFERENCE_DATA = `
+DANH MỤC KHÓA HỌC HIỆN CÓ TẠI TRUNG TÂM DREAM:
+1. Tiếng Anh: Hệ CEFR (A1, A2, B1, B2, C1, C2).
+2. Tiếng Trung: Hệ HSK (HSK 1 đến HSK 6).
+3. Tiếng Nhật: Hệ JLPT (N5, N4, N3, N2, N1).
+4. Tiếng Hàn: Hệ TOPIK (TOPIK 1 đến TOPIK 6).
+5. Tiếng Pháp/Đức: Hệ CEFR (A1, A2, B1, B2).
+6. Các ngôn ngữ khác (Ý, Nga, Tây Ban Nha, Bồ Đào Nha): Hệ CEFR (A1, A2).
+
+LƯU Ý QUAN TRỌNG: 
+- Trung tâm KHÔNG dạy tên các chứng chỉ quốc tế như IELTS, TOEIC, VSTEP.
+- Nếu khách hỏi IELTS/TOEIC/Du học -> Tự động quy đổi sang hệ CEFR (Tiếng Anh) tương đương.
+- Nếu khách hỏi Xuất khẩu lao động/Giao tiếp -> Tự động quy đổi sang cấp độ sơ-trung cấp tương ứng (A2/B1 hoặc N4/N3, Topik 2/3).
+`;
+
 // --- TOOLS ---
 const tools = [
   {
@@ -12,13 +29,14 @@ const tools = [
     function: {
       name: "search_courses",
       description:
-        "Tìm kiếm khóa học trong database. Dùng khi người dùng hỏi: danh sách khóa học, học phí, thời gian học, ngày khai giảng, khóa học sắp diễn ra, lớp mới hoặc có liên quan.",
+        "Tìm kiếm khóa học trong Database. BẮT BUỘC DÙNG khi khách hỏi về học tập.",
       parameters: {
         type: "object",
         properties: {
           keyword: {
             type: "string",
-            description: "Từ khóa liên quan đến khóa học.",
+            description:
+              "Từ khóa tìm kiếm BẮT BUỘC PHẢI BAO GỒM: [Tên Ngôn Ngữ] + [Trình độ]. Ví dụ: 'Tiếng Nga A2', 'Tiếng Anh B1'. KHÔNG ĐƯỢC chỉ điền mỗi trình độ như 'A2' hay 'B1'.",
           },
         },
         required: ["keyword"],
@@ -30,32 +48,59 @@ const tools = [
 const processUserMessage = async (message) => {
   const todayStr = new Date().toLocaleDateString("vi-VN");
 
-  // Chat system prompt
+  // --- SYSTEM PROMPT ---
   const conversation = [
     {
       role: "system",
-      content: `Bạn là trợ lý ảo của trung tâm DREAM. Hôm nay là ngày ${todayStr}. 
-          Bạn sẽ giúp tìm khóa học phù hợp khi người dùng yêu cầu. 
-          - Lưu ý quan trọng: Dựa vào ngày bắt đầu của khóa học so với hôm nay (${todayStr}) để dùng thì cho đúng: 
-          + Nếu ngày bắt đầu ở quá khứ: Dùng "đã bắt đầu", "đã kết thúc" hoặc "đang diễn ra". 
-          + Nếu ngày bắt đầu ở tương lai: Dùng "sẽ khai giảng".
-          * Tuyệt đối không đọc lại dữ liệu, chỉ tổng hợp số lượng hay ngày tháng (nếu hỏi thời gian khóa học). 
-          - Luôn thân thiện, xưng 'em' và gọi khách là 'anh/chị'.`,
+      content: `Bạn là Chuyên gia Tư vấn Giáo dục của DREAM (Ngày: ${todayStr}).
+      
+      ### DỮ LIỆU THAM CHIẾU:
+      ${REFERENCE_DATA}
+
+      ### QUY TẮC XỬ LÝ (QUAN TRỌNG NHẤT):
+      1. Nhiệm vụ ưu tiên số 1: Nhận diện nhu cầu học tập của khách -> **GỌI TOOL NGAY LẬP TỨC**.
+      2. **TUYỆT ĐỐI KHÔNG NÓI GÌ** (kể cả câu chào hay câu "đợi chút") trước khi gọi tool.
+      3. **CẤM** in ra các dòng chữ dạng "Call Tool:...", "Function...", "Action...". Việc gọi tool phải được thực hiện ngầm qua hệ thống.
+
+      ### SUY LUẬN TỪ KHÓA (LOGIC):
+      - Khách muốn Du học/Định cư -> Cần chứng chỉ quốc tế -> Quy đổi sang khóa tương đương (VD: Anh B2, Hàn Topik 2...).
+      - Khách muốn Giải trí/Giao tiếp -> Cần trình độ sơ-trung cấp -> Quy đổi sang khóa cơ bản (VD: Nhật N4, Anh A2...).
+
+      ### BẢNG CẤM KỴ (CHECK KỸ TRƯỚC KHI TẠO KEYWORD):
+      - Tiếng HÀN: CHỈ ĐƯỢC DÙNG "Topik". CẤM dùng "N3", "A2", "HSK". (Sai: Tiếng Hàn N3 -> Đúng: Tiếng Hàn Topik 2).
+      - Tiếng NHẬT: CHỈ ĐƯỢC DÙNG "N". CẤM dùng "Topik". (Sai: Tiếng Nhật A2 -> Đúng: Tiếng Nhật N4).
+      - Tiếng TRUNG: CHỈ ĐƯỢC DÙNG "HSK".
+      - Tiếng ANH/PHÁP/ĐỨC/NGA/TÂY BAN NHA/BỒ ĐÀO NHA: CHỈ ĐƯỢC DÙNG hệ A, B, C (CEFR). 
+
+      ### VÍ DỤ MẪU (HÃY HỌC CÁCH HÀNH ĐỘNG, ĐỪNG HỌC VẸT VĂN BẢN):
+
+      User: "Tôi muốn học để đi du học Đức"
+      Assistant: (Hành động ngầm: Gọi tool search_courses với keyword="Tiếng Đức B1" hoặc "Tiếng Đức B2")
+      
+      User: "Có lớp tiếng Hàn nào sắp mở không?"
+      Assistant: (Hành động ngầm: Gọi tool search_courses với keyword="Tiếng Hàn")
+
+      User: "Em muốn xem phim Nhật không cần sub"
+      Assistant: (Hành động ngầm: Gọi tool search_courses với keyword="Tiếng Nhật N3")
+
+      ### LUÔN XƯNG EM, GỌI KHÁCH LÀ anh/chị.
+      `,
     },
     { role: "user", content: message },
   ];
 
-  // --- STEP 1: AI phân tích ---
+  // --- STEP 1: Gọi AI ---
   const firstRunner = await openai.chat.completions.create({
     model: "gpt-4o-mini",
     messages: conversation,
     tools: tools,
     tool_choice: "auto",
+    temperature: 0,
   });
 
   const response = firstRunner.choices[0].message;
 
-  // --- STEP 2: Nếu AI gọi search_courses ---
+  // --- STEP 2: Xử lý Tool Call ---
   if (response.tool_calls) {
     const toolCall = response.tool_calls[0];
     let args = {};
@@ -66,8 +111,9 @@ const processUserMessage = async (message) => {
     }
 
     const keyword = args.keyword || "";
-    console.log("AI tìm kiếm với keyword:", keyword);
+    console.log("LOG: AI suy luận và tìm kiếm với keyword:", keyword);
 
+    // 1. Lấy dữ liệu từ DB
     const courses = await Course.find()
       .populate("language_id")
       .populate("languagelevel_id")
@@ -77,139 +123,120 @@ const processUserMessage = async (message) => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    const lowerKeyword = keyword.toLowerCase();
+    // 2. Logic Filter
+    const lowerKeyword = keyword.toLowerCase().trim();
+    const teacherIntents = ["gv", "giáo viên", "thầy", "cô"];
+    const hasTeacherIntent = teacherIntents.some((t) =>
+      lowerKeyword.includes(t)
+    );
+    const isUpcoming = ["sắp", "tới", "khai giảng", "mới"].some((w) =>
+      lowerKeyword.includes(w)
+    );
 
-    const timeKeywords = [
-      "sắp",
-      "gần",
-      "tới",
-      "chuẩn bị",
-      "upcoming",
-      "khai giảng",
-      "mở",
-      "mới",
-    ];
-    const isUpcoming = timeKeywords.some((w) => lowerKeyword.includes(w));
-
-    if (keyword.trim() !== "") {
-      // 1. Kiểm tra ý định tìm Giáo viên
-      const teacherIntents = ["gv", "giáo viên", "thầy", "cô"];
-      const hasTeacherIntent = teacherIntents.some((t) =>
-        lowerKeyword.includes(t)
-      );
-
-      // 2. Làm sạch từ khóa
-      let cleanKeyword = lowerKeyword
-        .replace(
-          /(khóa học|lớp|giá|học phí|tìm|cho mình|tôi muốn|hỏi|về|có|không|trình độ|của|là|bao nhiêu|trong|bao lâu)/g,
-          " "
-        )
-        .trim();
-
-      if (hasTeacherIntent) {
-        cleanKeyword = cleanKeyword
-          .replace(/(gv|giáo viên|thầy|cô)/g, "")
-          .trim();
-      }
-
-      const searchTerms = cleanKeyword.split(/\s+/).filter((t) => t.length > 0);
+    if (lowerKeyword !== "") {
+      const searchTerms = lowerKeyword
+        .split(/\s+/)
+        .filter((t) => t.length > 0 && t !== "tiếng");
 
       filtered = filtered.filter((c) => {
-        // 3. Xây dựng phạm vi tìm kiếm
-        // Mặc định: Ngôn ngữ + Trình độ + Mã khóa
-        let searchScope = `${c.language_id?.language} ${c.languagelevel_id?.language_level} ${c.courseid}`;
-
-        //Nếu tìm giáo viên -> Thêm tên giáo viên vào phạm vi tìm kiếm
+        const lang = c.language_id?.language || "";
+        const levelName = c.languagelevel_id?.language_level || "";
+        const levelCode = c.languagelevel_id?.language_levelid || "";
+        const teacherName = c.teacher_id?.full_name || "";
+        // BƯỚC 1: Tạo scope tìm kiếm
+        let searchScope = `${lang} ${levelName} ${levelCode}`;
         if (hasTeacherIntent) {
-          searchScope += ` ${c.teacher_id?.full_name}`;
+          searchScope += ` ${teacherName}`;
         }
+        const normalizedScope = searchScope.toLowerCase();
 
-        const normalizedScope = searchScope
-          .toLowerCase()
-          .replace(/[^\w\sà-ỹ0-9]/g, " ");
-
-        // 4. So sánh: Phải chứa tất cả từ khóa quan trọng
+        // BƯỚC 2: Kiểm tra
         return searchTerms.every((term) => {
-          const regex = new RegExp(`(^|\\s)${term}($|\\s)`, "i");
-          return regex.test(normalizedScope);
+          return normalizedScope.includes(term);
         });
       });
     }
 
+    // 3. Sắp xếp kết quả
     if (isUpcoming) {
       filtered = filtered.filter((c) => new Date(c.Start_Date) >= today);
     }
 
     filtered.sort((a, b) => {
-      if (new Date(a.Start_Date) >= today && new Date(b.Start_Date) >= today) {
-        return new Date(a.Start_Date) - new Date(b.Start_Date);
-      }
-
-      return new Date(b.Start_Date) - new Date(a.Start_Date);
+      const dateA = new Date(a.Start_Date);
+      const dateB = new Date(b.Start_Date);
+      if (dateA >= today && dateB >= today) return dateA - dateB;
+      if (dateA < today && dateB < today) return dateB - dateA;
+      return dateA >= today ? -1 : 1;
     });
 
     filtered = filtered.slice(0, 4);
 
+    // 4. Chuẩn bị dữ liệu hiển thị
     const courseDataForAI = filtered.map((c) => {
       const teacherName = c.teacher_id?.full_name || "Đang cập nhật";
       const gender = c.teacher_id?.gender;
-
-      let teacherWithTitle = teacherName;
-      if (gender === "Nam") {
-        teacherWithTitle = `Thầy ${teacherName}`;
-      } else if (gender === "Nữ") {
-        teacherWithTitle = `Cô ${teacherName}`;
-      }
+      let teacherWithTitle =
+        gender === "Nam"
+          ? `Thầy ${teacherName}`
+          : gender === "Nữ"
+          ? `Cô ${teacherName}`
+          : teacherName;
 
       return {
-        id: c._id,
-        name: `${c.language_id?.language} - ${c.languagelevel_id?.language_level}`,
-        teacher: teacherWithTitle,
-        price: c.discounted_price || c.Tuition,
-        duration: `${c.Number_of_periods} tiết`,
-        startDate: new Date(c.Start_Date).toLocaleDateString("vi-VN"),
-        end_date: new Date(c.end_date).toLocaleDateString("vi-VN"),
-        status: c.status,
-        discount_percent: c.discount_percent,
-        discounted_price: c.discounted_price,
-        Tuition: c.Tuition,
+        Môn: `${c.language_id?.language} - ${c.languagelevel_id?.language_level}`,
+        "Học phí": c.discounted_price
+          ? `${c.discounted_price} (Đã giảm)`
+          : c.Tuition,
+        "Khai giảng": new Date(c.Start_Date).toLocaleDateString("vi-VN"),
+        "Giảng viên": teacherWithTitle,
       };
     });
 
-    // Nếu không tìm thấy khóa nào
-    if (filtered.length === 0) {
-      conversation.push(response);
-      conversation.push({
-        role: "tool",
-        tool_call_id: toolCall.id,
-        name: "search_courses",
-        content: JSON.stringify({
-          message: "Không tìm thấy khóa học nào khớp với từ khóa.",
-        }),
-      });
-    } else {
-      conversation.push(response);
-      conversation.push({
-        role: "tool",
-        tool_call_id: toolCall.id,
-        name: "search_courses",
-        content: JSON.stringify(courseDataForAI),
-      });
-    }
+    // --- STEP 3: Phản hồi lại AI ---
+    // Push tool call vào history để AI nhớ ngữ cảnh
+    conversation.push(response);
 
+    // Push kết quả tìm kiếm
+    conversation.push({
+      role: "tool",
+      tool_call_id: toolCall.id,
+      name: "search_courses",
+      content: JSON.stringify(
+        filtered.length > 0
+          ? courseDataForAI
+          : { message: "Không tìm thấy lớp phù hợp trong DB." }
+      ),
+    });
+
+    // *** MAGIC STEP: Ép AI giải thích logic suy luận ***
+    // Lúc này đã có kết quả mới cho phép AI giải thích
+    conversation.push({
+      role: "system",
+      content: `Dữ liệu khóa học đã được tìm thấy dựa trên từ khóa "${keyword}" mà bạn suy luận.
+      
+      NHIỆM VỤ TRẢ LỜI KHÁCH HÀNG:
+      1. **Giải thích Logic:** Hãy nói rõ cho khách biết tại sao từ nhu cầu "${message}" bạn lại chọn tìm khóa "${keyword}". (VD: "Anh/chị muốn du học Anh nên cần IELTS ~6.0, tương đương khóa B2 này...").
+      2. **Giới thiệu khóa học:** Trình bày thông tin các lớp tìm được.
+      3. **Chốt:** Nếu cần thêm thông tin gì hãy hỏi em nhé!
+      `,
+    });
+
+    // Gọi AI lần 2 để tạo câu trả lời cuối cùng
     const secondRunner = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: conversation,
+      temperature: 0.7,
     });
 
     return {
       type: "course_list",
       reply: secondRunner.choices[0].message.content,
-      data: filtered.length > 0 ? filtered : null, // Chỉ trả về data để hiển thị bảng nếu có kết quả
+      data: filtered.length > 0 ? filtered : null,
     };
   }
 
-  // --- Chat bình thường ---
+  // --- Chat bình thường (Không gọi tool) ---
   return {
     type: "text",
     reply: response.content,

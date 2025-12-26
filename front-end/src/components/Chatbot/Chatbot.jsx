@@ -29,19 +29,10 @@ function Chatbot() {
   const { currentUser } = state;
 
   const suggestionQuestions = [
-    "Khóa học Tiếng Anh kéo dài trong bao lâu?",
-    "Học phí khóa học Tiếng Nhật N3 là bao nhiêu?",
-    "Khi nào có lớp Tiếng Hàn mới?",
+    "Muốn làm giảng viên tiếng Anh học gì?",
+    "Xem bóng đá Châu Âu học gì?",
+    "Sắp đi du học Đức học gì?",
   ];
-
-  // const setGender = (currentUser) => {
-  //   if (currentUser?.gender == "Nam") {
-  //     return "Anh";
-  //   } else if (currentUser?.gender == "Nữ") {
-  //     return "Nữ";
-  //   }
-  //   return "Anh/chị";
-  // };
 
   useEffect(() => {
     if (messages.length === 0) {
@@ -122,67 +113,6 @@ function Chatbot() {
         return <span className={`${badgeStyles} bg-gray-400`}>{status}</span>;
     }
   };
-
-  const CourseCarousel = ({ courses }) => (
-    <div
-      className={
-        isExpanded
-          ? "grid grid-cols-1 md:grid-cols-3 gap-4 w-full mt-2 p-1"
-          : "grid grid-cols-2 gap-2 w-full mt-2 pr-1"
-      }
-    >
-      {courses.map((course) => (
-        <div
-          key={course._id}
-          className="bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-all cursor-pointer overflow-hidden flex flex-col group w-full"
-          onClick={() => {
-            if (isExpanded) setIsExpanded(false);
-            navigate(`/courses/${course._id}`);
-          }}
-        >
-          <div className="h-[110px] w-full bg-gray-100 relative overflow-hidden">
-            <img
-              src={course.image || imgbg}
-              alt={course.courseid}
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-              onError={(e) => (e.target.style.display = "none")}
-            />
-            {course.discount_percent > 0 && (
-              <span className="absolute top-0 right-0 bg-yellow-400 text-red-600 text-[10px] font-bold px-1.5 py-0.5 rounded-bl-lg shadow-sm">
-                -{course.discount_percent}%
-              </span>
-            )}
-          </div>
-
-          <div className="p-2 flex flex-col flex-1 gap-1">
-            <h4 className="font-bold text-gray-800 text-xs line-clamp-2 leading-snug min-h-[32px]">
-              {course.language_id?.language} -{" "}
-              {course.languagelevel_id?.language_level}
-            </h4>
-
-            {/* Giá tiền */}
-            <div className="mt-auto pt-1 flex flex-col">
-              <span className="text-red-600 font-bold text-sm">
-                {course.discounted_price !== undefined
-                  ? course.discounted_price.toLocaleString()
-                  : course.Tuition.toLocaleString()}
-                ₫
-              </span>
-              {course.discount_percent > 0 && (
-                <span className="text-[10px] text-gray-400 line-through -mt-0.5">
-                  {course.Tuition.toLocaleString()}₫
-                </span>
-              )}
-            </div>
-
-            <div className="text-[10px] text-gray-500 truncate mt-1">
-              GV: {course.teacher_id?.full_name}
-            </div>
-          </div>
-        </div>
-      ))}
-    </div>
-  );
 
   return (
     <div
@@ -333,11 +263,20 @@ function Chatbot() {
                                   GV: {c.teacher_id?.full_name}
                                 </div>
                               </td>
-                              <td className="px-4 py-3 text-center text-red-600 font-bold whitespace-nowrap">
-                                {c.discounted_price !== undefined
-                                  ? c.discounted_price.toLocaleString()
-                                  : c.Tuition.toLocaleString()}
-                                ₫
+                              <td className="px-4 py-3 text-center whitespace-nowrap align-middle">
+                                <div className="flex flex-col items-center justify-center">
+                                  <span className="text-red-600 font-bold text-sm">
+                                    {c.discounted_price !== undefined
+                                      ? c.discounted_price.toLocaleString()
+                                      : c.Tuition.toLocaleString()}
+                                    ₫
+                                  </span>
+                                  {c.discount_percent > 0 && (
+                                    <span className="text-xs text-gray-400 line-through mt-0.5">
+                                      {c.Tuition.toLocaleString()}₫
+                                    </span>
+                                  )}
+                                </div>
                               </td>
                               <td className="px-4 py-3 text-center text-gray-600 whitespace-nowrap">
                                 {new Date(c.Start_Date).toLocaleDateString(
@@ -354,17 +293,6 @@ function Chatbot() {
                     </div>
                   </div>
                 )}
-
-              {/* Danh sách khóa học dạng Card (Nếu có) */}
-              {msg.type === "course_list" && msg.data && (
-                <div
-                  className={`mt-4 mb-2 ${
-                    isExpanded ? "w-80% max-w-4xl" : "w-full"
-                  }`}
-                >
-                  <CourseCarousel courses={msg.data} />
-                </div>
-              )}
             </div>
           ))}
 
