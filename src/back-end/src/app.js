@@ -19,12 +19,20 @@ cron.schedule("*/15 * * * *", async () => {
 });
 
 const app = express();
+app.set("trust proxy", 1);
 
 app.use(express.json());
 app.use(cookieParser());
+
+// Danh sách các trang được phép gọi API
+const allowedOrigins = [
+  "http://localhost:5173", // Link Local
+  "https://keen-clafoutis-01026a.netlify.app", // Link Netlify
+];
+
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: allowedOrigins,
     credentials: true,
   })
 );
@@ -34,10 +42,22 @@ app.use(
     secret: "super_secret_key_123",
     resave: false,
     saveUninitialized: false,
+    proxy: true,
     cookie: {
-      secure: false, // Để chạy trên http (localhost)
+      // Nếu đang chạy trên Render (có biến PORT hoặc NODE_ENV) thì bật Secure, còn Local thì tắt
+      secure:
+        process.env.NODE_ENV === "production" || process.env.PORT
+          ? true
+          : false,
+
+      // Trên mạng (khác domain) thì cần 'none', Local thì 'lax'
+      sameSite:
+        process.env.NODE_ENV === "production" || process.env.PORT
+          ? "none"
+          : "lax",
+
       httpOnly: true,
-      maxAge: 24 * 60 * 60 * 1000, // 1 ngày
+      maxAge: 24 * 60 * 60 * 1000,
     },
   })
 );
