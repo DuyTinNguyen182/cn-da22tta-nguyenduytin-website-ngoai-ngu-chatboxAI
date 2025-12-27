@@ -56,7 +56,7 @@ import UpdateCourse from "./CourseManager/UpdateCourse";
 import CourseRegistrationManager from "./CourseRegistrationManager/CourseRegistrationManager";
 import UpdateCourseRegistration from "./CourseRegistrationManager/UpdateCourseRegistration";
 import ReviewManager from "./ReviewManager/ReviewManager";
-import ContactManager from "./ContactManager/Contactmanager";
+import ContactManager from "./ContactManager/ContactManager";
 import ClassSessionManager from "./ClassSessionManager/ClassSessionManager";
 import AdminClassManager from "./ClassManager/AdminClassManager";
 import CouponManager from "./CouponManager/CouponManager";
