@@ -11,10 +11,12 @@ Dự án là hệ thống website quản lý và đăng ký khóa học ngoại 
 
 **Công nghệ sử dụng:**
 
-- **Frontend:** ReactJS, Vite.
-- **Backend:** NodeJS, ExpressJS.
+- **Front-end:** ReactJS, Vite.
+- **Back-end:** NodeJS, ExpressJS.
 - **Database:** MongoDB.
 - **Dịch vụ bên thứ 3:** OpenAI, VNPay, Cloudinary, Google OAuth.
+
+---
 
 ## 🛠️ Yêu cầu cài đặt (Prerequisites)
 
@@ -22,17 +24,19 @@ Dự án là hệ thống website quản lý và đăng ký khóa học ngoại 
 - [Git](https://git-scm.com/).
 - [MongoDB](https://www.mongodb.com/try/download/compass) (Local hoặc tài khoản MongoDB Atlas).
 
+---
+
 ## 🚀 Hướng dẫn cài đặt & Cấu hình
 
 ### 1. Clone dự án
 
 ```bash
-git clone [https://github.com/DuyTinNguyen182/cn-da22tta-nguyenduytin-website-ngoai-ngu-chatboxAI.git](https://github.com/DuyTinNguyen182/cn-da22tta-nguyenduytin-website-ngoai-ngu-chatboxAI.git)
+git clone https://github.com/DuyTinNguyen182/cn-da22tta-nguyenduytin-website-ngoai-ngu-chatboxAI.git
 cd cn-da22tta-nguyenduytin-website-ngoai-ngu-chatboxAI
 
 ```
 
-### 2. Cấu hình Backend (Server)
+### 2. Cấu hình Back-end (Server)
 
 Di chuyển vào thư mục `back-end` và cài đặt thư viện:
 
@@ -42,7 +46,7 @@ npm install
 
 ```
 
-**Tạo file `.env**`:
+**Tạo file `.env`** :
 Tại thư mục `back-end`, tạo file `.env` và điền các thông số tương ứng của bạn vào (dựa trên mẫu dưới đây):
 
 ```env
@@ -90,7 +94,7 @@ node src/app.js
 
 ```
 
-### 3. Cấu hình Frontend (Client)
+### 3. Cấu hình Front-end (Client)
 
 Mở terminal mới, di chuyển vào thư mục `front-end` và cài đặt:
 
@@ -104,15 +108,15 @@ npm install
 Tại thư mục gốc của `front-end`(ngang hàng với`package.json`), tạo file `.env`:
 
 ```env
-# Đường dẫn API tới Backend
+# Đường dẫn API tới Back-end
 VITE_API_DOMAIN=http://localhost:3005
 
-# Client ID của Google (Phải trùng với bên Backend)
+# Client ID của Google (Phải trùng với bên Back-end)
 VITE_GOOGLE_CLIENT_ID=lay_tu_google_cloud_console
 
 ```
 
-Chạy Frontend:
+Chạy Front-end:
 
 ```bash
 npm run dev
@@ -123,12 +127,12 @@ npm run dev
 
 ## 📝 Một số lệnh quan trọng
 
-| Chức năng     | Lệnh (Terminal)                        |
-| ------------- | -------------------------------------- |
-| Chạy Backend  | `node src/app.js` (tại folder backend) |
-| Chạy Frontend | `npm run dev` (tại folder frontend)    |
-| Cài thư viện  | `npm install`                          |
+| Chức năng      | Lệnh (Terminal)                         |
+| -------------- | --------------------------------------- |
+| Chạy Back-end  | `node src/app.js` (tại folder back-end) |
+| Chạy Front-end | `npm run dev` (tại folder front-end)    |
+| Cài thư viện   | `npm install`                           |
 
 ---
 
-_© 2025 Nguyễn Duy Tín - DA22TTA_
+_© 2025 Nguyễn Duy Tín - DA22TTA - 110122182_
