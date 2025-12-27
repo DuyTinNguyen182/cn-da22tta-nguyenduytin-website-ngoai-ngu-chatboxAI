@@ -275,9 +275,11 @@ function Chatbot() {
                               <td className="px-4 py-3 text-center whitespace-nowrap align-middle">
                                 <div className="flex flex-col items-center justify-center">
                                   <span className="text-red-600 font-bold text-sm">
-                                    {c.discounted_price !== undefined
+                                    {c.discounted_price
                                       ? c.discounted_price.toLocaleString()
-                                      : c.Tuition.toLocaleString()}
+                                      : c.Tuition
+                                      ? c.Tuition.toLocaleString()
+                                      : "Liên hệ"}
                                     ₫
                                   </span>
                                   {c.discount_percent > 0 && (
@@ -288,9 +290,11 @@ function Chatbot() {
                                 </div>
                               </td>
                               <td className="px-4 py-3 text-center text-gray-600 whitespace-nowrap">
-                                {new Date(c.Start_Date).toLocaleDateString(
-                                  "vi-VN"
-                                )}
+                                {c.Start_Date
+                                  ? new Date(c.Start_Date).toLocaleDateString(
+                                      "vi-VN"
+                                    )
+                                  : "Đang cập nhật"}
                               </td>
                               <td className="px-4 py-3 text-center">
                                 {getStatusTag(c.status)}

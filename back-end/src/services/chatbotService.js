@@ -26,6 +26,62 @@ const updateHistory = (sessionId, userMsg, assistantMsg) => {
   chatSessions.set(sessionId, currentHistory);
 };
 
+// Hàm phụ trợ: Xử lý tìm kiếm cho 1 từ khóa
+const executeSearchCourse = async (keyword, limit = 4) => {
+  console.log("LOG: Đang tìm kiếm với keyword:", keyword);
+
+  // 1. Lấy dữ liệu từ DB (Lấy hết rồi lọc - Cách của bạn hiện tại)
+  // Lưu ý: Nếu data lớn nên filter ngay từ query MongoDB để tối ưu nhé.
+  const courses = await Course.find()
+    .populate("language_id")
+    .populate("languagelevel_id")
+    .populate("teacher_id");
+
+  let filtered = courses;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  // 2. Logic Filter (Giữ nguyên logic của bạn)
+  const lowerKeyword = keyword.toLowerCase().trim();
+  const teacherIntents = ["gv", "giáo viên", "thầy", "cô"];
+  const hasTeacherIntent = teacherIntents.some((t) => lowerKeyword.includes(t));
+  const isUpcoming = ["sắp", "tới", "khai giảng", "mới"].some((w) =>
+    lowerKeyword.includes(w)
+  );
+
+  if (lowerKeyword !== "") {
+    const searchTerms = lowerKeyword
+      .split(/\s+/)
+      .filter((t) => t.length > 0 && t !== "tiếng");
+    filtered = filtered.filter((c) => {
+      const lang = c.language_id?.language || "";
+      const levelName = c.languagelevel_id?.language_level || "";
+      const levelCode = c.languagelevel_id?.language_levelid || "";
+      const teacherName = c.teacher_id?.full_name || "";
+      let searchScope = `${lang} ${levelName} ${levelCode}`;
+      if (hasTeacherIntent) searchScope += ` ${teacherName}`;
+      const normalizedScope = searchScope.toLowerCase();
+      return searchTerms.every((term) => normalizedScope.includes(term));
+    });
+  }
+
+  // 3. Sắp xếp
+  if (isUpcoming) {
+    filtered = filtered.filter((c) => new Date(c.Start_Date) >= today);
+  }
+  filtered.sort((a, b) => {
+    const dateA = new Date(a.Start_Date);
+    const dateB = new Date(b.Start_Date);
+    if (dateA >= today && dateB >= today) return dateA - dateB;
+    if (dateA < today && dateB < today) return dateB - dateA;
+    return dateA >= today ? -1 : 1;
+  });
+
+  filtered = filtered.slice(0, limit);
+
+  return filtered;
+};
+
 // --- DỮ LIỆU THAM CHIẾU ---
 // Menu khóa học và quy tắc xử lý
 const REFERENCE_DATA = `
@@ -128,143 +184,94 @@ const processUserMessage = async (message, sessionId) => {
 
   // --- STEP 2: Xử lý Tool Call ---
   if (response.tool_calls) {
-    const toolCall = response.tool_calls[0];
-    let args = {};
-    try {
-      args = JSON.parse(toolCall.function.arguments);
-    } catch (e) {
-      console.error("Lỗi parse arguments:", e);
-    }
-
-    const keyword = args.keyword || "";
-    console.log("LOG: AI suy luận và tìm kiếm với keyword:", keyword);
-
-    // 1. Lấy dữ liệu từ DB
-    const courses = await Course.find()
-      .populate("language_id")
-      .populate("languagelevel_id")
-      .populate("teacher_id");
-
-    let filtered = courses;
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    // 2. Logic Filter
-    const lowerKeyword = keyword.toLowerCase().trim();
-    const teacherIntents = ["gv", "giáo viên", "thầy", "cô"];
-    const hasTeacherIntent = teacherIntents.some((t) =>
-      lowerKeyword.includes(t)
-    );
-    const isUpcoming = ["sắp", "tới", "khai giảng", "mới"].some((w) =>
-      lowerKeyword.includes(w)
-    );
-
-    if (lowerKeyword !== "") {
-      const searchTerms = lowerKeyword
-        .split(/\s+/)
-        .filter((t) => t.length > 0 && t !== "tiếng");
-
-      filtered = filtered.filter((c) => {
-        const lang = c.language_id?.language || "";
-        const levelName = c.languagelevel_id?.language_level || "";
-        const levelCode = c.languagelevel_id?.language_levelid || "";
-        const teacherName = c.teacher_id?.full_name || "";
-        // BƯỚC 1: Tạo scope tìm kiếm
-        let searchScope = `${lang} ${levelName} ${levelCode}`;
-        if (hasTeacherIntent) {
-          searchScope += ` ${teacherName}`;
-        }
-        const normalizedScope = searchScope.toLowerCase();
-
-        // BƯỚC 2: Kiểm tra
-        return searchTerms.every((term) => {
-          return normalizedScope.includes(term);
-        });
-      });
-    }
-
-    // BƯỚC 3. Sắp xếp kết quả
-    if (isUpcoming) {
-      filtered = filtered.filter((c) => new Date(c.Start_Date) >= today);
-    }
-
-    filtered.sort((a, b) => {
-      const dateA = new Date(a.Start_Date);
-      const dateB = new Date(b.Start_Date);
-      if (dateA >= today && dateB >= today) return dateA - dateB;
-      if (dateA < today && dateB < today) return dateB - dateA;
-      return dateA >= today ? -1 : 1;
-    });
-
-    filtered = filtered.slice(0, 4);
-
-    // BƯỚC 4. Chuẩn bị dữ liệu hiển thị
-    const courseDataForAI = filtered.map((c) => {
-      const teacherName = c.teacher_id?.full_name || "Đang cập nhật";
-      const gender = c.teacher_id?.gender;
-      let teacherWithTitle =
-        gender === "Nam"
-          ? `Thầy ${teacherName}`
-          : gender === "Nữ"
-          ? `Cô ${teacherName}`
-          : teacherName;
-
-      return {
-        Môn: `${c.language_id?.language} - ${c.languagelevel_id?.language_level}`,
-        "Học phí": c.discounted_price
-          ? `${c.discounted_price} (Đã giảm)`
-          : c.Tuition,
-        "Khai giảng": new Date(c.Start_Date).toLocaleDateString("vi-VN"),
-        "Giảng viên": teacherWithTitle,
-      };
-    });
-
-    // --- STEP 3: Phản hồi lại AI ---
-    // Push tool call vào history để AI nhớ ngữ cảnh
+    //Push tin nhắn của Assistant (chứa intent gọi tool) vào history trước
     conversation.push(response);
 
-    // Push kết quả tìm kiếm
-    conversation.push({
-      role: "tool",
-      tool_call_id: toolCall.id,
-      name: "search_courses",
-      content: JSON.stringify(
-        filtered.length > 0
-          ? courseDataForAI
-          : { message: "Không tìm thấy lớp phù hợp trong DB." }
-      ),
-    });
+    const toolCalls = response.tool_calls;
+    const limitPerSearch = toolCalls.length > 1 ? 2 : 4;
+    const toolResultMessages = []; // Mảng chứa các kết quả trả về
+    let allFoundCourses = []; // Mảng tổng hợp tất cả khóa học tìm được để lưu vào biến trả về client
+
+    await Promise.all(
+      toolCalls.map(async (toolCall) => {
+        let args = {};
+        try {
+          args = JSON.parse(toolCall.function.arguments);
+        } catch (e) {
+          console.error("Lỗi parse arguments:", e);
+        }
+        const keyword = args.keyword || "";
+
+        // 1. Gọi hàm tìm kiếm (Nhận về Dữ liệu Gốc - Raw Data)
+        const searchResult = await executeSearchCourse(keyword, limitPerSearch);
+
+        // 2. Gộp kết quả Raw vào mảng tổng (Trả về cho Frontend React hiển thị)
+        if (searchResult.length > 0) allFoundCourses.push(...searchResult);
+
+        // 3. Format dữ liệu sang tiếng Việt dễ đọc cho AI
+        const aiReadableData = searchResult.map((c) => {
+          const teacherName = c.teacher_id?.full_name || "Đang cập nhật";
+          const gender = c.teacher_id?.gender;
+          let teacherWithTitle =
+            gender === "Nam"
+              ? `Thầy ${teacherName}`
+              : gender === "Nữ"
+              ? `Cô ${teacherName}`
+              : teacherName;
+
+          return {
+            Môn: `${c.language_id?.language} - ${c.languagelevel_id?.language_level}`,
+            "Học phí": c.discounted_price
+              ? `${c.discounted_price} (Đã giảm)`
+              : c.Tuition,
+            "Khai giảng": new Date(c.Start_Date).toLocaleDateString("vi-VN"),
+            "Giảng viên": teacherWithTitle,
+          };
+        });
+
+        // 4. Đóng gói gửi cho AI (Gửi bản tiếng Việt aiReadableData)
+        toolResultMessages.push({
+          role: "tool",
+          tool_call_id: toolCall.id,
+          name: "search_courses",
+          content: JSON.stringify(
+            aiReadableData.length > 0
+              ? aiReadableData
+              : { message: `Không tìm thấy lớp cho từ khóa '${keyword}'` }
+          ),
+        });
+      })
+    );
+
+    // Push TẤT CẢ kết quả tool vào conversation
+    conversation.push(...toolResultMessages);
 
     // MAGIC STEP: Ép AI giải thích logic suy luận
-    // Lúc này đã có kết quả mới cho phép AI giải thích
     conversation.push({
       role: "system",
-      content: `Dữ liệu khóa học đã được tìm thấy dựa trên từ khóa "${keyword}" mà bạn suy luận.
-      
-      NHIỆM VỤ TRẢ LỜI KHÁCH HÀNG:
-      1. **Giải thích Logic:** Hãy nói rõ cho khách biết tại sao từ nhu cầu "${message}" bạn lại chọn tìm khóa "${keyword}". (VD: "Anh/chị muốn du học Anh nên cần IELTS ~6.0, tương đương khóa B2 này...").
-      2. **Giới thiệu khóa học:** Trình bày thông tin các lớp tìm được.
-      3. **Chốt:** Nếu cần thêm thông tin gì hãy hỏi em nhé!
-      `,
+      content: `Dữ liệu khóa học đã được tìm thấy.
+    
+    NHIỆM VỤ TRẢ LỜI KHÁCH HÀNG:
+    1. **Tổng hợp:** Dựa trên TẤT CẢ các kết quả tìm được từ các lần gọi tool.
+    2. **Giải thích:** Tại sao bạn lại tìm những khóa này (khớp với nhu cầu "${message}" thế nào).
+    3. **Giới thiệu:** Trình bày thông tin các lớp.
+    `,
     });
 
-    // Gọi AI lần 2 để tạo câu trả lời cuối cùng
+    // Gọi AI lần 2
     const secondRunner = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: conversation,
       temperature: 0.7,
     });
 
-    // --- CẬP NHẬT LỊCH SỬ CHAT ---
     const finalReply = secondRunner.choices[0].message.content;
-
-    // Lưu lại cặp hội thoại này vào bộ nhớ
     if (sessionId) updateHistory(sessionId, message, finalReply);
 
     return {
       type: "course_list",
-      reply: secondRunner.choices[0].message.content,
-      data: filtered.length > 0 ? filtered : null,
+      reply: finalReply,
+      data: allFoundCourses.length > 0 ? allFoundCourses : null, // Trả về danh sách gộp
     };
   }
 
