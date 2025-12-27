@@ -32,7 +32,7 @@ Dự án là hệ thống website quản lý và đăng ký khóa học ngoại 
 
 ```bash
 git clone https://github.com/DuyTinNguyen182/cn-da22tta-nguyenduytin-website-ngoai-ngu-chatboxAI.git
-cd cn-da22tta-nguyenduytin-website-ngoai-ngu-chatboxAI
+cd cn-da22tta-nguyenduytin-website-ngoai-ngu-chatboxAI/src
 
 ```
 
