@@ -104,7 +104,7 @@ npm install
 
 ```
 
-**Tạo file `.env**`:
+**Tạo file `.env`**:
 Tại thư mục gốc của `front-end`(ngang hàng với`package.json`), tạo file `.env`:
 
 ```env
