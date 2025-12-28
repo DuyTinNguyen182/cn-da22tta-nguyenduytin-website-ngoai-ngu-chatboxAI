@@ -230,7 +230,7 @@ async function handleVnpayIpn(vnp_Params) {
   if (vnp_Params["vnp_ResponseCode"] === "00") {
     registration.isPaid = true;
     registration.paymentDate = new Date(); // Cập nhật ngày thanh toán
-    registration.status = "confirmed";
+    // registration.status = "confirmed";
     await registration.save();
     if (registration.coupon_id) {
       await Coupon.findByIdAndUpdate(registration.coupon_id, {
