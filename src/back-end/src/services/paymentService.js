@@ -57,9 +57,13 @@ async function sendInvoiceEmail(registration) {
     let html = fs.readFileSync(templatePath, "utf8");
 
     // Format các dữ liệu để hiển thị
-    const amountFormatted = new Intl.NumberFormat("vi-VN").format(
-      registration.course_id.discounted_price
-    );
+    const realAmount =
+      registration.final_amount !== undefined &&
+      registration.final_amount !== null
+        ? registration.final_amount
+        : registration.course_id.discounted_price;
+
+    const amountFormatted = new Intl.NumberFormat("vi-VN").format(realAmount);
     const paymentDateFormatted = moment(registration.paymentDate).format(
       "DD/MM/YYYY HH:mm:ss"
     );
