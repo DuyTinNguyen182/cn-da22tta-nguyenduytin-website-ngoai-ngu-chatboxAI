@@ -26,7 +26,7 @@ import {
   Result,
   Button,
   Avatar,
-  Dropdown, // Import thêm Dropdown
+  Dropdown,
   theme,
 } from "antd";
 import {
@@ -41,7 +41,6 @@ import {
 import { useAuth } from "../../context/AuthContext";
 import apiClient from "../../api/axiosConfig";
 
-// Import các component con (Giữ nguyên như cũ)
 import Overview from "./Overview/Overview";
 import UserManager from "./UserManager/UserManager";
 import UpdateUser from "./UserManager/UpdateUser";
@@ -70,7 +69,6 @@ function getItem(label, key, icon, children) {
   return { key, icon, children, label };
 }
 
-// Menu chính của Sidebar (Bỏ nút đăng xuất ở đây)
 const menuItems = [
   getItem(
     <Link to="overview">Tổng quan</Link>,
@@ -143,7 +141,7 @@ const AdminLayout = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [collapsed, setCollapsed] = useState(false);
-  const { token } = theme.useToken(); // Lấy màu từ theme để style đẹp hơn
+  const { token } = theme.useToken();
 
   const { state, dispatch } = useAuth();
   const { currentUser, loading } = state;
@@ -161,7 +159,6 @@ const AdminLayout = () => {
     }
   };
 
-  // Cấu hình menu cho Dropdown (Popup)
   const userDropdownItems = [
     {
       key: "home",
@@ -204,7 +201,6 @@ const AdminLayout = () => {
   }
 
   return (
-    // FIX SCROLLBAR: Đặt cố định chiều cao 100vh và ẩn thanh cuộn thừa
     <Layout style={{ height: "100vh", overflow: "hidden" }}>
       <Sider
         collapsible
@@ -212,9 +208,9 @@ const AdminLayout = () => {
         onCollapse={setCollapsed}
         width={260}
         style={{
-          overflowY: "auto", // Cho phép menu cuộn nếu quá dài
-          height: "100vh", // Full chiều cao
-          scrollbarWidth: "thin", // (Tùy chọn) Thanh cuộn mỏng cho đẹp trên Firefox
+          overflowY: "auto",
+          height: "100vh",
+          scrollbarWidth: "thin",
         }}
       >
         <div
@@ -224,7 +220,6 @@ const AdminLayout = () => {
             minHeight: "100%",
           }}
         >
-          {/* PHẦN USER INFO + DROPDOWN */}
           <div style={{ padding: "20px 15px 10px 15px" }}>
             <Dropdown
               menu={{ items: userDropdownItems }}
@@ -243,7 +238,7 @@ const AdminLayout = () => {
                   transition: "all 0.3s",
                   border: "1px solid rgba(255, 255, 255, 0.05)",
                 }}
-                className="user-profile-trigger" // Class để hover effect nếu muốn
+                className="user-profile-trigger"
               >
                 <Avatar
                   size={collapsed ? 36 : 40}
@@ -297,7 +292,6 @@ const AdminLayout = () => {
             ></div>
           </div>
 
-          {/* MENU CHÍNH */}
           <Menu
             theme="dark"
             selectedKeys={[activeTab]}
@@ -308,13 +302,12 @@ const AdminLayout = () => {
         </div>
       </Sider>
 
-      {/* FIX SCROLLBAR: Layout nội dung chiếm phần còn lại */}
       <Layout
         style={{
           height: "100%",
-          overflowY: "auto", // Chỉ hiện thanh cuộn ở đây
+          overflowY: "auto",
           padding: "5px 30px",
-          backgroundColor: "#f0f2f5", // Màu nền chuẩn Antd
+          backgroundColor: "#f0f2f5",
         }}
       >
         <Routes>

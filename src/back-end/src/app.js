@@ -27,7 +27,7 @@ app.use(cookieParser());
 // Danh sách các trang được phép gọi API
 const allowedOrigins = [
   "http://localhost:5173", // Link Local
-  "https://keen-clafoutis-01026a.netlify.app", // Link Netlify
+  "https://ngoai-ngu-dream.netlify.app", // Link Netlify
 ];
 
 app.use(

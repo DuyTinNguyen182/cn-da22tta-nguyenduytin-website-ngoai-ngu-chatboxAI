@@ -8,6 +8,8 @@ const bcrypt = require("bcrypt");
 const path = require("path");
 const fs = require("fs");
 
+const isProduction = process.env.NODE_ENV === "production" || process.env.PORT;
+
 const register = async (req, res) => {
   const { fullname } = req.body;
   if (fullname && /[^a-zA-ZÀ-ỹ\s]/.test(fullname)) {
@@ -41,7 +43,12 @@ const login = async (req, res) => {
       return res.status(400).json({ message: result.message });
     }
 
-    res.cookie("token", result.token, { httpOnly: true });
+    res.cookie("token", result.token || token, {
+      httpOnly: true,
+      secure: isProduction ? true : false,
+      sameSite: isProduction ? "none" : "lax",
+      maxAge: 24 * 60 * 60 * 1000, // 1 ngày
+    });
     res.json({ token: result.token });
   } catch (err) {
     console.error(err);
@@ -144,7 +151,12 @@ const loginGoogle = async (req, res) => {
       { expiresIn: "6h" }
     );
 
-    res.cookie("token", token, { httpOnly: true });
+    res.cookie("token", result.token || token, {
+      httpOnly: true,
+      secure: isProduction ? true : false,
+      sameSite: isProduction ? "none" : "lax",
+      maxAge: 24 * 60 * 60 * 1000, // 1 ngày
+    });
     res.json({ token, message: "Đăng nhập Google thành công" });
   } catch (err) {
     console.error(err);
